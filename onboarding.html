@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cognitive OS - Onboarding</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 620px;
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.15);
+      overflow: hidden;
+    }
+
+    /* ===== HEADER ===== */
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 56px 40px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -10%;
+      width: 400px;
+      height: 400px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 50%;
+      animation: float 20s infinite ease-in-out;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-20px); }
+    }
+
+    .header h1 {
+      font-size: 36px;
+      margin-bottom: 8px;
+      font-weight: 700;
+      letter-spacing: -0.8px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .header p {
+      opacity: 0.95;
+      font-size: 14px;
+      letter-spacing: 0.3px;
+      position: relative;
+      z-index: 1;
+      font-weight: 400;
+    }
+
+    /* ===== PROGRESS BAR ===== */
+    .progress-bar {
+      height: 3px;
+      background: #e2e8f0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+      transition: width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* ===== STATUS INDICATOR ===== */
+    .status-indicator {
+      position: absolute;
+      top: 16px;
+      right: 20px;
+      font-size: 11px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      z-index: 2;
+      letter-spacing: 0.3px;
+    }
+
+    .status-indicator.connected {
+      background: rgba(72, 187, 120, 0.15);
+      color: #22543d;
+    }
+
+    .status-indicator.disconnected {
+      background: rgba(245, 101, 101, 0.15);
+      color: #742a2a;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    .status-indicator.connected .status-dot {
+      background: #48bb78;
+    }
+
+    .status-indicator.disconnected .status-dot {
+      background: #f56565;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    /* ===== CONTENT ===== */
+    .content {
+      padding: 48px 40px;
+      min-height: 320px;
+    }
+
+    .screen {
+      display: none;
+      animation: fadeIn 0.35s ease;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ===== INTRO SCREEN ===== */
+    .intro-content {
+      text-align: center;
+    }
+
+    .intro-emoji {
+      font-size: 64px;
+      margin-bottom: 24px;
+      display: block;
+    }
+
+    .intro-content h2 {
+      font-size: 28px;
+      color: #2d3748;
+      margin-bottom: 16px;
+      font-weight: 700;
+    }
+
+    .intro-content p {
+      color: #718096;
+      line-height: 1.7;
+      margin-bottom: 14px;
+      font-size: 15px;
+    }
+
+    /* ===== QUESTION SCREENS ===== */
+    .question-number {
+      font-size: 11px;
+      color: #a0aec0;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 20px;
+      font-weight: 700;
+    }
+
+    .question-text {
+      font-size: 22px;
+      color: #2d3748;
+      margin-bottom: 32px;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+
+    /* ===== FORM ELEMENTS ===== */
+    .form-group {
+      margin-bottom: 28px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 10px;
+      color: #4a5568;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+
+    input[type="text"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: inherit;
+      transition: all 0.3s ease;
+      background: #fafbfc;
+      color: #2d3748;
+    }
+
+    input[type="text"]::placeholder,
+    textarea::placeholder,
+    select::placeholder {
+      color: #cbd5e0;
+    }
+
+    input[type="text"]:focus,
+    textarea:focus,
+    select:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.08);
+      background: white;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+      font-family: inherit;
+    }
+
+    .help-text {
+      font-size: 12px;
+      color: #a0aec0;
+      margin-top: 8px;
+      font-weight: 400;
+    }
+
+    /* ===== CHECKBOXES & RADIO BUTTONS ===== */
+    .checkbox-group,
+    .radio-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .checkbox-item,
+    .radio-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 14px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: #fafbfc;
+    }
+
+    .checkbox-item:hover,
+    .radio-item:hover {
+      border-color: #cbd5e0;
+      background: white;
+    }
+
+    .checkbox-item input,
+    .radio-item input {
+      cursor: pointer;
+      width: 18px;
+      height: 18px;
+      accent-color: #667eea;
+    }
+
+    .checkbox-item label,
+    .radio-item label {
+      margin: 0;
+      cursor: pointer;
+      flex: 1;
+      font-weight: 500;
+      color: #2d3748;
+      font-size: 14px;
+    }
+
+    .checkbox-item input:checked + label,
+    .radio-item input:checked + label {
+      color: #667eea;
+      font-weight: 600;
+    }
+
+    /* ===== INFO BOX ===== */
+    .info-box {
+      background: linear-gradient(135deg, #f8f7ff 0%, #faf8ff 100%);
+      border-left: 3px solid #667eea;
+      padding: 12px 14px;
+      margin-bottom: 24px;
+      border-radius: 10px;
+      font-size: 13px;
+      color: #4a5568;
+      font-weight: 500;
+    }
+
+    /* ===== SUMMARY SCREEN ===== */
+    .summary-content {
+      text-align: center;
+    }
+
+    .summary-emoji {
+      font-size: 64px;
+      margin-bottom: 20px;
+      display: block;
+    }
+
+    .summary-content h2 {
+      font-size: 28px;
+      color: #2d3748;
+      margin-bottom: 24px;
+      font-weight: 700;
+    }
+
+    .profile-display {
+      background: linear-gradient(135deg, #f8f7ff 0%, #faf8ff 100%);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 32px;
+      text-align: left;
+      border: 1px solid #e2e8f0;
+    }
+
+    .profile-item {
+      margin-bottom: 18px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .profile-item:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .profile-label {
+      font-size: 11px;
+      color: #a0aec0;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+
+    .profile-value {
+      font-size: 15px;
+      color: #2d3748;
+      font-weight: 600;
+    }
+
+    /* ===== BUTTONS ===== */
+    .buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 40px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      letter-spacing: 0.3px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-secondary {
+      background: #f7fafc;
+      color: #2d3748;
+      border: 1px solid #e2e8f0;
+    }
+
+    .btn-secondary:hover {
+      background: #edf2f7;
+      border-color: #cbd5e0;
+    }
+
+    .btn-start {
+      width: 100%;
+      padding: 14px;
+      font-size: 15px;
+    }
+
+    /* ===== MESSAGES ===== */
+    .error {
+      background: linear-gradient(135deg, #fee2e2 0%, #fef2f2 100%);
+      border: 1px solid #feb2b2;
+      color: #c53030;
+      padding: 14px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      margin-bottom: 20px;
+      font-weight: 500;
+    }
+
+    .success-message {
+      background: linear-gradient(135deg, #dcfce7 0%, #f0fdf4 100%);
+      border: 1px solid #a7f3d0;
+      color: #22543d;
+      padding: 14px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      margin-bottom: 20px;
+      font-weight: 500;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 640px) {
+      .header {
+        padding: 40px 28px;
+      }
+
+      .header h1 {
+        font-size: 28px;
+      }
+
+      .content {
+        padding: 36px 28px;
+      }
+
+      .question-text {
+        font-size: 18px;
+      }
+
+      .buttons {
+        flex-direction: column-reverse;
+      }
+
+      .btn {
+        flex: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <div class="header">
+      <div class="status-indicator" id="statusIndicator">
+        <div class="status-dot"></div>
+        <span id="statusText">Conectando...</span>
+      </div>
+      <h1>🧠 Cognitive OS</h1>
+      <p>Tu sistema cognitivo personal</p>
+    </div>
+
+    <div class="content">
+      <!-- Screen 0: Intro -->
+      <div class="screen active" id="screen-0">
+        <div class="intro-content">
+          <span class="intro-emoji">👋</span>
+          <h2>Hola</h2>
+          <p>Vamos a preparar tu sistema cognitivo personal en menos de 5 minutos.</p>
+          <p style="color: #a0aec0; font-size: 14px; margin-bottom: 32px;">Esto nos ayuda a entender quién eres y cómo pensar mejor en el tiempo.</p>
+          <button class="btn btn-primary btn-start" onclick="goToScreen(1)">Comenzar →</button>
+        </div>
+      </div>
+
+      <!-- Screen 1: Role -->
+      <div class="screen" id="screen-1">
+        <div class="question-number">Pregunta 1 de 5</div>
+        <h3 class="question-text">¿Cuál es tu rol o contexto actual?</h3>
+        <div class="form-group">
+          <input type="text" id="role" placeholder="Ej: Fundador, Inversor, Jubilado..." maxlength="100">
+          <div class="help-text">Esto personaliza los análisis de IA</div>
+        </div>
+        <div class="buttons">
+          <button class="btn btn-secondary" onclick="goToScreen(0)">← Atrás</button>
+          <button class="btn btn-primary" onclick="nextQuestion(1)">Siguiente →</button>
+        </div>
+      </div>
+
+      <!-- Screen 2: Areas -->
+      <div class="screen" id="screen-2">
+        <div class="question-number">Pregunta 2 de 5</div>
+        <h3 class="question-text">¿En qué áreas tomas decisiones?</h3>
+        <div class="info-box">Selecciona hasta 3 áreas clave</div>
+        <div class="form-group">
+          <div class="checkbox-group" id="areasCheckboxes"></div>
+        </div>
+        <div class="buttons">
+          <button class="btn btn-secondary" onclick="goToScreen(1)">← Atrás</button>
+          <button class="btn btn-primary" onclick="nextQuestion(2)">Siguiente →</button>
+        </div>
+      </div>
+
+      <!-- Screen 3: Decision Types -->
+      <div class="screen" id="screen-3">
+        <div class="question-number">Pregunta 3 de 5</div>
+        <h3 class="question-text">¿Qué tipos de decisiones enfrentas?</h3>
+        <div class="form-group">
+          <div class="checkbox-group" id="decisionTypesCheckboxes"></div>
+        </div>
+        <div class="buttons">
+          <button class="btn btn-secondary" onclick="goToScreen(2)">← Atrás</button>
+          <button class="btn btn-primary" onclick="nextQuestion(3)">Siguiente →</button>
+        </div>
+      </div>
+
+      <!-- Screen 4: Horizon -->
+      <div class="screen" id="screen-4">
+        <div class="question-number">Pregunta 4 de 5</div>
+        <h3 class="question-text">¿Cuál es tu horizonte temporal?</h3>
+        <div class="form-group">
+          <div class="radio-group" id="horizonRadios"></div>
+        </div>
+        <div class="buttons">
+          <button class="btn btn-secondary" onclick="goToScreen(3)">← Atrás</button>
+          <button class="btn btn-primary" onclick="nextQuestion(4)">Siguiente →</button>
+        </div>
+      </div>
+
+      <!-- Screen 5: Known Bias -->
+      <div class="screen" id="screen-5">
+        <div class="question-number">Pregunta 5 de 5</div>
+        <h3 class="question-text">¿Cuál es tu sesgo cognitivo más conocido?</h3>
+        <div class="form-group">
+          <textarea id="knownBias" placeholder="Ej: Tiendo al optimismo, evito conflictos, me cuesta delegar..."></textarea>
+          <div class="help-text">Opcional pero útil para análisis más precisos</div>
+        </div>
+        <div class="buttons">
+          <button class="btn btn-secondary" onclick="goToScreen(4)">← Atrás</button>
+          <button class="btn btn-primary" onclick="nextQuestion(5)">Siguiente →</button>
+        </div>
+      </div>
+
+      <!-- Screen 6: Summary -->
+      <div class="screen" id="screen-6">
+        <div class="summary-content">
+          <span class="summary-emoji">✨</span>
+          <h2>¡Listo!</h2>
+          <p style="color: #718096; margin-bottom: 32px;">Aquí está tu perfil cognitivo:</p>
+          <div class="profile-display">
+            <div class="profile-item">
+              <div class="profile-label">Rol</div>
+              <div class="profile-value" id="summaryRole">-</div>
+            </div>
+            <div class="profile-item">
+              <div class="profile-label">Áreas de decisión</div>
+              <div class="profile-value" id="summaryAreas">-</div>
+            </div>
+            <div class="profile-item">
+              <div class="profile-label">Tipos de decisiones</div>
+              <div class="profile-value" id="summaryTypes">-</div>
+            </div>
+            <div class="profile-item">
+              <div class="profile-label">Horizonte temporal</div>
+              <div class="profile-value" id="summaryHorizon">-</div>
+            </div>
+            <div class="profile-item">
+              <div class="profile-label">Sesgo conocido</div>
+              <div class="profile-value" id="summaryBias">-</div>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-start" onclick="submitOnboarding()">Empezar con Cognitive OS →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = 'http://127.0.0.1:8000';
+    let currentScreen = 0;
+    const totalScreens = 7;
+
+    const areas = ['Trabajo', 'Finanzas', 'Familia', 'Salud', 'Personal', 'Relaciones'];
+    const decisionTypes = ['Operativa (diaria)', 'Estratégica (3-12 meses)', 'Vital (1+ años)'];
+    const horizons = ['Próximos 3 meses', 'Próximo año', '2-5 años', '5+ años'];
+
+    // Check API status
+    async function checkConnectionStatus() {
+      try {
+        const response = await fetch(`${API_URL}/health`, { method: 'GET', timeout: 5000 });
+        if (response.ok) {
+          updateStatus(true);
+        } else {
+          updateStatus(false);
+        }
+      } catch (error) {
+        updateStatus(false);
+      }
+      setTimeout(checkConnectionStatus, 5000);
+    }
+
+    function updateStatus(connected) {
+      const indicator = document.getElementById('statusIndicator');
+      const text = document.getElementById('statusText');
+
+      if (connected) {
+        indicator.className = 'status-indicator connected';
+        text.textContent = 'Conectado';
+      } else {
+        indicator.className = 'status-indicator disconnected';
+        text.textContent = 'Desconectado';
+      }
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      checkConnectionStatus();
+      initializeScreens();
+    });
+
+    function initializeScreens() {
+      // Areas checkboxes
+      const areasCheckboxes = document.getElementById('areasCheckboxes');
+      areas.forEach(area => {
+        const label = document.createElement('label');
+        label.className = 'checkbox-item';
+        label.innerHTML = `
+          <input type="checkbox" class="area-checkbox" value="${area}">
+          <label>${area}</label>
+        `;
+        areasCheckboxes.appendChild(label);
+      });
+
+      // Decision types checkboxes
+      const typesCheckboxes = document.getElementById('decisionTypesCheckboxes');
+      decisionTypes.forEach(type => {
+        const label = document.createElement('label');
+        label.className = 'checkbox-item';
+        label.innerHTML = `
+          <input type="checkbox" class="type-checkbox" value="${type}">
+          <label>${type}</label>
+        `;
+        typesCheckboxes.appendChild(label);
+      });
+
+      // Horizons radios
+      const horizonRadios = document.getElementById('horizonRadios');
+      horizons.forEach(horizon => {
+        const label = document.createElement('label');
+        label.className = 'radio-item';
+        label.innerHTML = `
+          <input type="radio" class="horizon-radio" name="horizon" value="${horizon}">
+          <label>${horizon}</label>
+        `;
+        horizonRadios.appendChild(label);
+      });
+    }
+
+    function goToScreen(screenNum) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(`screen-${screenNum}`).classList.add('active');
+      currentScreen = screenNum;
+      updateProgress();
+    }
+
+    function updateProgress() {
+      const progress = ((currentScreen) / (totalScreens - 1)) * 100;
+      document.getElementById('progressFill').style.width = progress + '%';
+    }
+
+    async function nextQuestion(currentScreenNum) {
+      // Validate current screen
+      if (currentScreenNum === 1) {
+        const role = document.getElementById('role').value.trim();
+        if (!role) {
+          alert('Por favor, ingresa tu rol');
+          return;
+        }
+      }
+
+      if (currentScreenNum === 2) {
+        const selected = document.querySelectorAll('.area-checkbox:checked');
+        if (selected.length === 0) {
+          alert('Por favor, selecciona al menos un área');
+          return;
+        }
+        if (selected.length > 3) {
+          alert('Selecciona máximo 3 áreas');
+          return;
+        }
+      }
+
+      if (currentScreenNum === 3) {
+        const selected = document.querySelectorAll('.type-checkbox:checked');
+        if (selected.length === 0) {
+          alert('Por favor, selecciona al menos un tipo de decisión');
+          return;
+        }
+      }
+
+      if (currentScreenNum === 4) {
+        const selected = document.querySelector('.horizon-radio:checked');
+        if (!selected) {
+          alert('Por favor, selecciona un horizonte temporal');
+          return;
+        }
+      }
+
+      goToScreen(currentScreenNum + 1);
+    }
+
+    async function submitOnboarding() {
+      const role = document.getElementById('role').value;
+      const areas = Array.from(document.querySelectorAll('.area-checkbox:checked')).map(c => c.value);
+      const types = Array.from(document.querySelectorAll('.type-checkbox:checked')).map(c => c.value);
+      const horizon = document.querySelector('.horizon-radio:checked').value;
+      const bias = document.getElementById('knownBias').value || 'No especificado';
+
+      try {
+        const response = await fetch(`${API_URL}/onboarding`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            role,
+            decision_areas: areas,
+            decision_types: types,
+            horizon,
+            known_bias: bias
+          })
+        });
+
+        if (!response.ok) throw new Error('Error en onboarding');
+
+        const result = await response.json();
+        localStorage.setItem('userId', result.user_id);
+        localStorage.setItem('firstTime', 'true');
+        window.location.href = 'dashboard.html';
+      } catch (error) {
+        alert(`Error: ${error.message}`);
+      }
+    }
+
+    // Update summary before showing final screen
+    document.addEventListener('DOMContentLoaded', () => {
+      const observeScreenChanges = setInterval(() => {
+        if (currentScreen === 6) {
+          const role = document.getElementById('role').value;
+          const areas = Array.from(document.querySelectorAll('.area-checkbox:checked')).map(c => c.value).join(', ') || '-';
+          const types = Array.from(document.querySelectorAll('.type-checkbox:checked')).map(c => c.value).join(', ') || '-';
+          const horizon = document.querySelector('.horizon-radio:checked')?.value || '-';
+          const bias = document.getElementById('knownBias').value || 'No especificado';
+
+          document.getElementById('summaryRole').textContent = role || '-';
+          document.getElementById('summaryAreas').textContent = areas;
+          document.getElementById('summaryTypes').textContent = types;
+          document.getElementById('summaryHorizon').textContent = horizon;
+          document.getElementById('summaryBias').textContent = bias;
+        }
+      }, 100);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cognitive OS - Dashboard</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+      background: linear-gradient(135deg, #f5f3ff 0%, #faf8ff 50%, #fff8f3 100%);
+      min-height: 100vh;
+      padding: 24px 20px;
+      color: #2d3748;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    /* ===== HEADER ===== */
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 48px 40px;
+      border-radius: 20px;
+      margin-bottom: 48px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 20px 50px rgba(102, 126, 234, 0.2);
+      backdrop-filter: blur(10px);
+    }
+
+    .header h1 {
+      font-size: 36px;
+      margin-bottom: 8px;
+      font-weight: 700;
+      letter-spacing: -0.8px;
+    }
+
+    .header p {
+      opacity: 0.95;
+      font-size: 14px;
+      font-weight: 400;
+      letter-spacing: 0.3px;
+    }
+
+    .user-info {
+      text-align: right;
+      font-size: 13px;
+      opacity: 0.95;
+    }
+
+    .user-info strong {
+      display: block;
+      opacity: 1;
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+
+    /* ===== GRID LAYOUT ===== */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 32px;
+      margin-bottom: 32px;
+    }
+
+    @media (max-width: 900px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ===== CARDS ===== */
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 32px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+      border: 1px solid rgba(0, 0, 0, 0.03);
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .card:hover {
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+      border-color: rgba(102, 126, 234, 0.15);
+    }
+
+    .card h2 {
+      font-size: 20px;
+      margin-bottom: 24px;
+      color: #2d3748;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+    }
+
+    /* ===== AREAS ===== */
+    .areas {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .area-item {
+      padding: 18px 20px;
+      background: linear-gradient(135deg, #f8f7ff 0%, #faf8ff 100%);
+      border-left: 4px solid #667eea;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    }
+
+    .area-item:hover {
+      background: linear-gradient(135deg, #f0eeff 0%, #f8f5ff 100%);
+      transform: translateX(6px);
+      box-shadow: 0 6px 16px rgba(102, 126, 234, 0.12);
+      border-left-color: #764ba2;
+    }
+
+    .area-label {
+      font-size: 11px;
+      color: #a0aec0;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      font-weight: 600;
+    }
+
+    .area-name {
+      font-size: 15px;
+      color: #2d3748;
+      font-weight: 600;
+      margin-top: 6px;
+    }
+
+    .area-count {
+      font-size: 12px;
+      color: #667eea;
+      margin-top: 8px;
+      font-weight: 600;
+    }
+
+    /* ===== FORM ===== */
+    .form-section {
+      margin-bottom: 32px;
+    }
+
+    .form-group {
+      margin-bottom: 22px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      color: #4a5568;
+      font-weight: 600;
+      margin-bottom: 10px;
+      letter-spacing: 0.3px;
+    }
+
+    input[type="text"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: inherit;
+      transition: all 0.3s ease;
+      background: #fafbfc;
+    }
+
+    input[type="text"]:focus,
+    textarea:focus,
+    select:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.08);
+      background: white;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 110px;
+      font-family: inherit;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      cursor: pointer;
+      height: 6px;
+      border-radius: 3px;
+      background: #e2e8f0;
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    }
+
+    .conviction-display {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    .conviction-value {
+      font-size: 16px;
+      font-weight: 700;
+      color: #667eea;
+      background: linear-gradient(135deg, #f8f7ff 0%, #faf8ff 100%);
+      padding: 4px 12px;
+      border-radius: 8px;
+    }
+
+    /* ===== BUTTONS ===== */
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      letter-spacing: 0.3px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      width: 100%;
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-secondary {
+      background: #f7fafc;
+      color: #2d3748;
+      padding: 10px 14px;
+      font-size: 13px;
+      border: 1px solid #e2e8f0;
+      flex: 1;
+    }
+
+    .btn-secondary:hover {
+      background: #edf2f7;
+      border-color: #cbd5e0;
+    }
+
+    /* ===== DECISIONS SECTION ===== */
+    .decisions-section {
+      grid-column: 1 / -1;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 2px solid #e2e8f0;
+      margin-bottom: 24px;
+    }
+
+    .tab {
+      padding: 14px 20px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-weight: 600;
+      color: #a0aec0;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: all 0.3s ease;
+      font-size: 13px;
+      letter-spacing: 0.3px;
+    }
+
+    .tab.active {
+      color: #667eea;
+      border-bottom-color: #667eea;
+    }
+
+    .decisions-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
+    }
+
+    .decision-card {
+      background: white;
+      border-radius: 16px;
+      padding: 22px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+      border-left: 4px solid #667eea;
+      border: 1px solid #e2e8f0;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .decision-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+      border-color: #cbd5e0;
+    }
+
+    .decision-card.draft {
+      border-left-color: #cbd5e0;
+    }
+
+    .decision-card.analyzing {
+      border-left-color: #f6ad55;
+    }
+
+    .decision-card.decided {
+      border-left-color: #667eea;
+    }
+
+    .decision-card.completed {
+      border-left-color: #48bb78;
+    }
+
+    .decision-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #2d3748;
+      margin-bottom: 12px;
+    }
+
+    .decision-area {
+      font-size: 11px;
+      color: #667eea;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+
+    .decision-status {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .decision-status.draft {
+      background: #f7fafc;
+      color: #718096;
+    }
+
+    .decision-status.analyzing {
+      background: #fffaf0;
+      color: #c05621;
+    }
+
+    .decision-status.decided {
+      background: #ebf8ff;
+      color: #2c5aa0;
+    }
+
+    .decision-status.completed {
+      background: #f0fff4;
+      color: #22543d;
+    }
+
+    .decision-date {
+      font-size: 12px;
+      color: #a0aec0;
+      margin-top: 14px;
+    }
+
+    .decision-buttons {
+      display: flex;
+      gap: 8px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #a0aec0;
+    }
+
+    /* ===== MOBILE TABS ===== */
+    .mobile-tabs {
+      display: none;
+      flex-direction: row;
+      gap: 0;
+      border-bottom: 2px solid #e2e8f0;
+      margin-bottom: 24px;
+      position: sticky;
+      top: 0;
+      background: white;
+      z-index: 100;
+      padding: 0;
+    }
+
+    .mobile-tab-button {
+      flex: 1;
+      padding: 14px 12px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-weight: 600;
+      color: #a0aec0;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: all 0.3s ease;
+      font-size: 13px;
+      letter-spacing: 0.3px;
+      text-align: center;
+    }
+
+    .mobile-tab-button.active {
+      color: #667eea;
+      border-bottom-color: #667eea;
+    }
+
+    .mobile-section {
+      display: none;
+    }
+
+    .mobile-section.active {
+      display: block;
+    }
+
+    @media (max-width: 900px) {
+      .mobile-tabs {
+        display: flex;
+      }
+
+      /* Ocultar todas las tarjetas por defecto en móvil */
+      .main-card {
+        display: none;
+      }
+
+      /* Mostrar solo la tarjeta activa */
+      .main-card[data-mobile-tab="register"] {
+        display: block;
+      }
+
+      .main-card[data-mobile-tab="register"].hidden {
+        display: none;
+      }
+
+      .main-card[data-mobile-tab="decisions"].active {
+        display: block;
+      }
+
+      .main-card[data-mobile-tab="areas"].active {
+        display: block;
+      }
+    }
+
+    .empty-state-emoji {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
+    /* ===== MODAL ===== */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(45, 55, 72, 0.6);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      backdrop-filter: blur(4px);
+    }
+
+    .modal.active {
+      display: flex;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      max-width: 700px;
+      width: 100%;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.2);
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(20px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .modal-close {
+      float: right;
+      font-size: 28px;
+      color: #cbd5e0;
+      cursor: pointer;
+      border: none;
+      background: none;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .modal-close:hover {
+      background: #f7fafc;
+      color: #2d3748;
+    }
+
+    /* ===== ANALYSIS OUTPUT ===== */
+    .analysis-header {
+      margin-bottom: 28px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .analysis-header h2 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #2d3748;
+      margin-bottom: 6px;
+    }
+
+    .analysis-subtitle {
+      font-size: 13px;
+      color: #a0aec0;
+      margin-bottom: 16px;
+    }
+
+    .analysis-box {
+      background: white;
+      border-radius: 0;
+      padding: 0;
+      border: none;
+    }
+
+    .analysis-content {
+      color: #4a5568;
+      line-height: 1.8;
+      font-size: 15px;
+    }
+
+    .analysis-content p {
+      margin-bottom: 16px;
+      line-height: 1.8;
+    }
+
+    .analysis-content p:last-child {
+      margin-bottom: 0;
+    }
+
+    .analysis-content strong {
+      color: #2d3748;
+      font-weight: 600;
+    }
+
+    .analysis-section {
+      margin-bottom: 28px;
+      padding: 0;
+      background: none;
+      border-radius: 0;
+      border: none;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 28px;
+    }
+
+    .analysis-section:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .analysis-section-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #2d3748;
+      text-transform: none;
+      letter-spacing: 0;
+      margin-bottom: 14px;
+    }
+
+    .analysis-section-content {
+      color: #4a5568;
+      font-size: 15px;
+      line-height: 1.8;
+    }
+
+    .analysis-list {
+      margin: 16px 0;
+      padding-left: 0;
+      list-style: none;
+    }
+
+    .analysis-list li {
+      margin-bottom: 14px;
+      color: #4a5568;
+      font-size: 15px;
+      padding-left: 20px;
+      position: relative;
+      line-height: 1.6;
+    }
+
+    .analysis-list li:last-child {
+      margin-bottom: 0;
+    }
+
+    .analysis-list li:before {
+      content: "•";
+      color: #cbd5e0;
+      font-weight: 700;
+      position: absolute;
+      left: 0;
+    }
+
+    .analysis-list li strong {
+      color: #2d3748;
+      font-weight: 600;
+    }
+
+    .highlight-box {
+      background: #fafbfc;
+      border: 1px solid #e2e8f0;
+      border-left: 3px solid #667eea;
+      padding: 16px;
+      margin: 18px 0;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #4a5568;
+    }
+
+    .highlight-box.warning {
+      background: linear-gradient(135deg, #fef3c7 0%, #fffaf0 100%);
+      border-left-color: #f6ad55;
+    }
+
+    .highlight-box.success {
+      background: linear-gradient(135deg, #dcfce7 0%, #f0fdf4 100%);
+      border-left-color: #48bb78;
+    }
+
+    .highlight-box.error {
+      background: linear-gradient(135deg, #fee2e2 0%, #fef2f2 100%);
+      border-left-color: #f56565;
+    }
+
+    /* ===== LOADING STATE ===== */
+    .loading {
+      text-align: center;
+      padding: 50px 20px;
+      color: #a0aec0;
+    }
+
+    .spinner {
+      border: 3px solid #e2e8f0;
+      border-top: 3px solid #667eea;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .analysis-loading {
+      text-align: center;
+      padding: 50px 20px;
+    }
+
+    .analysis-loading .spinner {
+      margin-bottom: 16px;
+    }
+
+    .analysis-loading p {
+      color: #667eea;
+      font-weight: 600;
+    }
+
+    /* ===== SCROLLBAR ===== */
+    .modal-content::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .modal-content::-webkit-scrollbar-track {
+      background: #f7fafc;
+      border-radius: 4px;
+    }
+
+    .modal-content::-webkit-scrollbar-thumb {
+      background: #cbd5e0;
+      border-radius: 4px;
+    }
+
+    .modal-content::-webkit-scrollbar-thumb:hover {
+      background: #a0aec0;
+    }
+
+    /* ===== MESSAGES ===== */
+    .error {
+      background: linear-gradient(135deg, #fee2e2 0%, #fef2f2 100%);
+      border: 1px solid #feb2b2;
+      color: #c53030;
+      padding: 14px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      margin-bottom: 20px;
+    }
+
+    .success {
+      background: linear-gradient(135deg, #dcfce7 0%, #f0fdf4 100%);
+      border: 1px solid #a7f3d0;
+      color: #22543d;
+      padding: 14px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div>
+        <h1>🧠 Cognitive OS</h1>
+        <p>Tu sistema cognitivo personal</p>
+      </div>
+      <div class="user-info">
+        <strong id="userName">Cargando...</strong>
+        <span id="userHorizon"></span>
+      </div>
+    </div>
+
+    <!-- MOBILE TABS (solo en móvil) -->
+    <div class="mobile-tabs" id="mobileTabs">
+      <button class="mobile-tab-button active" data-tab="register">➕ Registrar</button>
+      <button class="mobile-tab-button" data-tab="decisions">📊 Decisiones</button>
+      <button class="mobile-tab-button" data-tab="areas">📋 Áreas</button>
+    </div>
+
+    <!-- MAIN SECTIONS (se reorganizan en móvil con tabs) -->
+    <div class="main-sections active" id="mainSections">
+
+    <!-- 1. Register decision - FIRST (full width) -->
+    <div class="main-card" data-mobile-tab="register">
+    <div class="card">
+      <h2>➕ Registrar decisión</h2>
+      <p style="font-size: 13px; color: #a0aec0; margin-bottom: 20px;">Describe una decisión que estés enfrentando. Luego Claude la analizará.</p>
+      <form id="decisionForm">
+        <div class="form-group">
+          <label>Título de la decisión</label>
+          <input type="text" id="decisionTitle" placeholder="Ej: Decidir sobre nueva feature..." required>
+        </div>
+
+        <div class="form-group">
+          <label>Contexto</label>
+          <textarea id="decisionContext" placeholder="¿Cuál es el contexto? ¿Por qué es importante?" required></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Área</label>
+          <select id="decisionArea" required>
+            <option value="">Selecciona un área...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Tipo de decisión</label>
+          <select id="decisionType" required>
+            <option value="">Selecciona un tipo...</option>
+            <option value="Operativa">Operativa (diaria/semanal)</option>
+            <option value="Estratégica">Estratégica (3-12 meses)</option>
+            <option value="Vital">Vital (1+ años)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Convicción (1-10)</label>
+          <input type="range" id="decisionConviction" min="1" max="10" value="5">
+          <div class="conviction-display">
+            <span class="conviction-value" id="convictionValue">5</span>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Registrar decisión</button>
+      </form>
+    </div>
+
+    <!-- 2. Decisions section - SECOND (full width) -->
+    <div class="main-card" data-mobile-tab="decisions">
+    <div class="card decisions-section">
+      <h2>📊 Tus decisiones</h2>
+
+      <div class="tabs">
+        <button class="tab active" data-tab="all">Todas</button>
+        <button class="tab" data-tab="draft">Borradores</button>
+        <button class="tab" data-tab="analyzing">Analizando</button>
+        <button class="tab" data-tab="decided">Decididas</button>
+      </div>
+
+      <div id="decisionsContainer" class="decisions-list">
+        <div class="loading">
+          <div class="spinner"></div>
+          Cargando decisiones...
+        </div>
+      </div>
+    </div>
+
+    </div><!-- end decisions main-card -->
+
+    <!-- 3. Areas - THIRD (full width) -->
+    <div class="main-card" data-mobile-tab="areas">
+    <div class="card">
+      <h2>📋 Tus áreas</h2>
+      <div class="areas" id="areasContainer">
+        <div class="loading">
+          <div class="spinner"></div>
+          Cargando áreas...
+        </div>
+      </div>
+    </div>
+    </div><!-- end areas main-card -->
+
+    </div><!-- END main-sections -->
+
+  </div>
+
+  <!-- Detail modal -->
+  <div class="modal" id="detailModal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeDetail()">&times;</button>
+      <div id="detailContent"></div>
+    </div>
+  </div>
+
+  <script>
+    // Configuration
+    const API_URL = 'http://127.0.0.1:8000';
+    let userId = null;
+    let userProfile = null;
+    let allDecisions = [];
+    let currentTab = 'all';
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      userId = localStorage.getItem('userId');
+      if (!userId) {
+        alert('No hay perfil cargado. Por favor, completa el onboarding primero.');
+        window.location.href = 'onboarding.html';
+        return;
+      }
+
+      const isFirstTime = localStorage.getItem('firstTime') === 'true';
+
+      loadUserProfile();
+      loadDecisions();
+      setupEventListeners();
+      setupMobileTabsListener();
+
+      if (isFirstTime) {
+        showWelcomeGuide();
+        localStorage.setItem('firstTime', 'false');
+      }
+    });
+
+    function showWelcomeGuide() {
+      const modal = document.createElement('div');
+      modal.className = 'modal active';
+      modal.id = 'welcomeModal';
+      modal.innerHTML = `
+        <div class="modal-content" style="max-width: 500px;">
+          <button class="modal-close" onclick="document.getElementById('welcomeModal').remove()">&times;</button>
+          <div class="analysis-header">
+            <h2>¡Bienvenido a Cognitive OS!</h2>
+            <p class="analysis-subtitle">Tu sistema cognitivo personal para pensar mejor en el tiempo</p>
+          </div>
+          <div style="padding: 20px 0;">
+            <div style="margin-bottom: 24px;">
+              <h3 style="font-size: 15px; font-weight: 600; color: #2d3748; margin-bottom: 10px;">Cómo funciona:</h3>
+              <ol style="list-style: none; padding: 0; margin: 0;">
+                <li style="margin-bottom: 14px; display: flex; gap: 12px;">
+                  <span style="color: #667eea; font-weight: 700; min-width: 24px;">1</span>
+                  <span style="color: #4a5568; line-height: 1.6;"><strong>Registra una decisión</strong> — contexto, tipo y confianza</span>
+                </li>
+                <li style="margin-bottom: 14px; display: flex; gap: 12px;">
+                  <span style="color: #667eea; font-weight: 700; min-width: 24px;">2</span>
+                  <span style="color: #4a5568; line-height: 1.6;"><strong>Analízala</strong> — Claude identifica lagunas, sesgos y riesgos</span>
+                </li>
+                <li style="display: flex; gap: 12px;">
+                  <span style="color: #667eea; font-weight: 700; min-width: 24px;">3</span>
+                  <span style="color: #4a5568; line-height: 1.6;"><strong>Aprende patrones</strong> — detecta cómo tomas decisiones</span>
+                </li>
+              </ol>
+            </div>
+            <button class="btn btn-primary" onclick="document.getElementById('welcomeModal').remove(); document.getElementById('decisionTitle').focus();" style="width: 100%; margin-top: 20px;">
+              Registra tu primera decisión →
+            </button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+
+    function setupMobileTabsListener() {
+      document.querySelectorAll('.mobile-tab-button').forEach(button => {
+        button.addEventListener('click', (e) => {
+          const tab = e.target.dataset.tab;
+
+          // Ocultar todas las tarjetas
+          document.querySelectorAll('.main-card').forEach(card => {
+            card.classList.remove('active');
+          });
+
+          // Mostrar la tarjeta seleccionada
+          document.querySelector(`[data-mobile-tab="${tab}"]`).classList.add('active');
+
+          // Actualizar botones activos
+          document.querySelectorAll('.mobile-tab-button').forEach(b => b.classList.remove('active'));
+          e.target.classList.add('active');
+        });
+      });
+    }
+
+    function setupEventListeners() {
+      document.getElementById('decisionForm').addEventListener('submit', handleSubmitDecision);
+      document.getElementById('decisionConviction').addEventListener('input', (e) => {
+        document.getElementById('convictionValue').textContent = e.target.value;
+      });
+
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', (e) => {
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          e.target.classList.add('active');
+          currentTab = e.target.dataset.tab;
+          displayDecisions();
+        });
+      });
+    }
+
+    async function loadUserProfile() {
+      try {
+        const response = await fetch(`${API_URL}/user/${userId}`);
+        if (!response.ok) throw new Error('No se pudo cargar el perfil');
+
+        userProfile = await response.json();
+
+        // Update header
+        document.getElementById('userName').textContent = userProfile.role;
+        document.getElementById('userHorizon').textContent = `Horizonte: ${userProfile.horizon}`;
+
+        // Populate areas
+        displayAreas();
+
+        // Populate area select
+        const areaSelect = document.getElementById('decisionArea');
+        userProfile.decision_areas.forEach(area => {
+          const option = document.createElement('option');
+          option.value = area;
+          option.textContent = area;
+          areaSelect.appendChild(option);
+        });
+      } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('areasContainer').innerHTML = `<div class="error">Error al cargar el perfil: ${error.message}</div>`;
+      }
+    }
+
+    function displayAreas() {
+      const container = document.getElementById('areasContainer');
+      container.innerHTML = '';
+
+      userProfile.decision_areas.forEach(area => {
+        const count = allDecisions.filter(d => d.area === area).length;
+        const item = document.createElement('div');
+        item.className = 'area-item';
+        item.innerHTML = `
+          <div class="area-label">Área</div>
+          <div class="area-name">${area}</div>
+          <div class="area-count">${count} decisión${count !== 1 ? 'es' : ''}</div>
+        `;
+        item.addEventListener('click', () => {
+          currentTab = 'all';
+          filterByArea(area);
+        });
+        container.appendChild(item);
+      });
+    }
+
+    async function loadDecisions() {
+      try {
+        const response = await fetch(`${API_URL}/decisions?user_id=${userId}`);
+        if (!response.ok) throw new Error('Error al cargar decisiones');
+
+        const result = await response.json();
+        allDecisions = result.decisions || [];
+        displayDecisions();
+        displayAreas();
+      } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('decisionsContainer').innerHTML = `<div class="error">Error al cargar decisiones: ${error.message}</div>`;
+      }
+    }
+
+    function displayDecisions() {
+      const container = document.getElementById('decisionsContainer');
+
+      let filtered = allDecisions;
+      if (currentTab !== 'all') {
+        filtered = allDecisions.filter(d => d.status === currentTab);
+      }
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div style="grid-column: 1 / -1;">
+            <div class="empty-state">
+              <div class="empty-state-emoji">📝</div>
+              <p>Aún no hay decisiones registradas</p>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filtered.map(decision => `
+        <div class="decision-card ${decision.status}">
+          <div class="decision-area">${decision.area}</div>
+          <h3 class="decision-title">${decision.title}</h3>
+          <div>
+            <span class="decision-status ${decision.status}">${decision.status}</span>
+          </div>
+          <p style="font-size: 13px; color: #718096; margin-top: 12px; line-height: 1.6;">${decision.context.substring(0, 100)}...</p>
+          <div class="decision-date">Creada ${new Date(decision.created_at).toLocaleDateString('es-ES')}</div>
+          <div class="decision-buttons">
+            <button onclick="analyzeDecision(${decision.id}, 'analyze')" class="btn btn-primary" style="flex: 2; margin-bottom: 0;">📊 Analizar</button>
+            <button onclick="analyzeDecision(${decision.id}, 'counterargument')" class="btn btn-secondary" style="flex: 1; font-size: 11px; padding: 8px; margin-left: 8px; margin-bottom: 0;" title="¿Qué podría salir mal?">⚠️</button>
+            <button onclick="analyzeDecision(${decision.id}, 'premortem')" class="btn btn-secondary" style="flex: 1; font-size: 11px; padding: 8px; margin-left: 8px; margin-bottom: 0;" title="Escenarios de fracaso">💥</button>
+            <button onclick="analyzeDecision(${decision.id}, 'synthesize-full')" class="btn btn-secondary" style="flex: 1; font-size: 11px; padding: 8px; margin-left: 8px; margin-bottom: 0;" title="Lo más importante">✨</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function handleSubmitDecision(e) {
+      e.preventDefault();
+
+      const decision = {
+        title: document.getElementById('decisionTitle').value,
+        context: document.getElementById('decisionContext').value,
+        area: document.getElementById('decisionArea').value,
+        decision_type: document.getElementById('decisionType').value,
+        conviction: parseInt(document.getElementById('decisionConviction').value)
+      };
+
+      try {
+        const response = await fetch(`${API_URL}/decisions?user_id=${userId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(decision)
+        });
+
+        if (!response.ok) throw new Error('Error al registrar decisión');
+
+        document.getElementById('decisionForm').reset();
+        document.getElementById('convictionValue').textContent = '5';
+        loadDecisions();
+
+        // Scroll automático a la sección de decisiones
+        setTimeout(() => {
+          document.querySelector('.decisions-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 300);
+      } catch (error) {
+        alert(`Error: ${error.message}`);
+      }
+    }
+
+    function filterByArea(area) {
+      const filtered = allDecisions.filter(d => d.area === area);
+      const container = document.getElementById('decisionsContainer');
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div style="grid-column: 1 / -1;">
+            <div class="empty-state">
+              <div class="empty-state-emoji">🔍</div>
+              <p>No hay decisiones en esta área</p>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filtered.map(decision => `
+        <div class="decision-card ${decision.status}">
+          <div class="decision-area">${decision.area}</div>
+          <h3 class="decision-title">${decision.title}</h3>
+          <div>
+            <span class="decision-status ${decision.status}">${decision.status}</span>
+          </div>
+          <p style="font-size: 13px; color: #718096; margin-top: 12px; line-height: 1.6;">${decision.context.substring(0, 100)}...</p>
+          <div class="decision-date">Creada ${new Date(decision.created_at).toLocaleDateString('es-ES')}</div>
+          <div class="decision-buttons">
+            <button onclick="analyzeDecision(${decision.id}, 'analyze')" class="btn btn-primary" style="flex: 2; margin-bottom: 0;">📊 Analizar</button>
+            <button onclick="analyzeDecision(${decision.id}, 'counterargument')" class="btn btn-secondary" style="flex: 1; font-size: 11px; padding: 8px; margin-left: 8px; margin-bottom: 0;" title="¿Qué podría salir mal?">⚠️</button>
+            <button onclick="analyzeDecision(${decision.id}, 'premortem')" class="btn btn-secondary" style="flex: 1; font-size: 11px; padding: 8px; margin-left: 8px; margin-bottom: 0;" title="Escenarios de fracaso">💥</button>
+            <button onclick="analyzeDecision(${decision.id}, 'synthesize-full')" class="btn btn-secondary" style="flex: 1; font-size: 11px; padding: 8px; margin-left: 8px; margin-bottom: 0;" title="Lo más importante">✨</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function analyzeDecision(decisionId, analysisType) {
+      const modal = document.getElementById('detailModal');
+      const contentDiv = document.getElementById('detailContent');
+
+      const titles = {
+        analyze: '📊 Análisis Profundo',
+        counterargument: '⚠️ ¿Qué podría salir mal?',
+        premortem: '💥 Escenarios de fracaso',
+        'synthesize-full': '✨ Lo más importante',
+        review: '🔍 Revisión de Resultado',
+        patterns: '📈 Patrones Detectados'
+      };
+
+      contentDiv.innerHTML = `
+        <button class="modal-close" onclick="closeDetail()">&times;</button>
+        <div class="analysis-header">
+          <h2>${titles[analysisType]}</h2>
+          <p class="analysis-subtitle">Analizando tu decisión...</p>
+        </div>
+        <div class="analysis-loading">
+          <div class="spinner"></div>
+          <p>Procesando con IA...</p>
+        </div>
+      `;
+      modal.classList.add('active');
+
+      try {
+        let endpoint = `${API_URL}/decisions/${decisionId}/${analysisType}`;
+        const response = await fetch(endpoint, { method: 'POST' });
+
+        if (!response.ok) throw new Error('Error en análisis');
+
+        const result = await response.json();
+        const formattedAnalysis = formatAnalysisOutput(result.analysis, analysisType);
+
+        contentDiv.innerHTML = `
+          <button class="modal-close" onclick="closeDetail()">&times;</button>
+          <div class="analysis-header">
+            <h2>${titles[analysisType]}</h2>
+            <p class="analysis-subtitle">Análisis basado en tu contexto personal</p>
+          </div>
+          <div class="analysis-box">
+            <div class="analysis-content">
+              ${formattedAnalysis}
+            </div>
+          </div>
+        `;
+      } catch (error) {
+        contentDiv.innerHTML = `
+          <button class="modal-close" onclick="closeDetail()">&times;</button>
+          <div class="error">Error: ${error.message}</div>
+        `;
+      }
+    }
+
+    function formatAnalysisOutput(text, analysisType) {
+      let html = text;
+
+      // Handle markdown headers (##, ###)
+      html = html.replace(/^### (.+)$/gm, '<div class="analysis-section"><div class="analysis-section-title">$1</div><div class="analysis-section-content">');
+      html = html.replace(/^## (.+)$/gm, '<div class="analysis-section"><div class="analysis-section-title">$1</div><div class="analysis-section-content">');
+
+      // Convert numbered items to sections
+      html = html.replace(/^(\d+\.\s+)(.+?)(?=(?:^\d+\.|$))/gm, (match, num, content) => {
+        const lines = content.split('\n');
+        const title = lines[0].trim().replace(/^[^:]+:\s*/, '');
+        const rest = lines.slice(1).join('\n').trim();
+        return `
+          <div class="analysis-section">
+            <div class="analysis-section-title">${title}</div>
+            <div class="analysis-section-content">${processContent(rest)}</div>
+          </div>
+        `;
+      });
+
+      // Process content and close sections
+      if (!html.includes('analysis-section')) {
+        html = html.split('\n\n').map(paragraph => {
+          if (!paragraph.trim()) return '';
+          return `<p>${processContent(paragraph)}</p>`;
+        }).join('');
+      } else {
+        html = html.replace(/<\/div><\/div>$/gm, '</div></div>');
+      }
+
+      // Highlight key terms
+      const keywords = ['gap', 'sesgo', 'riesgo', 'fortaleza', 'oportunidad', 'amenaza', 'falla', 'éxito', 'fracaso', 'crítico', 'importante', 'clave', 'fundamental', 'problema', 'solución', 'recomendación', 'lagunas', 'sesgos', 'riesgos'];
+      keywords.forEach(keyword => {
+        const regex = new RegExp(`\\b(${keyword})\\b`, 'gi');
+        html = html.replace(regex, '<strong style="color: #667eea; font-weight: 600;">$1</strong>');
+      });
+
+      return html;
+
+      function processContent(text) {
+        let processed = text.replace(/\n/g, '<br>');
+
+        // Bold lines ending with colon
+        processed = processed.replace(/^([^:\n]+):\s*/gm, '<strong>$1:</strong> ');
+
+        // Convert bullet points
+        if (processed.match(/[-•]/)) {
+          const items = processed.split('<br>').filter(l => l.trim());
+          if (items.some(l => l.match(/^[-•]/))) {
+            processed = '<ul class="analysis-list">' + items.map(item => {
+              const cleaned = item.replace(/^[-•]\s*/, '').trim();
+              return cleaned ? `<li>${cleaned}</li>` : '';
+            }).filter(l => l).join('') + '</ul>';
+          }
+        }
+
+        return processed;
+      }
+    }
+
+    function closeDetail() {
+      document.getElementById('detailModal').classList.remove('active');
+    }
+
+    async function openPatterns() {
+      const modal = document.getElementById('detailModal');
+      const contentDiv = document.getElementById('detailContent');
+
+      contentDiv.innerHTML = `
+        <button class="modal-close" onclick="closeDetail()">&times;</button>
+        <div class="analysis-header">
+          <h2>📈 Tus patrones de decisión</h2>
+          <p class="analysis-subtitle">Analizando patrones...</p>
+        </div>
+        <div class="analysis-loading">
+          <div class="spinner"></div>
+          <p>Analizando decisiones...</p>
+        </div>
+      `;
+
+      modal.classList.add('active');
+
+      try {
+        const response = await fetch(`${API_URL}/users/${userId}/patterns`, { method: 'GET' });
+        if (!response.ok) throw new Error('Error en análisis de patrones');
+
+        const result = await response.json();
+        const formattedAnalysis = formatAnalysisOutput(result.analysis, 'patterns');
+
+        contentDiv.innerHTML = `
+          <button class="modal-close" onclick="closeDetail()">&times;</button>
+          <div class="analysis-header">
+            <h2>📈 Tus patrones de decisión</h2>
+            <p class="analysis-subtitle">Análisis de las últimas ${result.decision_count} decisiones</p>
+          </div>
+
+          <div class="analysis-box">
+            <div class="analysis-content">
+              ${formattedAnalysis}
+            </div>
+          </div>
+
+          <div style="margin-top: 28px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+            <p style="font-size: 13px; color: #a0aec0;">💡 Los patrones se actualizan automáticamente conforme registras decisiones.</p>
+          </div>
+        `;
+      } catch (error) {
+        contentDiv.innerHTML = `
+          <button class="modal-close" onclick="closeDetail()">&times;</button>
+          <div class="error">Error: ${error.message}</div>
+        `;
+      }
+    }
+  </script>
+</body>
+</html>
