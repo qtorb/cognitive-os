@@ -530,7 +530,7 @@
       <div class="screen" id="screen-2">
         <div class="question-number">Pregunta 2 de 5</div>
         <h3 class="question-text">¿En qué áreas tomas decisiones?</h3>
-        <div class="info-box">Selecciona hasta 3 áreas clave</div>
+        <div class="info-box">Selecciona hasta 5 áreas clave donde tomas decisiones importantes</div>
         <div class="form-group">
           <div class="checkbox-group" id="areasCheckboxes"></div>
         </div>
@@ -619,7 +619,24 @@
     let currentScreen = 0;
     const totalScreens = 7;
 
-    const areas = ['Trabajo', 'Finanzas', 'Familia', 'Salud', 'Personal', 'Relaciones'];
+    const areas = [
+      'Finanzas Personales',
+      'Inversión',
+      'Emprendimiento',
+      'Carrera Profesional',
+      'Marketing',
+      'Desarrollo de Negocio',
+      'Aprendizaje',
+      'Familia',
+      'Relaciones',
+      'Salud',
+      'Educación',
+      'Vivienda',
+      'Viajes',
+      'Creatividad',
+      'Tecnología',
+      'Liderazgo'
+    ];
     const decisionTypes = ['Operativa (diaria)', 'Estratégica (3-12 meses)', 'Vital (1+ años)'];
     const horizons = ['Próximos 3 meses', 'Próximo año', '2-5 años', '5+ años'];
 
@@ -723,8 +740,8 @@
           alert('Por favor, selecciona al menos un área');
           return;
         }
-        if (selected.length > 3) {
-          alert('Selecciona máximo 3 áreas');
+        if (selected.length > 5) {
+          alert('Selecciona máximo 5 áreas');
           return;
         }
       }
@@ -756,9 +773,27 @@
       const bias = document.getElementById('knownBias').value || 'No especificado';
 
       try {
-        const response = await fetch(`${API_URL}/onboarding`, {
+        // Step 1: Authenticate or create user
+        const tempEmail = `user-${Date.now()}@cognitive-os.local`;
+        const loginResponse = await fetch(`${API_URL}/auth/test-login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: tempEmail })
+        });
+
+        if (!loginResponse.ok) throw new Error('Error al autenticar usuario');
+
+        const loginResult = await loginResponse.json();
+        const token = loginResult.token;
+        const userId = loginResult.user_id;
+
+        // Step 2: Complete onboarding with authentication token
+        const onboardingResponse = await fetch(`${API_URL}/onboarding`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
           body: JSON.stringify({
             role,
             decision_areas: areas,
@@ -768,11 +803,15 @@
           })
         });
 
-        if (!response.ok) throw new Error('Error en onboarding');
+        if (!onboardingResponse.ok) throw new Error('Error al completar onboarding');
 
-        const result = await response.json();
-        localStorage.setItem('userId', result.user_id);
+        const result = await onboardingResponse.json();
+
+        // Save to localStorage for dashboard
+        localStorage.setItem('userId', userId);
+        localStorage.setItem('token', token);
         localStorage.setItem('firstTime', 'true');
+
         window.location.href = 'dashboard.html';
       } catch (error) {
         alert(`Error: ${error.message}`);

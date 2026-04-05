@@ -49,6 +49,55 @@ class Decision(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
+class Analysis(Base):
+    __tablename__ = "analyses"
+
+    id = Column(Integer, primary_key=True, index=True)
+    decision_id = Column(Integer, index=True)
+    user_id = Column(String, index=True)
+    analysis_type = Column(String)  # "analyze", "counterargument", "premortem", "synthesize-full", "patterns", etc.
+    content = Column(String)  # Full analysis text
+    analysis_data = Column(JSON, nullable=True)  # Additional data (e.g., key_findings, risks, etc.)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class Thought(Base):
+    """
+    Captures free-form thinking: ideas, observations, questions, reflections.
+    Not just decisions - the entire cognitive process.
+    """
+    __tablename__ = "thoughts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(String, index=True)
+    title = Column(String)  # Brief title/headline
+    content = Column(String)  # Full thought content
+    thought_type = Column(String)  # "idea", "observation", "question", "reflection", "hypothesis"
+    area = Column(String, nullable=True)  # Related decision area (optional)
+    tags = Column(JSON, nullable=True)  # Array of tags for organization
+    status = Column(String, default="active")  # active, archived
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class Connection(Base):
+    """
+    Links thoughts and decisions together.
+    Creates the memory structure: "This idea relates to..."
+    """
+    __tablename__ = "connections"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(String, index=True)
+    source_type = Column(String)  # "thought" or "decision"
+    source_id = Column(Integer)  # ID of the thought or decision
+    target_type = Column(String)  # "thought" or "decision"
+    target_id = Column(Integer)  # ID of the target thought or decision
+    relationship = Column(String)  # "relates_to", "evolves_from", "contradicts", "supports", "questions"
+    reason = Column(String, nullable=True)  # Why are they connected?
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
 # Database setup
 DATABASE_URL = "sqlite:///./cognitive_os.db"
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})

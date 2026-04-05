@@ -29,24 +29,30 @@ class AIAnalyzer:
         if not self.client:
             return self._demo_response("analyze", decision)
 
+        conviction_level = decision.get('conviction', 5)
         prompt = f"""
 {user_context}
 
 DECISIÓN A ANALIZAR:
 Título: {decision['title']}
 Contexto: {decision['context']}
-Tipo: {decision['decision_type']}
+Tipo de decisión: {decision['decision_type']}
 Área: {decision['area']}
-Convicción: {decision.get('conviction', 'No especificada')}/10
+Convicción actual: {conviction_level}/10
 
-Tu tarea como analista estratégico:
-1. Identifica lagunas de información
-2. Detecta sesgos cognitivos potenciales
-3. Señala riesgos no considerados
-4. Evalúa la calidad de la decisión
-5. Propone preguntas incómodas
+Tu tarea como analista crítico especializado en {decision['area']}:
 
-Sé directo y útil. No repitas lo que el usuario ya sabe.
+**Analiza con rigor:**
+1. **Lagunas de información**: ¿Qué datos clave faltan? ¿Qué te gustaría saber antes de decidir?
+2. **Sesgos cognitivos**: ¿Qué sesgos (confirmation bias, optimismo, anclaje, etc.) podrían estar presentes?
+3. **Riesgos subestimados**: Basándote en la convicción de {conviction_level}/10, ¿qué riesgos se minimizaron?
+4. **Supuestos ocultos**: ¿Qué está asumiendo que podría no ser cierto?
+5. **Preguntas incómodas**: Plantea 2-3 preguntas que desafíen la decisión.
+
+**Formato:**
+- Sé conciso pero penetrante
+- Prioriza insights únicos sobre obviedades
+- Conecta con el contexto del usuario ({decision['area']})
 """
 
         try:
@@ -69,21 +75,26 @@ Sé directo y útil. No repitas lo que el usuario ya sabe.
         prompt = f"""
 {user_context}
 
-DECISIÓN A CUESTIONAR:
+DECISIÓN A DESAFIAR:
 Título: {decision['title']}
 Contexto: {decision['context']}
+Tipo: {decision['decision_type']}
 
-Tu tarea como crítico riguroso:
-Cuestiona explícitamente:
-- Las premisas subyacentes
-- Los supuestos ocultos
-- El optimismo/pesimismo
-- Las historias que se cuenta el usuario
+Tu tarea como "devil's advocate" inteligente:
 
-Explora: ¿En qué escenarios falla esta decisión?
-¿Qué señales se están ignorando?
+**Cuestiona con especificidad:**
+1. **La hipótesis opuesta**: ¿Cuál sería el argumento MÁS FUERTE contra esta decisión?
+2. **Supuestos frágiles**: ¿En qué supuestos descansa? ¿Cuál es más probable que falle?
+3. **Escenarios de fracaso**: ¿En qué contextos o circunstancias fallaría rotundamente?
+4. **Evidencia que se ignora**: ¿Qué datos o señales se minimizan o descartan?
+5. **Sesgo de confirmación**: ¿Qué información buscaría alguien que quiere PROBAR que estás equivocado?
 
-Sé directo y provocador (en el buen sentido).
+**Enfoque:**
+- No repitas el argumento original: desafíalo desde nuevos ángulos
+- Sé específico: ejemplos concretos, no generalidades
+- Provoca reflexión, no desánimo
+
+**Cierra con:** ¿Qué cambiaría tu decisión?
 """
 
         try:
@@ -283,10 +294,12 @@ Sé constructivo. Baséate en datos (no intuición).
         """
         Demo responses when Claude API is not available.
         """
+        title = decision.get('title', 'tu decisión') if decision else 'tu decisión'
+
         demos = {
             "analyze": f"""[MODO DEMO - Claude API no disponible]
 
-Análisis de: {decision['title']}
+Análisis de: {title}
 
 Lagunas identificadas:
 - Falta contexto sobre competencia
@@ -307,7 +320,7 @@ Para análisis real, configura ANTHROPIC_API_KEY.""",
 
             "counterargument": f"""[MODO DEMO]
 
-Escenarios donde {decision['title']} falla:
+Escenarios donde {title} falla:
 
 1. Mercado: El timing es incorrecto
 2. Recursos: No hay suficiente budget

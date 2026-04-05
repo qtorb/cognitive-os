@@ -17,6 +17,30 @@
       min-height: 100vh;
       padding: 24px 20px;
       color: #2d3748;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    body.dark-mode {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      color: #e0e0e0;
+    }
+
+    body.dark-mode .card {
+      background: #1f2937;
+      border-color: #374151;
+    }
+
+    body.dark-mode .modal-content {
+      background: #1f2937;
+    }
+
+    body.dark-mode .tab, body.dark-mode .tab.active {
+      color: #9ca3af;
+    }
+
+    body.dark-mode .tab.active {
+      color: #a78bfa;
+      border-bottom-color: #a78bfa;
     }
 
     .container {
@@ -65,6 +89,61 @@
       font-weight: 600;
     }
 
+    /* ===== DARK MODE TOGGLE ===== */
+    .dark-mode-toggle {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      border-radius: 10px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 18px;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .dark-mode-toggle:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: scale(1.05);
+    }
+
+    /* ===== ADVANCED ANIMATIONS ===== */
+    @keyframes slideInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideInLeft {
+      from {
+        opacity: 0;
+        transform: translateX(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .card {
+      animation: slideInUp 0.4s ease-out;
+    }
+
+    .modal.active .modal-content {
+      animation: slideInUp 0.3s ease-out;
+    }
+
     /* ===== GRID LAYOUT ===== */
     .grid {
       display: grid;
@@ -76,6 +155,88 @@
     @media (max-width: 900px) {
       .grid {
         grid-template-columns: 1fr;
+      }
+    }
+
+    /* ===== MAIN LAYOUT IMPROVEMENTS ===== */
+    .main-card[data-mobile-tab="ideas"],
+    .main-card[data-mobile-tab="connections"] {
+      max-width: 100%;
+    }
+
+    /* En desktop, las secciones de input/structure son más compactas */
+    @media (min-width: 901px) {
+      .main-card[data-mobile-tab="ideas"],
+      .main-card[data-mobile-tab="connections"] {
+        opacity: 0.85;
+        transition: all 0.4s ease;
+      }
+
+      .main-card[data-mobile-tab="ideas"]:hover,
+      .main-card[data-mobile-tab="connections"]:hover {
+        opacity: 1;
+      }
+    }
+
+    /* ===== COLLAPSIBLE SECTIONS ===== */
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      margin-bottom: 24px;
+    }
+
+    .collapse-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      color: #a0aec0;
+      font-size: 18px;
+    }
+
+    .collapse-btn:hover {
+      background: #f7fafc;
+      color: #667eea;
+    }
+
+    .main-card.collapsed {
+      max-height: 80px;
+      overflow: hidden;
+    }
+
+    .main-card.collapsed .collapse-btn {
+      transform: rotate(-90deg);
+    }
+
+    .main-card.collapsed .card {
+      padding: 16px 32px;
+    }
+
+    .main-card.collapsed .ideas-list,
+    .main-card.collapsed .connections-list,
+    .main-card.collapsed .idea-filter-btn {
+      display: none;
+    }
+
+    .main-card.collapsed h2 {
+      margin-bottom: 0;
+    }
+
+    /* Hide collapser on mobile */
+    @media (max-width: 900px) {
+      .collapse-btn {
+        display: none;
+      }
+
+      .main-card.collapsed {
+        max-height: none;
       }
     }
 
@@ -107,26 +268,43 @@
 
     /* ===== AREAS ===== */
     .areas {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 18px;
     }
 
     .area-item {
-      padding: 18px 20px;
-      background: linear-gradient(135deg, #f8f7ff 0%, #faf8ff 100%);
-      border-left: 4px solid #667eea;
-      border-radius: 12px;
+      padding: 24px;
+      background: white;
+      border: 2px solid #e2e8f0;
+      border-radius: 16px;
       cursor: pointer;
       transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .area-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
     }
 
     .area-item:hover {
-      background: linear-gradient(135deg, #f0eeff 0%, #f8f5ff 100%);
-      transform: translateX(6px);
-      box-shadow: 0 6px 16px rgba(102, 126, 234, 0.12);
-      border-left-color: #764ba2;
+      transform: translateY(-4px);
+      border-color: #cbd5e0;
+      box-shadow: 0 12px 24px rgba(102, 126, 234, 0.15);
+    }
+
+    .area-item:hover::before {
+      transform: translateX(0);
     }
 
     .area-label {
@@ -135,20 +313,186 @@
       text-transform: uppercase;
       letter-spacing: 0.6px;
       font-weight: 600;
+      margin-bottom: 8px;
     }
 
     .area-name {
-      font-size: 15px;
+      font-size: 16px;
       color: #2d3748;
-      font-weight: 600;
-      margin-top: 6px;
+      font-weight: 700;
+      margin-bottom: 12px;
     }
 
     .area-count {
-      font-size: 12px;
+      font-size: 13px;
       color: #667eea;
-      margin-top: 8px;
       font-weight: 600;
+      display: inline-block;
+      background: #ebf8ff;
+      padding: 6px 12px;
+      border-radius: 8px;
+    }
+
+    /* ===== IDEAS ===== */
+    .ideas-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .idea-card {
+      padding: 18px 20px;
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .idea-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.1);
+      border-color: #cbd5e0;
+    }
+
+    .idea-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #2d3748;
+      margin-bottom: 8px;
+    }
+
+    .idea-type {
+      display: inline-block;
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      margin-right: 8px;
+      font-weight: 600;
+    }
+
+    .idea-type.idea {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .idea-type.observation {
+      background: #dbeafe;
+      color: #0c4a6e;
+    }
+
+    .idea-type.question {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .idea-type.reflection {
+      background: #f3e8ff;
+      color: #6b21a8;
+    }
+
+    .idea-type.hypothesis {
+      background: #fee2e2;
+      color: #7f1d1d;
+    }
+
+    .idea-content {
+      font-size: 13px;
+      color: #718096;
+      margin-top: 10px;
+      line-height: 1.5;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .idea-date {
+      font-size: 11px;
+      color: #a0aec0;
+      margin-top: 10px;
+    }
+
+    .idea-filter-btn {
+      padding: 8px 14px;
+      background: #f7fafc;
+      border: 1px solid #cbd5e0;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      color: #718096;
+      transition: all 0.2s;
+    }
+
+    .idea-filter-btn:hover {
+      border-color: #667eea;
+      color: #667eea;
+    }
+
+    .idea-filter-btn.active {
+      background: #667eea;
+      color: white;
+      border-color: #667eea;
+    }
+
+    /* ===== CONNECTIONS ===== */
+    .connections-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .connection-item {
+      padding: 16px;
+      background: linear-gradient(135deg, #f8f7ff 0%, #faf8ff 100%);
+      border: 1px solid #e2e8f0;
+      border-left: 4px solid #667eea;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .connection-item:hover {
+      transform: translateX(4px);
+      box-shadow: 0 6px 16px rgba(102, 126, 234, 0.12);
+      border-color: #cbd5e0;
+    }
+
+    .connection-source, .connection-target {
+      display: inline-block;
+      padding: 4px 10px;
+      background: #ebf8ff;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #2c5aa0;
+    }
+
+    .connection-arrow {
+      display: inline-block;
+      margin: 0 8px;
+      color: #667eea;
+      font-weight: 700;
+    }
+
+    .connection-type {
+      display: inline-block;
+      margin-left: 8px;
+      padding: 2px 8px;
+      background: #667eea;
+      color: white;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .connection-reason {
+      font-size: 13px;
+      color: #718096;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid #e2e8f0;
     }
 
     /* ===== FORM ===== */
@@ -292,9 +636,61 @@
       border-color: #cbd5e0;
     }
 
+    /* ===== FLOW INDICATOR ===== */
+    .flow-indicator {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 48px 0 32px 0;
+      opacity: 0.8;
+      font-size: 13px;
+      color: #718096;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      padding: 16px 0;
+    }
+
+    @media (max-width: 768px) {
+      .flow-indicator {
+        display: none;
+      }
+    }
+
+    .flow-step {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .flow-arrow {
+      font-size: 18px;
+      color: #cbd5e0;
+      margin: 0 -4px;
+    }
+
+    .flow-step.active {
+      opacity: 1;
+      color: #667eea;
+    }
+
     /* ===== DECISIONS SECTION ===== */
     .decisions-section {
       grid-column: 1 / -1;
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.03) 0%, rgba(118, 75, 162, 0.02) 100%);
+      border: 2px solid rgba(102, 126, 234, 0.1);
+      padding: 40px;
+      border-radius: 24px;
+    }
+
+    .decisions-section .card {
+      background: white;
+    }
+
+    .decisions-section h2 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #667eea;
+      letter-spacing: -0.5px;
     }
 
     .tabs {
@@ -323,79 +719,139 @@
       border-bottom-color: #667eea;
     }
 
+    .tab-count {
+      display: inline-block;
+      margin-left: 6px;
+      background: #edf2f7;
+      color: #4a5568;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      min-width: 20px;
+      text-align: center;
+    }
+
+    .tab.active .tab-count {
+      background: #667eea;
+      color: white;
+    }
+
     .decisions-list {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 24px;
     }
 
     .decision-card {
       background: white;
-      border-radius: 16px;
-      padding: 22px;
-      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
-      border-left: 4px solid #667eea;
-      border: 1px solid #e2e8f0;
+      border-radius: 18px;
+      padding: 28px;
+      box-shadow: 0 4px 20px rgba(102, 126, 234, 0.08);
+      border: 1.5px solid #e2e8f0;
       cursor: pointer;
       transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .decision-card::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      transition: all 0.3s ease;
     }
 
     .decision-card:hover {
-      transform: translateY(-6px);
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
-      border-color: #cbd5e0;
+      transform: translateY(-12px);
+      box-shadow: 0 24px 60px rgba(102, 126, 234, 0.25);
+      border-color: rgba(102, 126, 234, 0.4);
+      background: linear-gradient(135deg, #fafbff 0%, #f5f8ff 100%);
     }
 
-    .decision-card.draft {
-      border-left-color: #cbd5e0;
+    .decision-card.draft::before {
+      background: linear-gradient(180deg, #cbd5e0 0%, #a0aec0 100%);
     }
 
-    .decision-card.analyzing {
-      border-left-color: #f6ad55;
+    .decision-card.analyzing::before {
+      background: linear-gradient(180deg, #f6ad55 0%, #ed8936 100%);
+      animation: pulse 2s ease-in-out infinite;
     }
 
-    .decision-card.decided {
-      border-left-color: #667eea;
+    .decision-card.decided::before {
+      background: linear-gradient(180deg, #667eea 0%, #5a67d8 100%);
     }
 
-    .decision-card.completed {
-      border-left-color: #48bb78;
+    .decision-card.completed::before {
+      background: linear-gradient(180deg, #48bb78 0%, #38a169 100%);
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
     }
 
     .decision-title {
-      font-size: 16px;
-      font-weight: 600;
-      color: #2d3748;
-      margin-bottom: 12px;
+      font-size: 18px;
+      font-weight: 700;
+      color: #1a202c;
+      margin-bottom: 14px;
+      letter-spacing: -0.3px;
     }
 
     .decision-area {
-      font-size: 11px;
-      color: #667eea;
+      display: inline-block;
+      font-size: 10px;
+      color: white;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 6px 12px;
+      border-radius: 6px;
       text-transform: uppercase;
-      letter-spacing: 0.6px;
-      margin-bottom: 12px;
-      font-weight: 600;
+      letter-spacing: 0.7px;
+      margin-bottom: 14px;
+      font-weight: 700;
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
     }
 
     .decision-status {
-      display: inline-block;
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-size: 11px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
       font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.3px;
+      letter-spacing: 0.4px;
+    }
+
+    .decision-status::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
     }
 
     .decision-status.draft {
-      background: #f7fafc;
-      color: #718096;
+      background: #edf2f7;
+      color: #4a5568;
+    }
+
+    .decision-status.draft::before {
+      background: #a0aec0;
     }
 
     .decision-status.analyzing {
-      background: #fffaf0;
+      background: #fffbf0;
       color: #c05621;
+    }
+
+    .decision-status.analyzing::before {
+      background: #f6ad55;
+      animation: pulse-dot 2s ease-in-out infinite;
     }
 
     .decision-status.decided {
@@ -403,15 +859,31 @@
       color: #2c5aa0;
     }
 
+    .decision-status.decided::before {
+      background: #667eea;
+    }
+
     .decision-status.completed {
       background: #f0fff4;
       color: #22543d;
     }
 
+    .decision-status.completed::before {
+      background: #48bb78;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(1.3); }
+    }
+
     .decision-date {
       font-size: 12px;
-      color: #a0aec0;
-      margin-top: 14px;
+      color: #718096;
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid #edf2f7;
+      font-weight: 500;
     }
 
     .decision-buttons {
@@ -798,28 +1270,34 @@
         <h1>🧠 Cognitive OS</h1>
         <p>Tu sistema cognitivo personal</p>
       </div>
-      <div class="user-info">
-        <strong id="userName">Cargando...</strong>
-        <span id="userHorizon"></span>
+      <div class="user-info" style="display: flex; align-items: center; gap: 16px;">
+        <button onclick="toggleDarkMode()" class="dark-mode-toggle" title="Cambiar tema">
+          <span id="darkModeIcon">🌙</span>
+        </button>
+        <div style="text-align: right;">
+          <strong id="userName">Cargando...</strong>
+          <span id="userHorizon"></span>
+        </div>
       </div>
     </div>
 
     <!-- MOBILE TABS (solo en móvil) -->
     <div class="mobile-tabs" id="mobileTabs">
-      <button class="mobile-tab-button active" data-tab="register">➕ Registrar</button>
+      <button class="mobile-tab-button active" data-tab="ideas">💡 Ideas</button>
+      <button class="mobile-tab-button" data-tab="connections">🔗 Conexiones</button>
       <button class="mobile-tab-button" data-tab="decisions">📊 Decisiones</button>
       <button class="mobile-tab-button" data-tab="areas">📋 Áreas</button>
     </div>
 
-    <!-- MAIN SECTIONS (se reorganizan en móvil con tabs) -->
-    <div class="main-sections active" id="mainSections">
-
-    <!-- 1. Register decision - FIRST (full width) -->
-    <div class="main-card" data-mobile-tab="register">
-    <div class="card">
-      <h2>➕ Registrar decisión</h2>
-      <p style="font-size: 13px; color: #a0aec0; margin-bottom: 20px;">Describe una decisión que estés enfrentando. Luego Claude la analizará.</p>
-      <form id="decisionForm">
+    <!-- MODAL: Register Decision -->
+    <div id="registerModal" class="modal">
+      <div class="modal-content" style="max-width: 500px;">
+        <button class="modal-close" onclick="document.getElementById('registerModal').classList.remove('active')">&times;</button>
+        <div class="analysis-header">
+          <h2>➕ Nueva decisión</h2>
+          <p class="analysis-subtitle">Describe la decisión que enfrentas</p>
+        </div>
+        <form id="decisionForm">
         <div class="form-group">
           <label>Título de la decisión</label>
           <input type="text" id="decisionTitle" placeholder="Ej: Decidir sobre nueva feature..." required>
@@ -855,20 +1333,242 @@
           </div>
         </div>
 
-        <button type="submit" class="btn btn-primary">Registrar decisión</button>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Registrar decisión</button>
       </form>
+      </div>
     </div>
 
-    <!-- 2. Decisions section - SECOND (full width) -->
+    <!-- MODAL: Register Idea -->
+    <div id="ideaModal" class="modal">
+      <div class="modal-content" style="max-width: 500px;">
+        <button class="modal-close" onclick="document.getElementById('ideaModal').classList.remove('active')">&times;</button>
+        <div class="analysis-header">
+          <h2>💡 Nueva idea</h2>
+          <p class="analysis-subtitle">Captura tu pensamiento. Las conexiones vienen después.</p>
+        </div>
+        <form id="ideaForm" onsubmit="handleSubmitIdea(event)">
+        <div class="form-group">
+          <label>Título</label>
+          <input type="text" id="ideaTitle" placeholder="Ej: Enfoque diferente para..." required>
+        </div>
+
+        <div class="form-group">
+          <label>Tipo</label>
+          <select id="ideaType" required>
+            <option value="idea">💡 Idea</option>
+            <option value="observation">👁️ Observación</option>
+            <option value="question">❓ Pregunta</option>
+            <option value="reflection">🔍 Reflexión</option>
+            <option value="hypothesis">📊 Hipótesis</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Contenido</label>
+          <textarea id="ideaContent" placeholder="Desarrolla tu idea sin limitaciones..." required style="min-height: 120px;"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Tags (opcional)</label>
+          <input type="text" id="ideaTags" placeholder="Ej: importante, urgente, potencial... (separados por comas)">
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Guardar idea</button>
+      </form>
+      </div>
+    </div>
+
+    <!-- MODAL: Create Connection -->
+    <div id="connectionModal" class="modal">
+      <div class="modal-content" style="max-width: 550px;">
+        <button class="modal-close" onclick="document.getElementById('connectionModal').classList.remove('active')">&times;</button>
+        <div class="analysis-header">
+          <h2>🔗 Nueva conexión</h2>
+          <p class="analysis-subtitle">Une ideas y decisiones para construir memoria</p>
+        </div>
+        <form id="connectionForm" onsubmit="handleSubmitConnection(event)">
+        <div class="form-group">
+          <label>Origen (¿Qué?)</label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px;">
+            <select id="sourceType" onchange="loadSourceItems()">
+              <option value="idea">Ideas</option>
+              <option value="decision">Decisiones</option>
+            </select>
+            <select id="sourceId" required>
+              <option value="">Selecciona...</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Relación (¿Cómo se conectan?)</label>
+          <select id="relationshipType" required>
+            <option value="relates_to">Se relaciona con</option>
+            <option value="evolves_from">Evoluciona de</option>
+            <option value="supports">Apoya</option>
+            <option value="contradicts">Contradice</option>
+            <option value="questions">Cuestiona</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Destino (¿Qué?)</label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px;">
+            <select id="targetType" onchange="loadTargetItems()">
+              <option value="idea">Ideas</option>
+              <option value="decision">Decisiones</option>
+            </select>
+            <select id="targetId" required>
+              <option value="">Selecciona...</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>¿Por qué? (opcional)</label>
+          <textarea id="connectionReason" placeholder="Explica brevemente por qué están conectadas..." style="min-height: 80px;"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Crear conexión</button>
+      </form>
+      </div>
+    </div>
+
+    <!-- MODAL: Register Decision Outcome -->
+    <div id="outcomeModal" class="modal">
+      <div class="modal-content" style="max-width: 600px;">
+        <button class="modal-close" onclick="document.getElementById('outcomeModal').classList.remove('active')">&times;</button>
+        <div class="analysis-header">
+          <h2>🎯 Registrar Resultado</h2>
+          <p class="analysis-subtitle" id="outcomeSubtitle">¿Qué pasó realmente?</p>
+        </div>
+        <form id="outcomeForm">
+          <div class="form-group">
+            <label>Lo que esperabas</label>
+            <div id="expectedOutcomeDisplay" style="padding: 12px; background: #f7fafc; border-radius: 8px; border-left: 4px solid #667eea; color: #4a5568; font-size: 14px; margin-bottom: 16px; line-height: 1.6;"></div>
+          </div>
+
+          <div class="form-group">
+            <label>Lo que realmente pasó</label>
+            <textarea id="outcomeReal" placeholder="Describe detalladamente qué sucedió..." style="min-height: 100px;" required></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Lo que aprendiste (opcional)</label>
+            <textarea id="learningsInput" placeholder="Reflexiones, lecciones, cambios para el futuro..." style="min-height: 80px;"></textarea>
+            <small style="color: #a0aec0; margin-top: 6px; display: block;">Puedes agregar múltiples aprendizajes separados por líneas</small>
+          </div>
+
+          <div class="form-group">
+            <label>Status</label>
+            <select id="outcomeStatus">
+              <option value="completed">Completada ✓</option>
+              <option value="reviewing">En revisión 🔍</option>
+            </select>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="width: 100%;">💾 Guardar Resultado</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: Patterns Analysis -->
+    <div id="patternsModal" class="modal">
+      <div class="modal-content" style="max-width: 700px;">
+        <button class="modal-close" onclick="document.getElementById('patternsModal').classList.remove('active')">&times;</button>
+        <div class="analysis-header">
+          <h2>📈 Tus Patrones de Decisión</h2>
+          <p class="analysis-subtitle">Análisis de sesgos, fortalezas y patrones recurrentes</p>
+        </div>
+        <div class="analysis-box">
+          <div class="analysis-content" id="patternsContent">
+            <div class="loading">
+              <div class="spinner"></div>
+              <p>Analizando tus decisiones...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN SECTIONS (flujo: Ideas → Conexiones → Decisiones → Áreas) -->
+    <div class="main-sections active" id="mainSections">
+
+    <!-- 1. Ideas - INPUT (material bruto) -->
+    <div class="main-card" data-mobile-tab="ideas" data-section="ideas">
+    <div class="card">
+      <div class="section-header">
+        <h2 style="margin: 0;">💡 Tus ideas</h2>
+        <div style="display: flex; gap: 12px; align-items: center;">
+          <button onclick="openIdeaModal()" class="btn btn-primary">+ Nueva idea</button>
+          <button class="collapse-btn" onclick="toggleSectionCollapse('ideas')" title="Contraer/Expandir">⌄</button>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
+        <button class="idea-filter-btn active" data-type="all">Todas</button>
+        <button class="idea-filter-btn" data-type="idea">Ideas</button>
+        <button class="idea-filter-btn" data-type="observation">Observaciones</button>
+        <button class="idea-filter-btn" data-type="question">Preguntas</button>
+        <button class="idea-filter-btn" data-type="reflection">Reflexiones</button>
+      </div>
+
+      <div id="ideasContainer" class="ideas-list">
+        <div class="loading">
+          <div class="spinner"></div>
+          Cargando ideas...
+        </div>
+      </div>
+    </div>
+    </div><!-- end ideas main-card -->
+
+    <!-- 2. Connections - ESTRUCTURA (vincula pensamiento) -->
+    <div class="main-card" data-mobile-tab="connections" data-section="connections">
+    <div class="card">
+      <div class="section-header">
+        <h2 style="margin: 0;">🔗 La red de pensamiento</h2>
+        <div style="display: flex; gap: 12px; align-items: center;">
+          <button onclick="openConnectionModal()" class="btn btn-primary">+ Nueva conexión</button>
+          <button class="collapse-btn" onclick="toggleSectionCollapse('connections')" title="Contraer/Expandir">⌄</button>
+        </div>
+      </div>
+
+      <p style="color: #718096; margin-bottom: 24px; font-size: 14px;">Conecta ideas y decisiones para construir tu memoria estructurada</p>
+
+      <div id="connectionsContainer" class="connections-list">
+        <div class="loading">
+          <div class="spinner"></div>
+          Cargando conexiones...
+        </div>
+      </div>
+    </div>
+    </div><!-- end connections main-card -->
+
+    <!-- FLOW INDICATOR -->
+    <div class="flow-indicator">
+      <div class="flow-step">💡 Ideas</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">🔗 Conexiones</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step active">📊 Decisiones</div>
+    </div>
+
+    <!-- 3. Decisions section - OUTPUT (el resultado) -->
     <div class="main-card" data-mobile-tab="decisions">
     <div class="card decisions-section">
-      <h2>📊 Tus decisiones</h2>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+        <h2 style="margin: 0;">📊 Tus decisiones</h2>
+        <div style="display: flex; gap: 12px; align-items: center;">
+          <button onclick="loadAndShowPatterns()" class="btn btn-secondary" style="margin-bottom: 0;">📈 Ver patrones</button>
+          <button onclick="document.getElementById('registerModal').classList.add('active')" class="btn btn-primary">+ Nueva decisión</button>
+        </div>
+      </div>
 
       <div class="tabs">
-        <button class="tab active" data-tab="all">Todas</button>
-        <button class="tab" data-tab="draft">Borradores</button>
-        <button class="tab" data-tab="analyzing">Analizando</button>
-        <button class="tab" data-tab="decided">Decididas</button>
+        <button class="tab active" data-tab="all">Todas <span class="tab-count">0</span></button>
+        <button class="tab" data-tab="draft">Borradores <span class="tab-count">0</span></button>
+        <button class="tab" data-tab="analyzing">Analizando <span class="tab-count">0</span></button>
+        <button class="tab" data-tab="decided">Decididas <span class="tab-count">0</span></button>
       </div>
 
       <div id="decisionsContainer" class="decisions-list">
@@ -881,10 +1581,11 @@
 
     </div><!-- end decisions main-card -->
 
-    <!-- 3. Areas - THIRD (full width) -->
+    <!-- 4. Areas - FOURTH (full width) -->
     <div class="main-card" data-mobile-tab="areas">
     <div class="card">
-      <h2>📋 Tus áreas</h2>
+      <h2>📋 Tus áreas de decisión</h2>
+      <p style="color: #718096; margin-bottom: 24px; font-size: 14px;">Haz click en un área para ver todas tus decisiones relacionadas</p>
       <div class="areas" id="areasContainer">
         <div class="loading">
           <div class="spinner"></div>
@@ -914,6 +1615,21 @@
     let allDecisions = [];
     let currentTab = 'all';
 
+    // Helper function for authenticated API calls
+    async function authenticatedFetch(url, options = {}) {
+      const token = localStorage.getItem('token');
+      const headers = {
+        'Content-Type': 'application/json',
+        ...options.headers
+      };
+
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      return fetch(url, { ...options, headers });
+    }
+
     // Initialize
     document.addEventListener('DOMContentLoaded', () => {
       userId = localStorage.getItem('userId');
@@ -925,10 +1641,16 @@
 
       const isFirstTime = localStorage.getItem('firstTime') === 'true';
 
+      // Load preferences
+      loadDarkModePreference();
+
       loadUserProfile();
       loadDecisions();
+      loadIdeas();
+      loadConnections();
       setupEventListeners();
       setupMobileTabsListener();
+      loadCollapsedSections();
 
       if (isFirstTime) {
         showWelcomeGuide();
@@ -994,11 +1716,53 @@
       });
     }
 
+    function toggleSectionCollapse(section) {
+      const sectionElement = document.querySelector(`[data-section="${section}"]`);
+      if (!sectionElement) return;
+
+      sectionElement.classList.toggle('collapsed');
+
+      // Guardar estado en localStorage
+      const collapsed = sectionElement.classList.contains('collapsed');
+      localStorage.setItem(`section_collapsed_${section}`, collapsed);
+    }
+
+    function loadCollapsedSections() {
+      ['ideas', 'connections'].forEach(section => {
+        const isCollapsed = localStorage.getItem(`section_collapsed_${section}`) === 'true';
+        if (isCollapsed) {
+          const sectionElement = document.querySelector(`[data-section="${section}"]`);
+          if (sectionElement) {
+            sectionElement.classList.add('collapsed');
+          }
+        }
+      });
+    }
+
+    // ===== DARK MODE =====
+    function toggleDarkMode() {
+      const isDark = document.body.classList.toggle('dark-mode');
+      localStorage.setItem('darkMode', isDark);
+
+      const icon = document.getElementById('darkModeIcon');
+      icon.textContent = isDark ? '☀️' : '🌙';
+    }
+
+    function loadDarkModePreference() {
+      const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+      if (savedDarkMode) {
+        document.body.classList.add('dark-mode');
+        document.getElementById('darkModeIcon').textContent = '☀️';
+      }
+    }
+
     function setupEventListeners() {
       document.getElementById('decisionForm').addEventListener('submit', handleSubmitDecision);
       document.getElementById('decisionConviction').addEventListener('input', (e) => {
         document.getElementById('convictionValue').textContent = e.target.value;
       });
+
+      document.getElementById('outcomeForm').addEventListener('submit', handleSubmitOutcome);
 
       document.querySelectorAll('.tab').forEach(tab => {
         tab.addEventListener('click', (e) => {
@@ -1012,7 +1776,7 @@
 
     async function loadUserProfile() {
       try {
-        const response = await fetch(`${API_URL}/user/${userId}`);
+        const response = await authenticatedFetch(`${API_URL}/user/${userId}`);
         if (!response.ok) throw new Error('No se pudo cargar el perfil');
 
         userProfile = await response.json();
@@ -1038,6 +1802,23 @@
       }
     }
 
+    function updateTabCounts() {
+      const counts = {
+        all: allDecisions.length,
+        draft: allDecisions.filter(d => d.status === 'draft').length,
+        analyzing: allDecisions.filter(d => d.status === 'analyzing').length,
+        decided: allDecisions.filter(d => d.status === 'decided').length
+      };
+
+      document.querySelectorAll('.tab').forEach(tab => {
+        const tabType = tab.dataset.tab;
+        const countElement = tab.querySelector('.tab-count');
+        if (countElement) {
+          countElement.textContent = counts[tabType] || 0;
+        }
+      });
+    }
+
     function displayAreas() {
       const container = document.getElementById('areasContainer');
       container.innerHTML = '';
@@ -1061,11 +1842,12 @@
 
     async function loadDecisions() {
       try {
-        const response = await fetch(`${API_URL}/decisions?user_id=${userId}`);
+        const response = await authenticatedFetch(`${API_URL}/decisions`);
         if (!response.ok) throw new Error('Error al cargar decisiones');
 
         const result = await response.json();
         allDecisions = result.decisions || [];
+        updateTabCounts();
         displayDecisions();
         displayAreas();
       } catch (error) {
@@ -1096,18 +1878,32 @@
 
       container.innerHTML = filtered.map(decision => `
         <div class="decision-card ${decision.status}">
-          <div class="decision-area">${decision.area}</div>
-          <h3 class="decision-title">${decision.title}</h3>
-          <div>
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+            <div class="decision-area">${decision.area}</div>
             <span class="decision-status ${decision.status}">${decision.status}</span>
           </div>
-          <p style="font-size: 13px; color: #718096; margin-top: 12px; line-height: 1.6;">${decision.context.substring(0, 100)}...</p>
+
+          <h3 class="decision-title">${decision.title}</h3>
+
+          <p style="font-size: 13px; color: #718096; margin: 14px 0; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+            ${decision.context}
+          </p>
+
           <div class="decision-date">Creada ${new Date(decision.created_at).toLocaleDateString('es-ES')}</div>
-          <div class="decision-buttons">
-            <button onclick="analyzeDecision(${decision.id}, 'analyze')" class="btn btn-primary" style="flex: 2; margin-bottom: 0;">📊 Analizar</button>
-            <button onclick="analyzeDecision(${decision.id}, 'counterargument')" class="btn btn-secondary" style="flex: 1; font-size: 11px; padding: 8px; margin-left: 8px; margin-bottom: 0;" title="¿Qué podría salir mal?">⚠️</button>
-            <button onclick="analyzeDecision(${decision.id}, 'premortem')" class="btn btn-secondary" style="flex: 1; font-size: 11px; padding: 8px; margin-left: 8px; margin-bottom: 0;" title="Escenarios de fracaso">💥</button>
-            <button onclick="analyzeDecision(${decision.id}, 'synthesize-full')" class="btn btn-secondary" style="flex: 1; font-size: 11px; padding: 8px; margin-left: 8px; margin-bottom: 0;" title="Lo más importante">✨</button>
+
+          <div class="decision-buttons" style="margin-top: 16px; display: grid; grid-template-columns: 2fr 1fr; gap: 8px;">
+            ${decision.status === 'decided' && !decision.outcome_real ?
+              `<button onclick="openOutcomeModal(${decision.id}, '${decision.title.replace(/'/g, "\\'")}', '${(decision.expected_outcome || '').replace(/'/g, "\\'")}')" class="btn btn-primary" style="margin-bottom: 0;">🎯 Registrar resultado</button>` :
+              `<button onclick="analyzeDecision(${decision.id}, 'analyze')" class="btn btn-primary" style="margin-bottom: 0;">📊 Analizar</button>`
+            }
+            <div style="display: flex; gap: 4px;">
+              ${decision.outcome_real ?
+                `<button onclick="viewOutcomeComparison(${decision.id})" class="btn btn-secondary" style="flex: 1; font-size: 12px; padding: 10px 8px; margin-bottom: 0;" title="Ver resultado">📋</button>` :
+                `<button onclick="analyzeDecision(${decision.id}, 'counterargument')" class="btn btn-secondary" style="flex: 1; font-size: 12px; padding: 10px 8px; margin-bottom: 0;" title="Contraargumentos">⚠️</button>`
+              }
+              <button onclick="analyzeDecision(${decision.id}, 'premortem')" class="btn btn-secondary" style="flex: 1; font-size: 12px; padding: 10px 8px; margin-bottom: 0;" title="Escenarios de fracaso">💥</button>
+              <button onclick="analyzeDecision(${decision.id}, 'synthesize-full')" class="btn btn-secondary" style="flex: 1; font-size: 12px; padding: 10px 8px; margin-bottom: 0;" title="Síntesis">✨</button>
+            </div>
           </div>
         </div>
       `).join('');
@@ -1125,16 +1921,21 @@
       };
 
       try {
-        const response = await fetch(`${API_URL}/decisions?user_id=${userId}`, {
+        const response = await authenticatedFetch(`${API_URL}/decisions`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(decision)
         });
 
         if (!response.ok) throw new Error('Error al registrar decisión');
 
+        // Cerrar modal
+        document.getElementById('registerModal').classList.remove('active');
+
+        // Reset form
         document.getElementById('decisionForm').reset();
         document.getElementById('convictionValue').textContent = '5';
+
+        // Reload decisiones
         loadDecisions();
 
         // Scroll automático a la sección de decisiones
@@ -1164,18 +1965,32 @@
 
       container.innerHTML = filtered.map(decision => `
         <div class="decision-card ${decision.status}">
-          <div class="decision-area">${decision.area}</div>
-          <h3 class="decision-title">${decision.title}</h3>
-          <div>
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+            <div class="decision-area">${decision.area}</div>
             <span class="decision-status ${decision.status}">${decision.status}</span>
           </div>
-          <p style="font-size: 13px; color: #718096; margin-top: 12px; line-height: 1.6;">${decision.context.substring(0, 100)}...</p>
+
+          <h3 class="decision-title">${decision.title}</h3>
+
+          <p style="font-size: 13px; color: #718096; margin: 14px 0; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+            ${decision.context}
+          </p>
+
           <div class="decision-date">Creada ${new Date(decision.created_at).toLocaleDateString('es-ES')}</div>
-          <div class="decision-buttons">
-            <button onclick="analyzeDecision(${decision.id}, 'analyze')" class="btn btn-primary" style="flex: 2; margin-bottom: 0;">📊 Analizar</button>
-            <button onclick="analyzeDecision(${decision.id}, 'counterargument')" class="btn btn-secondary" style="flex: 1; font-size: 11px; padding: 8px; margin-left: 8px; margin-bottom: 0;" title="¿Qué podría salir mal?">⚠️</button>
-            <button onclick="analyzeDecision(${decision.id}, 'premortem')" class="btn btn-secondary" style="flex: 1; font-size: 11px; padding: 8px; margin-left: 8px; margin-bottom: 0;" title="Escenarios de fracaso">💥</button>
-            <button onclick="analyzeDecision(${decision.id}, 'synthesize-full')" class="btn btn-secondary" style="flex: 1; font-size: 11px; padding: 8px; margin-left: 8px; margin-bottom: 0;" title="Lo más importante">✨</button>
+
+          <div class="decision-buttons" style="margin-top: 16px; display: grid; grid-template-columns: 2fr 1fr; gap: 8px;">
+            ${decision.status === 'decided' && !decision.outcome_real ?
+              `<button onclick="openOutcomeModal(${decision.id}, '${decision.title.replace(/'/g, "\\'")}', '${(decision.expected_outcome || '').replace(/'/g, "\\'")}')" class="btn btn-primary" style="margin-bottom: 0;">🎯 Registrar resultado</button>` :
+              `<button onclick="analyzeDecision(${decision.id}, 'analyze')" class="btn btn-primary" style="margin-bottom: 0;">📊 Analizar</button>`
+            }
+            <div style="display: flex; gap: 4px;">
+              ${decision.outcome_real ?
+                `<button onclick="viewOutcomeComparison(${decision.id})" class="btn btn-secondary" style="flex: 1; font-size: 12px; padding: 10px 8px; margin-bottom: 0;" title="Ver resultado">📋</button>` :
+                `<button onclick="analyzeDecision(${decision.id}, 'counterargument')" class="btn btn-secondary" style="flex: 1; font-size: 12px; padding: 10px 8px; margin-bottom: 0;" title="Contraargumentos">⚠️</button>`
+              }
+              <button onclick="analyzeDecision(${decision.id}, 'premortem')" class="btn btn-secondary" style="flex: 1; font-size: 12px; padding: 10px 8px; margin-bottom: 0;" title="Escenarios de fracaso">💥</button>
+              <button onclick="analyzeDecision(${decision.id}, 'synthesize-full')" class="btn btn-secondary" style="flex: 1; font-size: 12px; padding: 10px 8px; margin-bottom: 0;" title="Síntesis">✨</button>
+            </div>
           </div>
         </div>
       `).join('');
@@ -1209,7 +2024,7 @@
 
       try {
         let endpoint = `${API_URL}/decisions/${decisionId}/${analysisType}`;
-        const response = await fetch(endpoint, { method: 'POST' });
+        const response = await authenticatedFetch(endpoint, { method: 'POST' });
 
         if (!response.ok) throw new Error('Error en análisis');
 
@@ -1319,7 +2134,7 @@
       modal.classList.add('active');
 
       try {
-        const response = await fetch(`${API_URL}/users/${userId}/patterns`, { method: 'GET' });
+        const response = await authenticatedFetch(`${API_URL}/patterns`, { method: 'GET' });
         if (!response.ok) throw new Error('Error en análisis de patrones');
 
         const result = await response.json();
@@ -1349,6 +2164,520 @@
         `;
       }
     }
+
+    // ============================================================================
+    // IDEAS FUNCTIONS
+    // ============================================================================
+
+    function openIdeaModal() {
+      document.getElementById('ideaModal').classList.add('active');
+    }
+
+    async function handleSubmitIdea(e) {
+      e.preventDefault();
+
+      const tagsInput = document.getElementById('ideaTags').value;
+      const tags = tagsInput
+        .split(',')
+        .map(tag => tag.trim())
+        .filter(tag => tag.length > 0);
+
+      const idea = {
+        title: document.getElementById('ideaTitle').value,
+        content: document.getElementById('ideaContent').value,
+        thought_type: document.getElementById('ideaType').value,
+        area: null,
+        tags: tags
+      };
+
+      try {
+        const response = await authenticatedFetch(`${API_URL}/thoughts`, {
+          method: 'POST',
+          body: JSON.stringify(idea)
+        });
+
+        if (!response.ok) throw new Error('Error al guardar idea');
+
+        // Close modal
+        document.getElementById('ideaModal').classList.remove('active');
+
+        // Reset form
+        document.getElementById('ideaForm').reset();
+
+        // Reload ideas
+        loadIdeas();
+      } catch (error) {
+        alert(`Error: ${error.message}`);
+      }
+    }
+
+    // ===== OUTCOME FUNCTIONS =====
+    function openOutcomeModal(decisionId, title, expectedOutcome) {
+      const modal = document.getElementById('outcomeModal');
+      const subtitle = document.getElementById('outcomeSubtitle');
+      const expectedDisplay = document.getElementById('expectedOutcomeDisplay');
+
+      // Store decision ID for form submission
+      document.getElementById('outcomeForm').dataset.decisionId = decisionId;
+
+      // Update modal content
+      subtitle.textContent = `"${title}"`;
+      expectedDisplay.textContent = expectedOutcome || '(No se especificó resultado esperado)';
+
+      // Clear form
+      document.getElementById('outcomeReal').value = '';
+      document.getElementById('learningsInput').value = '';
+      document.getElementById('outcomeStatus').value = 'completed';
+
+      modal.classList.add('active');
+    }
+
+    async function handleSubmitOutcome(e) {
+      e.preventDefault();
+
+      const decisionId = parseInt(document.getElementById('outcomeForm').dataset.decisionId);
+      const learningsText = document.getElementById('learningsInput').value;
+      const learnings = learningsText
+        .split('\n')
+        .map(l => l.trim())
+        .filter(l => l.length > 0);
+
+      const outcome = {
+        outcome_real: document.getElementById('outcomeReal').value,
+        learnings: learnings,
+        status: document.getElementById('outcomeStatus').value
+      };
+
+      try {
+        const response = await authenticatedFetch(`${API_URL}/decisions/${decisionId}/outcome`, {
+          method: 'POST',
+          body: JSON.stringify(outcome)
+        });
+
+        if (!response.ok) throw new Error('Error al registrar resultado');
+
+        // Close modal
+        document.getElementById('outcomeModal').classList.remove('active');
+
+        // Reload decisions
+        loadDecisions();
+
+        // Optional: Show confirmation
+        setTimeout(() => {
+          alert('✓ Resultado registrado exitosamente');
+        }, 300);
+      } catch (error) {
+        alert(`Error: ${error.message}`);
+      }
+    }
+
+    async function viewOutcomeComparison(decisionId) {
+      try {
+        const response = await authenticatedFetch(`${API_URL}/decisions/${decisionId}/outcome`);
+        if (!response.ok) throw new Error('Error al cargar comparación');
+
+        const data = await response.json();
+        showOutcomeComparisonModal(data);
+      } catch (error) {
+        alert(`Error: ${error.message}`);
+      }
+    }
+
+    function showOutcomeComparisonModal(data) {
+      const modal = document.getElementById('detailModal');
+      const contentDiv = document.getElementById('detailContent');
+
+      let accuracyIndicator = '';
+      if (data.accuracy === 'accurate') {
+        accuracyIndicator = '<span style="color: #22543d; background: #f0fff4; padding: 6px 12px; border-radius: 6px; display: inline-block; font-weight: 600;">✓ Acertado</span>';
+      } else if (data.accuracy === 'partial') {
+        accuracyIndicator = '<span style="color: #c05621; background: #fffbf0; padding: 6px 12px; border-radius: 6px; display: inline-block; font-weight: 600;">⚡ Parcial</span>';
+      } else if (data.accuracy === 'inaccurate') {
+        accuracyIndicator = '<span style="color: #742a2a; background: #fff5f5; padding: 6px 12px; border-radius: 6px; display: inline-block; font-weight: 600;">✗ No acertado</span>';
+      }
+
+      let learningsHtml = '';
+      if (data.learnings && data.learnings.length > 0) {
+        learningsHtml = `
+          <div class="analysis-section">
+            <div class="analysis-section-title">🎓 Aprendizajes</div>
+            <div class="analysis-section-content">
+              <ul style="list-style: none; padding: 0; margin: 0;">
+                ${data.learnings.map(l => `<li style="padding: 8px 0; border-bottom: 1px solid #edf2f7; color: #4a5568;">• ${l}</li>`).join('')}
+              </ul>
+            </div>
+          </div>
+        `;
+      }
+
+      contentDiv.innerHTML = `
+        <button class="modal-close" onclick="closeDetail()">&times;</button>
+        <div class="analysis-header">
+          <h2>${data.title}</h2>
+          <p class="analysis-subtitle">Comparación: Esperado vs Real</p>
+        </div>
+        <div class="analysis-box">
+          <div class="analysis-content">
+            <div class="analysis-section">
+              <div class="analysis-section-title">💭 Lo que esperabas</div>
+              <div class="analysis-section-content" style="background: #ebf8ff; padding: 14px; border-radius: 8px; border-left: 4px solid #667eea; color: #2c5aa0;">
+                ${data.expected_outcome || '(No especificado)'}
+              </div>
+            </div>
+
+            <div class="analysis-section">
+              <div class="analysis-section-title">🎯 Lo que pasó realmente</div>
+              <div class="analysis-section-content" style="background: #f7fafc; padding: 14px; border-radius: 8px; border-left: 4px solid #a0aec0; color: #4a5568;">
+                ${data.outcome_real || '(No registrado)'}
+              </div>
+            </div>
+
+            <div class="analysis-section">
+              <div class="analysis-section-title">Precisión de predicción</div>
+              <div class="analysis-section-content">
+                ${accuracyIndicator}
+              </div>
+            </div>
+
+            ${learningsHtml}
+          </div>
+        </div>
+      `;
+
+      modal.classList.add('active');
+    }
+
+    // ===== PATTERNS FUNCTIONS =====
+    async function loadAndShowPatterns() {
+      const modal = document.getElementById('patternsModal');
+      const contentDiv = document.getElementById('patternsContent');
+
+      modal.classList.add('active');
+
+      try {
+        const response = await authenticatedFetch(`${API_URL}/patterns`);
+        if (!response.ok) throw new Error('Error al cargar patrones');
+
+        const data = await response.json();
+        displayPatterns(data);
+      } catch (error) {
+        contentDiv.innerHTML = `<div class="error">Error al analizar patrones: ${error.message}</div>`;
+      }
+    }
+
+    function displayPatterns(data) {
+      const contentDiv = document.getElementById('patternsContent');
+
+      // Build recommendations HTML
+      let recommendationsHtml = '';
+      if (data.recommendations && data.recommendations.length > 0) {
+        recommendationsHtml = `
+          <div class="analysis-section">
+            <div class="analysis-section-title">💡 Recomendaciones</div>
+            <div class="analysis-section-content">
+              <ul style="list-style: none; padding: 0; margin: 0;">
+                ${data.recommendations.map(r => `<li style="padding: 10px 0; border-bottom: 1px solid #edf2f7; color: #4a5568;">→ ${r}</li>`).join('')}
+              </ul>
+            </div>
+          </div>
+        `;
+      }
+
+      // Build biases HTML
+      let biasesHtml = '';
+      if (data.biases_detected && data.biases_detected.length > 0) {
+        biasesHtml = `
+          <div class="analysis-section">
+            <div class="analysis-section-title">⚠️ Sesgos Detectados</div>
+            <div class="analysis-section-content">
+              <ul style="list-style: none; padding: 0; margin: 0;">
+                ${data.biases_detected.map(b => `<li style="padding: 10px 0; border-bottom: 1px solid #fef2f2; color: #742a2a;">✗ ${b}</li>`).join('')}
+              </ul>
+            </div>
+          </div>
+        `;
+      }
+
+      // Build strengths HTML
+      let strengthsHtml = '';
+      if (data.strengths && data.strengths.length > 0) {
+        strengthsHtml = `
+          <div class="analysis-section">
+            <div class="analysis-section-title">💪 Fortalezas</div>
+            <div class="analysis-section-content">
+              <ul style="list-style: none; padding: 0; margin: 0;">
+                ${data.strengths.map(s => `<li style="padding: 10px 0; border-bottom: 1px solid #f0fff4; color: #22543d;">✓ ${s}</li>`).join('')}
+              </ul>
+            </div>
+          </div>
+        `;
+      }
+
+      // Build summary stats
+      const accuracyPercent = (data.accuracy_rate * 100).toFixed(0);
+      const statsHtml = `
+        <div class="analysis-section">
+          <div class="analysis-section-title">📊 Estadísticas</div>
+          <div class="analysis-section-content">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <div style="padding: 16px; background: #ebf8ff; border-radius: 8px; text-align: center;">
+                <div style="font-size: 28px; font-weight: 700; color: #2c5aa0;">${data.total_decisions}</div>
+                <div style="font-size: 12px; color: #4a5568; margin-top: 4px;">Decisiones totales</div>
+              </div>
+              <div style="padding: 16px; background: #f0fff4; border-radius: 8px; text-align: center;">
+                <div style="font-size: 28px; font-weight: 700; color: #22543d;">${accuracyPercent}%</div>
+                <div style="font-size: 12px; color: #4a5568; margin-top: 4px;">Tasa de acierto</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      contentDiv.innerHTML = `
+        ${statsHtml}
+        ${strengthsHtml}
+        ${biasesHtml}
+        <div class="analysis-section">
+          <div class="analysis-section-title">🔍 Análisis Completo</div>
+          <div class="analysis-section-content" style="background: #f7fafc; padding: 16px; border-radius: 8px; white-space: pre-wrap; font-size: 13px; line-height: 1.6; color: #4a5568;">
+${data.analysis_text}
+          </div>
+        </div>
+        ${recommendationsHtml}
+      `;
+    }
+
+    async function loadIdeas() {
+      try {
+        const response = await authenticatedFetch(`${API_URL}/thoughts`);
+        if (!response.ok) throw new Error('Error al cargar ideas');
+
+        const result = await response.json();
+        allIdeas = result.thoughts || [];
+        displayIdeas('all');
+      } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('ideasContainer').innerHTML = `<div class="error">Error al cargar ideas: ${error.message}</div>`;
+      }
+    }
+
+    function displayIdeas(typeFilter = 'all') {
+      const container = document.getElementById('ideasContainer');
+
+      let filtered = allIdeas;
+      if (typeFilter !== 'all') {
+        filtered = allIdeas.filter(idea => idea.type === typeFilter);
+      }
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 40px 20px;">
+            <div style="font-size: 40px; margin-bottom: 12px;">💭</div>
+            <p style="color: #a0aec0; margin: 0;">Aún no hay ideas. ¡Crea una para empezar!</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filtered.map(idea => `
+        <div class="idea-card">
+          <div style="display: flex; justify-content: space-between; align-items: start;">
+            <div style="flex: 1;">
+              <span class="idea-type ${idea.type}">${idea.type}</span>
+              <h3 class="idea-title">${idea.title}</h3>
+              <p class="idea-content">${idea.content}</p>
+              ${idea.tags && idea.tags.length > 0 ? `
+                <div style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px;">
+                  ${idea.tags.map(tag => `<span style="display: inline-block; padding: 4px 8px; background: #f0f4ff; color: #667eea; border-radius: 4px; font-size: 11px; font-weight: 600;">#${tag}</span>`).join('')}
+                </div>
+              ` : ''}
+              <div class="idea-date">Creada ${new Date(idea.created_at).toLocaleDateString('es-ES')}</div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Setup idea filter buttons
+    function setupIdeaFilters() {
+      document.querySelectorAll('.idea-filter-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          document.querySelectorAll('.idea-filter-btn').forEach(b => b.classList.remove('active'));
+          e.target.classList.add('active');
+          const typeFilter = e.target.dataset.type;
+          displayIdeas(typeFilter);
+        });
+      });
+    }
+
+    let allIdeas = [];
+
+    // Initialize ideas on DOMContentLoaded
+    document.addEventListener('DOMContentLoaded', () => {
+      // Existing initialization...
+      setupIdeaFilters();
+
+      // Note: idea area select removed - ideas don't need area assignment
+      // Areas are only for decisions
+    });
+
+    // Load ideas when page initializes
+    setTimeout(() => loadIdeas(), 1000);
+
+    // ============================================================================
+    // CONNECTIONS FUNCTIONS
+    // ============================================================================
+
+    let allConnections = [];
+
+    function openConnectionModal() {
+      document.getElementById('connectionModal').classList.add('active');
+      loadSourceItems();
+      loadTargetItems();
+    }
+
+    async function loadSourceItems() {
+      const type = document.getElementById('sourceType').value;
+      const select = document.getElementById('sourceId');
+      select.innerHTML = '<option value="">Selecciona...</option>';
+
+      if (type === 'idea') {
+        allIdeas.forEach(idea => {
+          const option = document.createElement('option');
+          option.value = idea.id;
+          option.textContent = `💡 ${idea.title}`;
+          select.appendChild(option);
+        });
+      } else {
+        allDecisions.forEach(decision => {
+          const option = document.createElement('option');
+          option.value = decision.id;
+          option.textContent = `📊 ${decision.title}`;
+          select.appendChild(option);
+        });
+      }
+    }
+
+    async function loadTargetItems() {
+      const type = document.getElementById('targetType').value;
+      const select = document.getElementById('targetId');
+      select.innerHTML = '<option value="">Selecciona...</option>';
+
+      if (type === 'idea') {
+        allIdeas.forEach(idea => {
+          const option = document.createElement('option');
+          option.value = idea.id;
+          option.textContent = `💡 ${idea.title}`;
+          select.appendChild(option);
+        });
+      } else {
+        allDecisions.forEach(decision => {
+          const option = document.createElement('option');
+          option.value = decision.id;
+          option.textContent = `📊 ${decision.title}`;
+          select.appendChild(option);
+        });
+      }
+    }
+
+    async function handleSubmitConnection(e) {
+      e.preventDefault();
+
+      const connection = {
+        source_type: document.getElementById('sourceType').value,
+        source_id: parseInt(document.getElementById('sourceId').value),
+        target_type: document.getElementById('targetType').value,
+        target_id: parseInt(document.getElementById('targetId').value),
+        relationship: document.getElementById('relationshipType').value,
+        reason: document.getElementById('connectionReason').value || null
+      };
+
+      try {
+        const response = await authenticatedFetch(`${API_URL}/connections`, {
+          method: 'POST',
+          body: JSON.stringify(connection)
+        });
+
+        if (!response.ok) throw new Error('Error al crear conexión');
+
+        // Close modal
+        document.getElementById('connectionModal').classList.remove('active');
+
+        // Reset form
+        document.getElementById('connectionForm').reset();
+
+        // Reload connections
+        loadConnections();
+      } catch (error) {
+        alert(`Error: ${error.message}`);
+      }
+    }
+
+    async function loadConnections() {
+      try {
+        const response = await authenticatedFetch(`${API_URL}/connections`);
+        if (!response.ok) throw new Error('Error al cargar conexiones');
+
+        const result = await response.json();
+        allConnections = result.connections || [];
+        displayConnections();
+      } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('connectionsContainer').innerHTML = `<div class="error">Error al cargar conexiones: ${error.message}</div>`;
+      }
+    }
+
+    function getItemTitle(type, id) {
+      if (type === 'idea') {
+        const idea = allIdeas.find(i => i.id === id);
+        return idea ? idea.title : `Idea #${id}`;
+      } else {
+        const decision = allDecisions.find(d => d.id === id);
+        return decision ? decision.title : `Decisión #${id}`;
+      }
+    }
+
+    function getItemEmoji(type) {
+      return type === 'idea' ? '💡' : '📊';
+    }
+
+    function displayConnections() {
+      const container = document.getElementById('connectionsContainer');
+
+      if (allConnections.length === 0) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 40px 20px;">
+            <div style="font-size: 40px; margin-bottom: 12px;">🔗</div>
+            <p style="color: #a0aec0; margin: 0;">Aún no hay conexiones. ¡Crea una para empezar a tejer tu red de pensamiento!</p>
+          </div>
+        `;
+        return;
+      }
+
+      const relationshipLabels = {
+        'relates_to': 'Se relaciona con',
+        'evolves_from': 'Evoluciona de',
+        'supports': 'Apoya',
+        'contradicts': 'Contradice',
+        'questions': 'Cuestiona'
+      };
+
+      container.innerHTML = allConnections.map(conn => `
+        <div class="connection-item">
+          <div>
+            <span class="connection-source">${getItemEmoji(conn.source.type)} ${getItemTitle(conn.source.type, conn.source.id)}</span>
+            <span class="connection-arrow">→</span>
+            <span class="connection-type">${relationshipLabels[conn.relationship]}</span>
+            <br>
+            <span class="connection-source">${getItemEmoji(conn.target.type)} ${getItemTitle(conn.target.type, conn.target.id)}</span>
+          </div>
+          ${conn.reason ? `<div class="connection-reason">💬 ${conn.reason}</div>` : ''}
+        </div>
+      `).join('');
+    }
+
+    // Load connections when page initializes
+    setTimeout(() => loadConnections(), 1500);
   </script>
 </body>
 </html>
