@@ -29,6 +29,9 @@ Cognitive OS solves this by:
 - **Outcomes**: Register actual results against expected outcomes
 - **Patterns**: Detect recurring biases and strengths across your decision history
 - **Review**: Compare expectation vs. reality and extract learnings
+- **Reminders**: Temporal triggers to review decision outcomes (1 month, 3 months, 6 months)
+- **Metrics**: Dashboard showing decision statistics, completion rates, conviction accuracy
+- **Public Sharing**: Share decisions publicly to showcase your thinking and grow viral
 
 ### 🔐 Authentication & Data
 
@@ -382,6 +385,63 @@ Authorization: Bearer {token}
 ```
 Returns analysis of your decision history including recurring biases, strengths, and recommendations.
 
+### Reminders & Metrics
+
+**Create Reminder:**
+```
+POST /decisions/{decision_id}/reminder
+Authorization: Bearer {token}
+
+{"reminder_type": "1month"}
+```
+Reminder types: "1month", "3months", "6months"
+
+**List Reminders:**
+```
+GET /reminders
+Authorization: Bearer {token}
+```
+
+**Complete Reminder:**
+```
+PATCH /reminders/{reminder_id}/complete
+Authorization: Bearer {token}
+```
+
+**Get Metrics:**
+```
+GET /metrics
+Authorization: Bearer {token}
+```
+Returns decision statistics including total count, completion rate, conviction accuracy, and decisions by area.
+
+### Public Sharing (Viral Feature)
+
+**Create Public Link:**
+```
+POST /decisions/{decision_id}/share
+Authorization: Bearer {token}
+```
+Returns a public URL anyone can view without authentication.
+
+**Get Share Links:**
+```
+GET /decisions/{decision_id}/share-links
+Authorization: Bearer {token}
+```
+
+**View Public Decision:**
+```
+GET /public/{token}
+```
+No authentication required. Anyone with the link can view this decision and its analysis.
+
+**Revoke Share Link:**
+```
+DELETE /share-links/{token}
+Authorization: Bearer {token}
+```
+
 ## Architecture
 
 ### Backend Stack
@@ -454,6 +514,27 @@ Returns analysis of your decision history including recurring biases, strengths,
 - analysis_type
 - content
 - created_at
+```
+
+**Reminders**
+```
+- id
+- user_id
+- decision_id
+- reminder_date
+- reminder_type
+- message
+- status (pending, sent, completed)
+- created_at, sent_at, completed_at
+```
+
+**Public Links**
+```
+- id
+- user_id
+- decision_id
+- token (unique, for public URL)
+- created_at, expires_at
 ```
 
 ### Frontend
@@ -578,24 +659,26 @@ Everything is JSON-exportable. No vendor lock-in.
 
 ## Roadmap
 
-### Near-term (MVP Complete)
+### ✅ Complete (MVP + Viral Features)
 
 - [x] Core decision CRUD
-- [x] AI analysis integration
+- [x] AI analysis integration (Claude)
 - [x] Outcomes registration
 - [x] Pattern detection
+- [x] Temporal reminders (1 month, 3 months, 6 months)
+- [x] Decision metrics dashboard
+- [x] Public sharing (viral mechanism)
 - [x] 100% test coverage
 - [x] Complete documentation
 
-### Future Features
+### 🚀 Future Features
 
-- Decision templates (recurring decision types)
-- Collaborative decisions (share with team)
-- Time-based reminders (check outcome at 3 months)
-- Export/import full decision history
+- Decision templates (recurring types)
+- Collaborative decisions (with team)
+- Export/import full decision history (JSON)
 - Mobile app
-- Decision metrics dashboard
-- Integration with other tools (calendar, email)
+- Email digest of pending reminders
+- Integration with other tools (calendar, Slack, email)
 
 ## Contributing
 

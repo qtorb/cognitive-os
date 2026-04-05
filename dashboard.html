@@ -487,6 +487,96 @@
       font-weight: 700;
     }
 
+    /* ===== REMINDERS ===== */
+    .reminders-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .reminder-card {
+      padding: 18px 20px;
+      background: linear-gradient(135deg, #fef8e7 0%, #fff9e6 100%);
+      border: 1px solid #f6e3a3;
+      border-left: 4px solid #f6ad55;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .reminder-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(246, 173, 85, 0.2);
+    }
+
+    .reminder-date {
+      font-size: 12px;
+      color: #7c6c4e;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .reminder-message {
+      font-size: 14px;
+      color: #2d3748;
+      font-weight: 500;
+    }
+
+    .reminder-status {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 4px 10px;
+      background: #fed7d7;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #c53030;
+      text-transform: uppercase;
+    }
+
+    /* ===== METRICS ===== */
+    .metrics-display {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .metric-card {
+      padding: 24px;
+      background: linear-gradient(135deg, #f0f4ff 0%, #f8f7ff 100%);
+      border: 1px solid #e6e9f5;
+      border-radius: 14px;
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.08);
+    }
+
+    .metric-label {
+      font-size: 12px;
+      color: #667eea;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .metric-value {
+      font-size: 32px;
+      color: #2d3748;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .metric-unit {
+      font-size: 14px;
+      color: #718096;
+      font-weight: 500;
+    }
+
+    .metric-subtext {
+      font-size: 12px;
+      color: #a0aec0;
+      margin-top: 8px;
+    }
+
     .connection-reason {
       font-size: 13px;
       color: #718096;
@@ -1287,6 +1377,8 @@
       <button class="mobile-tab-button" data-tab="connections">🔗 Conexiones</button>
       <button class="mobile-tab-button" data-tab="decisions">📊 Decisiones</button>
       <button class="mobile-tab-button" data-tab="areas">📋 Áreas</button>
+      <button class="mobile-tab-button" data-tab="reminders">⏰ Recordatorios</button>
+      <button class="mobile-tab-button" data-tab="metrics">📈 Métricas</button>
     </div>
 
     <!-- MODAL: Register Decision -->
@@ -1594,6 +1686,40 @@
       </div>
     </div>
     </div><!-- end areas main-card -->
+
+    <!-- 5. Reminders - TEMPORAL REVIEW TRIGGERS -->
+    <div class="main-card" data-mobile-tab="reminders">
+    <div class="card">
+      <div class="section-header">
+        <h2 style="margin: 0;">⏰ Recordatorios de revisión</h2>
+        <button class="collapse-btn" onclick="toggleSectionCollapse('reminders')" title="Contraer/Expandir">⌄</button>
+      </div>
+      <p style="color: #718096; margin-bottom: 24px; font-size: 14px;">Recordatorios para revisar outcomes de tus decisiones</p>
+      <div id="remindersContainer" class="reminders-list">
+        <div class="loading">
+          <div class="spinner"></div>
+          Cargando recordatorios...
+        </div>
+      </div>
+    </div>
+    </div><!-- end reminders main-card -->
+
+    <!-- 6. Metrics - DECISION ANALYTICS -->
+    <div class="main-card" data-mobile-tab="metrics">
+    <div class="card">
+      <div class="section-header">
+        <h2 style="margin: 0;">📈 Tus métricas de decisión</h2>
+        <button class="collapse-btn" onclick="toggleSectionCollapse('metrics')" title="Contraer/Expandir">⌄</button>
+      </div>
+      <p style="color: #718096; margin-bottom: 24px; font-size: 14px;">Analiza patrones en tu toma de decisiones</p>
+      <div id="metricsContainer" class="metrics-display">
+        <div class="loading">
+          <div class="spinner"></div>
+          Cargando métricas...
+        </div>
+      </div>
+    </div>
+    </div><!-- end metrics main-card -->
 
     </div><!-- END main-sections -->
 
@@ -2676,8 +2802,137 @@ ${data.analysis_text}
       `).join('');
     }
 
+    // Load reminders
+    async function loadReminders() {
+      try {
+        const response = await authenticatedFetch(`${API_URL}/reminders?status=pending`);
+        if (!response.ok) throw new Error('Error al cargar recordatorios');
+
+        const result = await response.json();
+        const reminders = result.reminders || [];
+        displayReminders(reminders);
+      } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('remindersContainer').innerHTML = `<div class="error">Error al cargar recordatorios: ${error.message}</div>`;
+      }
+    }
+
+    function displayReminders(reminders) {
+      const container = document.getElementById('remindersContainer');
+
+      if (reminders.length === 0) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 40px 20px;">
+            <div style="font-size: 40px; margin-bottom: 12px;">⏰</div>
+            <p style="color: #a0aec0; margin: 0;">No hay recordatorios pendientes. ¡Crea uno para revisar tus decisiones en el futuro!</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = reminders.map(reminder => {
+        const date = new Date(reminder.reminder_date);
+        const dateStr = date.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+
+        return `
+          <div class="reminder-card">
+            <div class="reminder-date">📅 ${dateStr}</div>
+            <div class="reminder-message">${reminder.message}</div>
+            <span class="reminder-status">${reminder.reminder_type}</span>
+            <button onclick="completeReminder(${reminder.id})" style="margin-top: 10px; padding: 6px 12px; background: #48bb78; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px;">✓ Completada</button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function completeReminder(reminderId) {
+      try {
+        const response = await authenticatedFetch(
+          `${API_URL}/reminders/${reminderId}/complete`,
+          { method: 'PATCH' }
+        );
+        if (!response.ok) throw new Error('Error al marcar recordatorio');
+
+        loadReminders();
+      } catch (error) {
+        alert(`Error: ${error.message}`);
+      }
+    }
+
+    // Load metrics
+    async function loadMetrics() {
+      try {
+        const response = await authenticatedFetch(`${API_URL}/metrics`);
+        if (!response.ok) throw new Error('Error al cargar métricas');
+
+        const result = await response.json();
+        displayMetrics(result);
+      } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('metricsContainer').innerHTML = `<div class="error">Error al cargar métricas: ${error.message}</div>`;
+      }
+    }
+
+    function displayMetrics(metrics) {
+      const container = document.getElementById('metricsContainer');
+
+      const metricsHTML = `
+        <div class="metric-card">
+          <div class="metric-label">Total de decisiones</div>
+          <div class="metric-value">${metrics.total_decisions}</div>
+          <div class="metric-subtext">Decisiones documentadas</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-label">Completadas</div>
+          <div class="metric-value">${metrics.completed}</div>
+          <div class="metric-subtext">${metrics.completion_rate}% del total</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-label">Con resultados</div>
+          <div class="metric-value">${metrics.with_outcomes}</div>
+          <div class="metric-subtext">Decisiones revisadas</div>
+        </div>
+
+        ${metrics.conviction_accuracy !== null ? `
+        <div class="metric-card">
+          <div class="metric-label">Precisión de convicción</div>
+          <div class="metric-value">${metrics.conviction_accuracy}%</div>
+          <div class="metric-subtext">Decisiones altas que salieron bien</div>
+        </div>
+        ` : ''}
+
+        <div class="metric-card">
+          <div class="metric-label">Recordatorios pendientes</div>
+          <div class="metric-value">${metrics.pending_reminders}</div>
+          <div class="metric-subtext">Awaiting review</div>
+        </div>
+
+        ${Object.keys(metrics.decisions_by_area).length > 0 ? `
+        <div class="metric-card" style="grid-column: span 2;">
+          <div class="metric-label">Decisiones por área</div>
+          <div style="margin-top: 12px;">
+            ${Object.entries(metrics.decisions_by_area).map(([area, count]) => `
+              <div style="padding: 8px 0; border-bottom: 1px solid rgba(102, 126, 234, 0.1); display: flex; justify-content: space-between;">
+                <span style="color: #2d3748;">${area}</span>
+                <span style="color: #667eea; font-weight: 700;">${count}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+        ` : ''}
+      `;
+
+      container.innerHTML = metricsHTML;
+    }
+
     // Load connections when page initializes
-    setTimeout(() => loadConnections(), 1500);
+    setTimeout(() => {
+      loadConnections();
+      loadReminders();
+      loadMetrics();
+    }, 1500);
   </script>
 </body>
 </html>

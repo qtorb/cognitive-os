@@ -10,7 +10,7 @@ from sqlalchemy.orm import sessionmaker
 import json
 
 from main import app
-from models import Base, User, Decision, Analysis, Thought, Connection, get_db, SessionLocal
+from models import Base, User, Decision, Analysis, Thought, Connection, Reminder, PublicLink, get_db, SessionLocal
 from auth import create_jwt_token
 
 # Create test database and session at module level
@@ -500,6 +500,263 @@ class TestPerformance:
         assert response.status_code == 200
         data = response.json()
         assert len(data["decisions"]) == 10
+
+
+# ============================================================================
+# TESTS: REMINDERS
+# ============================================================================
+
+def test_create_reminder(client, test_user, auth_header):
+    """Test creating a reminder for a decision"""
+    # Create a decision first
+    decision_data = {
+        "title": "Test Decision for Reminder",
+        "context": "Testing reminder creation",
+        "area": "Product Strategy",
+        "decision_type": "operational"
+    }
+    response = client.post("/decisions", json=decision_data, headers=auth_header)
+    decision_id = response.json()["id"]
+
+    # Create reminder
+    reminder_data = {
+        "reminder_type": "1month",
+        "message": "Review this decision"
+    }
+    response = client.post(
+        f"/decisions/{decision_id}/reminder",
+        json=reminder_data,
+        headers=auth_header
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["decision_id"] == decision_id
+    assert data["reminder_type"] == "1month"
+    assert data["status"] == "pending"
+
+
+def test_list_reminders(client, test_user, auth_header):
+    """Test listing reminders"""
+    # Create a decision and reminder
+    decision_data = {
+        "title": "Test Decision",
+        "context": "Context",
+        "area": "Product Strategy",
+        "decision_type": "operational"
+    }
+    response = client.post("/decisions", json=decision_data, headers=auth_header)
+    decision_id = response.json()["id"]
+
+    reminder_data = {"reminder_type": "3months"}
+    client.post(f"/decisions/{decision_id}/reminder", json=reminder_data, headers=auth_header)
+
+    # List reminders
+    response = client.get("/reminders", headers=auth_header)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["total"] >= 1
+    assert len(data["reminders"]) >= 1
+
+
+def test_complete_reminder(client, test_user, auth_header):
+    """Test marking a reminder as completed"""
+    # Create decision and reminder
+    decision_data = {
+        "title": "Test Decision",
+        "context": "Context",
+        "area": "Product Strategy",
+        "decision_type": "operational"
+    }
+    response = client.post("/decisions", json=decision_data, headers=auth_header)
+    decision_id = response.json()["id"]
+
+    reminder_data = {"reminder_type": "6months"}
+    response = client.post(f"/decisions/{decision_id}/reminder", json=reminder_data, headers=auth_header)
+    reminder_id = response.json()["id"]
+
+    # Complete reminder
+    response = client.patch(f"/reminders/{reminder_id}/complete", headers=auth_header)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "completed"
+    assert data["completed_at"] is not None
+
+
+# ============================================================================
+# TESTS: METRICS
+# ============================================================================
+
+def test_get_metrics_empty(client, test_user, auth_header):
+    """Test getting metrics for a user with no decisions"""
+    response = client.get("/metrics", headers=auth_header)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["total_decisions"] == 0
+    assert data["completion_rate"] == 0
+
+
+def test_get_metrics_with_decisions(client, test_user, auth_header):
+    """Test getting metrics with multiple decisions"""
+    # Create several decisions
+    for i in range(3):
+        decision_data = {
+            "title": f"Decision {i}",
+            "context": f"Context {i}",
+            "area": "Product Strategy",
+            "decision_type": "operational"
+        }
+        response = client.post("/decisions", json=decision_data, headers=auth_header)
+        decision_id = response.json()["id"]
+
+        # Set one as completed with outcome
+        if i == 0:
+            outcome_data = {
+                "outcome_real": "Good outcome",
+                "learnings": ["Lesson 1"],
+                "status": "completed"
+            }
+            client.patch(
+                f"/decisions/{decision_id}/outcome",
+                json=outcome_data,
+                headers=auth_header
+            )
+
+    # Get metrics
+    response = client.get("/metrics", headers=auth_header)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["total_decisions"] == 3
+    assert data["completed"] >= 1
+    assert "decisions_by_area" in data
+    assert "Product Strategy" in data["decisions_by_area"]
+
+
+def test_get_metrics_conviction_accuracy(client, test_user, auth_header):
+    """Test conviction accuracy metric calculation"""
+    # Create decision with high conviction
+    decision_data = {
+        "title": "High Conviction Decision",
+        "context": "Context",
+        "area": "Product Strategy",
+        "decision_type": "operational",
+        "conviction": 8
+    }
+    response = client.post("/decisions", json=decision_data, headers=auth_header)
+    decision_id = response.json()["id"]
+
+    # Mark as completed with positive outcome
+    outcome_data = {
+        "outcome_real": "Successful",
+        "learnings": ["It worked"],
+        "status": "completed"
+    }
+    client.patch(
+        f"/decisions/{decision_id}/outcome",
+        json=outcome_data,
+        headers=auth_header
+    )
+
+    # Check metrics
+    response = client.get("/metrics", headers=auth_header)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["conviction_accuracy"] is not None
+
+
+# ============================================================================
+# TESTS: PUBLIC SHARING
+# ============================================================================
+
+def test_create_public_link(client, test_user, auth_header):
+    """Test creating a public share link"""
+    # Create decision
+    decision_data = {
+        "title": "Decision to Share",
+        "context": "Share this decision",
+        "area": "Product Strategy",
+        "decision_type": "operational"
+    }
+    response = client.post("/decisions", json=decision_data, headers=auth_header)
+    decision_id = response.json()["id"]
+
+    # Create public link
+    response = client.post(f"/decisions/{decision_id}/share", headers=auth_header)
+    assert response.status_code == 200
+    data = response.json()
+    assert "token" in data
+    assert "public_url" in data
+    assert data["public_url"].startswith("/public/")
+
+
+def test_get_share_links(client, test_user, auth_header):
+    """Test listing share links"""
+    # Create decision and share
+    decision_data = {
+        "title": "Decision",
+        "context": "Context",
+        "area": "Product Strategy",
+        "decision_type": "operational"
+    }
+    response = client.post("/decisions", json=decision_data, headers=auth_header)
+    decision_id = response.json()["id"]
+
+    response = client.post(f"/decisions/{decision_id}/share", headers=auth_header)
+    token = response.json()["token"]
+
+    # Get links
+    response = client.get(f"/decisions/{decision_id}/share-links", headers=auth_header)
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data["links"]) >= 1
+    assert data["links"][0]["token"] == token
+
+
+def test_view_public_decision(client, test_user, auth_header):
+    """Test viewing a public decision (no auth)"""
+    # Create and share decision
+    decision_data = {
+        "title": "Public Decision",
+        "context": "This will be shared",
+        "area": "Product Strategy",
+        "decision_type": "operational"
+    }
+    response = client.post("/decisions", json=decision_data, headers=auth_header)
+    decision_id = response.json()["id"]
+
+    response = client.post(f"/decisions/{decision_id}/share", headers=auth_header)
+    token = response.json()["token"]
+
+    # View public (no auth required)
+    response = client.get(f"/public/{token}")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["decision"]["title"] == "Public Decision"
+    assert "message" in data
+
+
+def test_delete_share_link(client, test_user, auth_header):
+    """Test revoking a share link"""
+    # Create and share
+    decision_data = {
+        "title": "Decision",
+        "context": "Context",
+        "area": "Product Strategy",
+        "decision_type": "operational"
+    }
+    response = client.post("/decisions", json=decision_data, headers=auth_header)
+    decision_id = response.json()["id"]
+
+    response = client.post(f"/decisions/{decision_id}/share", headers=auth_header)
+    token = response.json()["token"]
+
+    # Delete link
+    response = client.delete(f"/share-links/{token}", headers=auth_header)
+    assert response.status_code == 200
+
+    # Try to view (should fail)
+    response = client.get(f"/public/{token}")
+    assert response.status_code == 404
 
 
 # ============================================================================

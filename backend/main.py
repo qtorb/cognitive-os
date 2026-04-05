@@ -8,7 +8,7 @@ import uuid
 import json
 import os
 
-from models import User, Decision, Analysis, Thought, Connection, get_db
+from models import User, Decision, Analysis, Thought, Connection, Reminder, PublicLink, get_db
 from ai_service import get_analyzer
 from auth import (
     create_jwt_token,
@@ -1228,6 +1228,328 @@ def analyze_patterns(user: User = Depends(get_token_user), db: Session = Depends
         "decision_count": len(decisions),
         "analysis_type": "patterns",
         "analysis": patterns
+    }
+
+
+# ============================================================================
+# ENDPOINTS: REMINDERS (Temporal review triggers)
+# ============================================================================
+
+@app.post("/decisions/{decision_id}/reminder")
+def create_reminder(
+    decision_id: int,
+    reminder_type: str,
+    message: str = None,
+    user: User = Depends(get_token_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Create a reminder to review decision outcome.
+    reminder_type: "1month", "3months", "6months", or "custom"
+    """
+    decision = get_user_decision(decision_id, user, db)
+
+    from datetime import timedelta
+
+    # Calculate reminder_date based on type
+    reminder_date_map = {
+        "1month": datetime.utcnow() + timedelta(days=30),
+        "3months": datetime.utcnow() + timedelta(days=90),
+        "6months": datetime.utcnow() + timedelta(days=180),
+    }
+
+    if reminder_type in reminder_date_map:
+        reminder_date = reminder_date_map[reminder_type]
+    else:
+        # For custom, use current date + 30 days as default
+        reminder_date = datetime.utcnow() + timedelta(days=30)
+
+    reminder = Reminder(
+        user_id=user.user_id,
+        decision_id=decision_id,
+        reminder_date=reminder_date,
+        reminder_type=reminder_type,
+        message=message or f"Review outcome for: {decision.title}",
+        status="pending"
+    )
+
+    db.add(reminder)
+    db.commit()
+    db.refresh(reminder)
+
+    return {
+        "id": reminder.id,
+        "decision_id": decision_id,
+        "reminder_date": reminder.reminder_date.isoformat(),
+        "reminder_type": reminder.reminder_type,
+        "message": reminder.message,
+        "status": reminder.status
+    }
+
+
+@app.get("/reminders")
+def list_reminders(
+    status: str = None,
+    user: User = Depends(get_token_user),
+    db: Session = Depends(get_db)
+):
+    """
+    List reminders for the user.
+    Optional filter by status: "pending", "sent", "completed"
+    """
+    query = db.query(Reminder).filter(Reminder.user_id == user.user_id)
+
+    if status:
+        query = query.filter(Reminder.status == status)
+
+    reminders = query.order_by(Reminder.reminder_date).all()
+
+    return {
+        "user_id": user.user_id,
+        "total": len(reminders),
+        "reminders": [
+            {
+                "id": r.id,
+                "decision_id": r.decision_id,
+                "reminder_date": r.reminder_date.isoformat(),
+                "reminder_type": r.reminder_type,
+                "message": r.message,
+                "status": r.status,
+                "created_at": r.created_at.isoformat()
+            }
+            for r in reminders
+        ]
+    }
+
+
+@app.patch("/reminders/{reminder_id}/complete")
+def complete_reminder(
+    reminder_id: int,
+    user: User = Depends(get_token_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Mark a reminder as completed (user reviewed the outcome).
+    """
+    reminder = db.query(Reminder).filter(
+        Reminder.id == reminder_id,
+        Reminder.user_id == user.user_id
+    ).first()
+
+    if not reminder:
+        raise HTTPException(status_code=404, detail="Reminder not found")
+
+    reminder.status = "completed"
+    reminder.completed_at = datetime.utcnow()
+    db.commit()
+    db.refresh(reminder)
+
+    return {
+        "id": reminder.id,
+        "status": reminder.status,
+        "completed_at": reminder.completed_at.isoformat()
+    }
+
+
+@app.get("/metrics")
+def get_metrics(user: User = Depends(get_token_user), db: Session = Depends(get_db)):
+    """
+    Get decision metrics and patterns for analytics.
+    Returns: decision counts by area/type, completion rate, conviction accuracy.
+    """
+    decisions = db.query(Decision).filter(Decision.user_id == user.user_id).all()
+
+    if not decisions:
+        return {
+            "user_id": user.user_id,
+            "total_decisions": 0,
+            "metrics": {}
+        }
+
+    # Count by area
+    decisions_by_area = {}
+    decisions_by_type = {}
+    completed_count = 0
+    with_outcomes = 0
+
+    for d in decisions:
+        # By area
+        if d.area not in decisions_by_area:
+            decisions_by_area[d.area] = 0
+        decisions_by_area[d.area] += 1
+
+        # By type
+        if d.decision_type not in decisions_by_type:
+            decisions_by_type[d.decision_type] = 0
+        decisions_by_type[d.decision_type] += 1
+
+        # Count completed
+        if d.status == "completed":
+            completed_count += 1
+
+        # Count with outcomes
+        if d.outcome_real:
+            with_outcomes += 1
+
+    # Calculate conviction accuracy (for decisions with outcomes)
+    conviction_accuracy = None
+    if with_outcomes > 0:
+        accurate = sum(
+            1 for d in decisions
+            if d.outcome_real and d.conviction >= 7
+        )
+        conviction_accuracy = round((accurate / with_outcomes) * 100, 1)
+
+    return {
+        "user_id": user.user_id,
+        "total_decisions": len(decisions),
+        "completed": completed_count,
+        "with_outcomes": with_outcomes,
+        "completion_rate": round((completed_count / len(decisions)) * 100, 1) if decisions else 0,
+        "decisions_by_area": decisions_by_area,
+        "decisions_by_type": decisions_by_type,
+        "conviction_accuracy": conviction_accuracy,
+        "pending_reminders": len(db.query(Reminder).filter(
+            Reminder.user_id == user.user_id,
+            Reminder.status == "pending",
+            Reminder.reminder_date <= datetime.utcnow()
+        ).all())
+    }
+
+
+# ============================================================================
+# ENDPOINTS: PUBLIC SHARING (Viral mechanism)
+# ============================================================================
+
+@app.post("/decisions/{decision_id}/share")
+def create_public_link(
+    decision_id: int,
+    user: User = Depends(get_token_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Create a public read-only link to share a decision.
+    This is how Cognitive OS goes viral - others see decisions, understand value, create accounts.
+    """
+    decision = get_user_decision(decision_id, user, db)
+
+    # Generate random token
+    import secrets
+    token = secrets.token_urlsafe(32)
+
+    public_link = PublicLink(
+        user_id=user.user_id,
+        decision_id=decision_id,
+        token=token
+    )
+
+    db.add(public_link)
+    db.commit()
+    db.refresh(public_link)
+
+    return {
+        "public_url": f"/public/{token}",
+        "token": token,
+        "created_at": public_link.created_at.isoformat()
+    }
+
+
+@app.get("/decisions/{decision_id}/share-links")
+def get_share_links(
+    decision_id: int,
+    user: User = Depends(get_token_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get all public links for a decision.
+    """
+    decision = get_user_decision(decision_id, user, db)
+
+    links = db.query(PublicLink).filter(
+        PublicLink.decision_id == decision_id,
+        PublicLink.user_id == user.user_id
+    ).all()
+
+    return {
+        "decision_id": decision_id,
+        "links": [
+            {
+                "token": link.token,
+                "public_url": f"/public/{link.token}",
+                "created_at": link.created_at.isoformat()
+            }
+            for link in links
+        ]
+    }
+
+
+@app.delete("/share-links/{token}")
+def delete_share_link(
+    token: str,
+    user: User = Depends(get_token_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Revoke a public sharing link.
+    """
+    link = db.query(PublicLink).filter(
+        PublicLink.token == token,
+        PublicLink.user_id == user.user_id
+    ).first()
+
+    if not link:
+        raise HTTPException(status_code=404, detail="Share link not found")
+
+    db.delete(link)
+    db.commit()
+
+    return {"message": "Link revoked"}
+
+
+@app.get("/public/{token}")
+def view_public_decision(token: str, db: Session = Depends(get_db)):
+    """
+    View a publicly shared decision (no auth required).
+    Anyone with the link can see this decision.
+    """
+    link = db.query(PublicLink).filter(PublicLink.token == token).first()
+
+    if not link:
+        raise HTTPException(status_code=404, detail="Decision not found or link expired")
+
+    decision = db.query(Decision).filter(Decision.id == link.decision_id).first()
+
+    if not decision:
+        raise HTTPException(status_code=404, detail="Decision not found")
+
+    # Get analyses for this decision
+    analyses = db.query(Analysis).filter(Analysis.decision_id == decision.id).all()
+
+    return {
+        "decision": {
+            "id": decision.id,
+            "title": decision.title,
+            "context": decision.context,
+            "area": decision.area,
+            "decision_type": decision.decision_type,
+            "conviction": decision.conviction,
+            "status": decision.status,
+            "decision_taken": decision.decision_taken,
+            "expected_outcome": decision.expected_outcome,
+            "outcome_real": decision.outcome_real,
+            "learnings": decision.learnings,
+            "created_at": decision.created_at.isoformat(),
+            "updated_at": decision.updated_at.isoformat()
+        },
+        "analyses": [
+            {
+                "type": a.analysis_type,
+                "content": a.content,
+                "created_at": a.created_at.isoformat()
+            }
+            for a in analyses
+        ],
+        "message": "Esta decisión fue compartida por alguien usando Cognitive OS - un sistema para transformar decisiones en aprendizaje acumulado."
     }
 
 

@@ -98,6 +98,40 @@ class Connection(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
 
+class Reminder(Base):
+    """
+    Temporal reminders to review decision outcomes.
+    Closes the feedback loop by triggering outcome review at the right time.
+    """
+    __tablename__ = "reminders"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(String, index=True)
+    decision_id = Column(Integer, index=True)
+    reminder_date = Column(DateTime, index=True)  # When to remind
+    reminder_type = Column(String)  # "1month", "3months", "6months", "custom"
+    message = Column(String, nullable=True)  # Custom reminder message
+    status = Column(String, default="pending")  # pending, sent, completed
+    created_at = Column(DateTime, default=datetime.utcnow)
+    sent_at = Column(DateTime, nullable=True)
+    completed_at = Column(DateTime, nullable=True)
+
+
+class PublicLink(Base):
+    """
+    Public read-only links to share decisions.
+    Enables viral sharing: others see value and create their own Cognitive OS.
+    """
+    __tablename__ = "public_links"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(String, index=True)
+    decision_id = Column(Integer, index=True)
+    token = Column(String, unique=True, index=True)  # Random token for URL
+    created_at = Column(DateTime, default=datetime.utcnow)
+    expires_at = Column(DateTime, nullable=True)  # Optional expiration
+
+
 # Database setup
 DATABASE_URL = "sqlite:///./cognitive_os.db"
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
