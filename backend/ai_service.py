@@ -104,30 +104,18 @@ def get_provider() -> BaseProvider:
 
 
 # ============================================================================
-# ANALYSIS ENGINE (business logic — provider-agnostic)
+# PROMPT BUILDER (prompting logic — separate from analysis use cases)
 # ============================================================================
 
-class AnalysisEngine:
+class PromptBuilder:
     """
-    Core analysis logic for Cognitive OS.
-    Uses any AI provider to analyze decisions.
+    Builds prompts for each analysis use case.
+    Keeping prompts here makes them easy to tune without touching business logic.
     """
 
-    def __init__(self):
-        self.provider = get_provider()
-
-    def _call(self, prompt: str, max_tokens: int = 1024) -> str:
-        """Call the AI provider. Returns demo response if unavailable."""
-        try:
-            result = self.provider.complete(prompt, max_tokens)
-            if result:
-                return result
-        except Exception as e:
-            logging.info(r"AI provider error: {e}")
-        return None
-
-    def analyze_decision(self, decision: dict, user_context: str) -> str:
-        prompt = f"""{user_context}
+    @staticmethod
+    def analyze(decision: dict, user_context: str) -> str:
+        return f"""{user_context}
 
 DECISIÓN A ANALIZAR:
 Título: {decision['title']}
@@ -145,11 +133,9 @@ Analiza con rigor:
 
 Sé conciso. Prioriza insights únicos sobre obviedades."""
 
-        result = self._call(prompt)
-        return result or self._demo("analyze", decision)
-
-    def counterargument(self, decision: dict, user_context: str) -> str:
-        prompt = f"""{user_context}
+    @staticmethod
+    def counterargument(decision: dict, user_context: str) -> str:
+        return f"""{user_context}
 
 DECISIÓN A DESAFIAR:
 Título: {decision['title']}
@@ -165,11 +151,9 @@ Como devil's advocate:
 
 Cierra con: ¿Qué cambiaría tu decisión?"""
 
-        result = self._call(prompt)
-        return result or self._demo("counterargument", decision)
-
-    def premortem(self, decision: dict, expected_outcome: str) -> str:
-        prompt = f"""DECISIÓN: {decision['title']}
+    @staticmethod
+    def premortem(decision: dict, expected_outcome: str) -> str:
+        return f"""DECISIÓN: {decision['title']}
 RESULTADO ESPERADO: {expected_outcome}
 
 Imagina que en 6 meses esta decisión fracasa.
@@ -180,11 +164,9 @@ Imagina que en 6 meses esta decisión fracasa.
 
 Sé específico con ejemplos concretos."""
 
-        result = self._call(prompt)
-        return result or self._demo("premortem", decision)
-
-    def synthesize_decision(self, analysis: str, counterargument: str, premortem: str) -> str:
-        prompt = f"""ANÁLISIS COMPLETO:
+    @staticmethod
+    def synthesize(analysis: str, counterargument: str, premortem: str) -> str:
+        return f"""ANÁLISIS COMPLETO:
 
 ANÁLISIS: {analysis}
 CONTRAARGUMENTO: {counterargument}
@@ -199,11 +181,9 @@ Sintetiza en máximo 5 puntos:
 
 Sin ruido. Directo. Accionable."""
 
-        result = self._call(prompt, max_tokens=512)
-        return result or self._demo("synthesize", {})
-
-    def review_decision(self, decision: dict, outcome: str, expected: str) -> str:
-        prompt = f"""REVISIÓN DE DECISIÓN PASADA
+    @staticmethod
+    def review(decision: dict, outcome: str, expected: str) -> str:
+        return f"""REVISIÓN DE DECISIÓN PASADA
 
 DECISIÓN: {decision['title']}
 CONTEXTO: {decision['context']}
@@ -218,8 +198,75 @@ REAL: {outcome}
 
 Sé específico. Usa números si es posible."""
 
-        result = self._call(prompt)
-        return result or self._demo("review", decision)
+    @staticmethod
+    def detect_patterns(decisions: list, user_context: str) -> str:
+        decisions_text = "\n".join([
+            f"- {d['title']} ({d['area']}, {d.get('type', d.get('decision_type', 'unknown'))}): {d.get('status', 'sin resultado')}"
+            for d in decisions[:10]
+        ])
+        return f"""{user_context}
+
+HISTORIAL DE DECISIONES:
+{decisions_text}
+
+Analiza patrones:
+1. **Sesgos recurrentes**: ¿Qué patrones negativos se repiten?
+   - Exceso de optimismo, infraestimación de dependencias, errores de timing
+   - Sobreconfianza, contexto insuficiente, ejecución pobre
+2. **Fortalezas**: ¿Dónde acierta consistentemente?
+3. **Puntos débiles**: ¿Dónde falla más?
+4. **Clusters**: ¿Hay agrupaciones por tema?
+5. **Recomendaciones accionables**: ¿Qué cambiar?
+
+Distingue entre patrón detectado e inferencia especulativa.
+Prioriza insights accionables sobre resúmenes narrativos."""
+
+
+# ============================================================================
+# ANALYSIS ENGINE (use cases — orchestrates provider + prompts)
+# ============================================================================
+
+class AnalysisEngine:
+    """
+    Core analysis use cases for Cognitive OS.
+    Orchestrates: PromptBuilder (what to ask) + Provider (who answers).
+    To change model: swap provider via AI_PROVIDER env var.
+    To change prompts: edit PromptBuilder above.
+    """
+
+    def __init__(self):
+        self.provider = get_provider()
+        self.prompts = PromptBuilder()
+
+    def _call(self, prompt: str, max_tokens: int = 1024) -> str:
+        """Call the AI provider. Returns None if unavailable."""
+        try:
+            result = self.provider.complete(prompt, max_tokens)
+            if result:
+                return result
+        except Exception as e:
+            logging.warning(f"AI provider error: {e}")
+        return None
+
+    def analyze_decision(self, decision: dict, user_context: str) -> str:
+        prompt = self.prompts.analyze(decision, user_context)
+        return self._call(prompt) or self._demo("analyze", decision)
+
+    def counterargument(self, decision: dict, user_context: str) -> str:
+        prompt = self.prompts.counterargument(decision, user_context)
+        return self._call(prompt) or self._demo("counterargument", decision)
+
+    def premortem(self, decision: dict, expected_outcome: str) -> str:
+        prompt = self.prompts.premortem(decision, expected_outcome)
+        return self._call(prompt) or self._demo("premortem", decision)
+
+    def synthesize_decision(self, analysis: str, counterargument: str, premortem: str) -> str:
+        prompt = self.prompts.synthesize(analysis, counterargument, premortem)
+        return self._call(prompt, max_tokens=512) or self._demo("synthesize", {})
+
+    def review_decision(self, decision: dict, outcome: str, expected: str) -> str:
+        prompt = self.prompts.review(decision, outcome, expected)
+        return self._call(prompt) or self._demo("review", decision)
 
     def analyze_decision_biases(self, decisions: list) -> dict:
         """
@@ -537,30 +584,8 @@ Sé específico. Usa números si es posible."""
         }
 
     def detect_patterns(self, decisions: list, user_context: str) -> str:
-        decisions_text = "\n".join([
-            f"- {d['title']} ({d['area']}, {d.get('type', d.get('decision_type', 'unknown'))}): {d.get('status', 'sin resultado')}"
-            for d in decisions[:10]
-        ])
-
-        prompt = f"""{user_context}
-
-HISTORIAL DE DECISIONES:
-{decisions_text}
-
-Analiza patrones:
-1. **Sesgos recurrentes**: ¿Qué patrones negativos se repiten?
-   - Exceso de optimismo, infraestimación de dependencias, errores de timing
-   - Sobreconfianza, contexto insuficiente, ejecución pobre
-2. **Fortalezas**: ¿Dónde acierta consistentemente?
-3. **Puntos débiles**: ¿Dónde falla más?
-4. **Clusters**: ¿Hay agrupaciones por tema?
-5. **Recomendaciones accionables**: ¿Qué cambiar?
-
-Distingue entre patrón detectado e inferencia especulativa.
-Prioriza insights accionables sobre resúmenes narrativos."""
-
-        result = self._call(prompt)
-        return result or self._demo("patterns", {})
+        prompt = self.prompts.detect_patterns(decisions, user_context)
+        return self._call(prompt) or self._demo("patterns", {})
 
     def _demo(self, analysis_type: str, decision: dict) -> str:
         """Fallback demo responses when no AI provider is available."""

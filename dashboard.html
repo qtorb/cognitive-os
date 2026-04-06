@@ -392,8 +392,23 @@
         <div class="summary-card"><div class="label">Recordatorios</div><div class="value" id="homeReminders">-</div><div class="sub">Pendientes hoy</div></div>
       </div>
 
+      <!-- Loop status: shown only when there are decisions without outcome -->
+      <div id="loopOpenBanner" style="display:none; background: linear-gradient(135deg, #fff5f5, #fed7d7); border: 2px solid #fc8181; border-radius: 12px; padding: 20px 24px; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+          <span style="font-size: 24px;">🔴</span>
+          <div>
+            <div style="font-weight: 700; font-size: 16px; color: #c53030;">El loop no está cerrado</div>
+            <div style="font-size: 13px; color: #742a2a; margin-top: 2px;">Tienes decisiones donde no sabes qué pasó. Sin outcome no hay aprendizaje.</div>
+          </div>
+        </div>
+        <div id="loopOpenList"></div>
+        <div style="margin-top: 12px; font-size: 12px; color: #c53030; font-style: italic;">
+          Registra el resultado → el sistema detecta el patrón → aprendes de la diferencia.
+        </div>
+      </div>
+
       <div class="card" style="margin-bottom: 20px;">
-        <h2>⚡ Requiere tu atención</h2>
+        <h2>⚡ Próximas acciones</h2>
         <div id="homeActions" class="action-list">
           <div class="spinner"></div>
         </div>
@@ -1042,16 +1057,38 @@
         document.getElementById('homeReminders').textContent = data.total || 0;
       } catch (e) { document.getElementById('homeReminders').textContent = '0'; }
 
-      // Actions needing attention
+      // Loop open banner: show when decisions have no outcome
+      const banner = document.getElementById('loopOpenBanner');
+      const loopList = document.getElementById('loopOpenList');
+      if (pending.length > 0) {
+        banner.style.display = 'block';
+        loopList.innerHTML = pending.map(d => `
+          <div onclick="openOutcomeModal(${d.id}, '${d.title.replace(/'/g, "\\'")}', '${(d.expected_outcome || '').replace(/'/g, "\\'")}')"
+               style="background: white; border-radius: 8px; padding: 12px 16px; margin-bottom: 8px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: box-shadow 0.2s;"
+               onmouseover="this.style.boxShadow='0 2px 8px rgba(0,0,0,0.12)'" onmouseout="this.style.boxShadow='none'">
+            <div>
+              <div style="font-weight: 600; font-size: 14px; color: #2d3748;">${d.title}</div>
+              ${d.expected_outcome ? `<div style="font-size: 12px; color: #667eea; margin-top: 3px;">Esperabas: ${d.expected_outcome}</div>` : ''}
+              <div style="font-size: 11px; color: #a0aec0; margin-top: 2px;">Decidida el ${new Date(d.created_at).toLocaleDateString('es-ES')}</div>
+            </div>
+            <button class="btn btn-success" style="font-size: 12px; white-space: nowrap; margin-left: 12px;">¿Qué pasó? →</button>
+          </div>
+        `).join('');
+      } else {
+        banner.style.display = 'none';
+      }
+
+      // Actions needing attention (non-outcome tasks)
       const actionsContainer = document.getElementById('homeActions');
+      const unanalyzed = allDecisions.filter(d => d.status === 'pending' || d.status === 'analyzing');
       let actionsHtml = '';
 
-      pending.forEach(d => {
+      unanalyzed.slice(0, 3).forEach(d => {
         actionsHtml += `
-          <div class="action-item" onclick="openOutcomeModal(${d.id}, '${d.title.replace(/'/g, "\\'")}', '${(d.expected_outcome || '').replace(/'/g, "\\'")}')">
+          <div class="action-item" onclick="analyzeDecision(${d.id}, 'analyze')">
             <div>
-              <div class="action-label">🎯 Registrar resultado: ${d.title}</div>
-              <div class="action-meta">Decidida el ${new Date(d.created_at).toLocaleDateString('es-ES')}</div>
+              <div class="action-label">📊 Analizar: ${d.title}</div>
+              <div class="action-meta">${d.area} · Convicción ${d.conviction || '?'}/10</div>
             </div>
             <span style="color: #667eea; font-weight: 600;">→</span>
           </div>
@@ -1059,7 +1096,7 @@
       });
 
       if (!actionsHtml) {
-        actionsHtml = '<div class="empty-state"><div class="empty-state-emoji">✅</div><p>No hay acciones pendientes. ¡Todo al día!</p></div>';
+        actionsHtml = `<div class="empty-state"><div class="empty-state-emoji">${pending.length > 0 ? '🔴' : '✅'}</div><p>${pending.length > 0 ? 'Cierra el loop registrando outcomes pendientes arriba.' : 'Todo al día. Añade una nueva decisión para seguir aprendiendo.'}</p></div>`;
       }
       actionsContainer.innerHTML = actionsHtml;
 
@@ -1297,19 +1334,33 @@
         const resp = await authenticatedFetch(`${API_URL}/insights`);
         const insights = await resp.json();
 
-        // Biases
+        // Bias → acción operativa concreta
+        const biasActions = {
+          'Sesgo de optimismo temporal':      'Multiplica tu estimación de tiempo por 1.5x antes de comprometerte.',
+          'Exceso de optimismo en resultados':'Define el peor escenario posible antes de cerrar la decisión.',
+          'Infraestimación de riesgos':       'Dedica 30 min a identificar los 3 riesgos principales. ¿Cuál es tu plan si ocurre cada uno?',
+          'Sobreconfianza':                   'Busca activamente 1 dato que contradiga tu posición antes de decidir.',
+        };
+
         const biasesContainer = document.getElementById('biasesContainer');
         if (insights.biases && insights.biases.length > 0) {
-          biasesContainer.innerHTML = insights.biases.map(bias => `
-            <div style="margin-bottom: 12px; padding: 12px; background: #fff5f5; border-radius: 8px; border-left: 3px solid #f56565;">
+          biasesContainer.innerHTML = insights.biases.map(bias => {
+            const action = biasActions[bias.type] || 'Revisa decisiones pasadas con este sesgo antes de la próxima decisión similar.';
+            return `
+            <div style="margin-bottom: 12px; padding: 14px; background: #fff5f5; border-radius: 8px; border-left: 3px solid #f56565;">
               <div style="font-weight: 600; color: #c53030; font-size: 14px;">${bias.type}</div>
               <div style="color: #742a2a; font-size: 13px; margin: 4px 0;">${bias.description}</div>
-              <div style="color: #a0aec0; font-size: 12px; margin-top: 6px;">
+              <div style="color: #a0aec0; font-size: 12px; margin-top: 4px;">
                 Apariciones: <strong>${bias.count}</strong>
                 ${bias.examples && bias.examples.length > 0 ? ` • Ejemplos: ${bias.examples.slice(0, 2).join(', ')}` : ''}
               </div>
+              <div style="margin-top: 10px; padding: 8px 12px; background: #fff; border-radius: 6px; border: 1px solid #fed7d7;">
+                <span style="font-size: 11px; font-weight: 700; color: #c53030; text-transform: uppercase; letter-spacing: 0.5px;">→ Acción concreta</span>
+                <div style="font-size: 13px; color: #2d3748; margin-top: 3px;">${action}</div>
+              </div>
             </div>
-          `).join('');
+            `;
+          }).join('');
         } else {
           biasesContainer.innerHTML = '<div class="empty-state"><div class="empty-state-emoji">✨</div><p>No se detectaron sesgos recurrentes. ¡Excelente!</p></div>';
         }
@@ -1346,13 +1397,27 @@
           const binEntries = Object.entries(bins);
 
           if (binEntries.length > 0) {
+            // Detect the conviction insight: which level has best accuracy
+            const highData = bins['high'];
+            const medData  = bins['medium'];
+            const lowData  = bins['low'];
+
+            let convictionInsight = '';
+            if (highData && lowData && highData.accuracy_rate < lowData.accuracy_rate) {
+              convictionInsight = `Cuando confías más (8-10), aciertas menos (${highData.accuracy_rate}%) que cuando tienes dudas (${lowData.accuracy_rate}%). Estás sobreestimando tu certeza.`;
+            } else if (highData && highData.accuracy_rate >= 70) {
+              convictionInsight = `Tu alta convicción es fiable: aciertas ${highData.accuracy_rate}% de las veces cuando confías 8-10. Confía en tus primeras intuiciones fuertes.`;
+            } else if (medData) {
+              convictionInsight = `Tu zona óptima está en convicción media (5-7). Ahí aciertas más. Desconfía de extremos.`;
+            }
+
             convictionContainer.innerHTML = `
               <div style="overflow-x: auto;">
                 <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
                   <thead>
                     <tr style="border-bottom: 2px solid #e2e8f0;">
                       <th style="text-align: left; padding: 8px; color: #718096;">Nivel Convicción</th>
-                      <th style="text-align: center; padding: 8px; color: #718096;">Cantidad</th>
+                      <th style="text-align: center; padding: 8px; color: #718096;">Decisiones</th>
                       <th style="text-align: center; padding: 8px; color: #718096;">Acertadas</th>
                       <th style="text-align: center; padding: 8px; color: #718096;">Accuracy</th>
                     </tr>
@@ -1372,6 +1437,12 @@
                   </tbody>
                 </table>
               </div>
+              ${convictionInsight ? `
+              <div style="margin-top: 12px; padding: 10px 14px; background: #fffaf0; border-radius: 8px; border: 1px solid #fbd38d;">
+                <span style="font-size: 11px; font-weight: 700; color: #c05621; text-transform: uppercase; letter-spacing: 0.5px;">→ Lo que esto significa para ti</span>
+                <div style="font-size: 13px; color: #2d3748; margin-top: 4px;">${convictionInsight}</div>
+              </div>
+              ` : ''}
             `;
           } else {
             convictionContainer.innerHTML = '<p style="color: #a0aec0;">Registra outcomes para ver análisis de convicción.</p>';
@@ -1405,19 +1476,34 @@
         if (!data.patterns || data.patterns.length === 0) {
           container.innerHTML = '<div class="empty-state"><div class="empty-state-emoji">✨</div><p>Completa el onboarding para descubrir tus patrones personales.</p></div>';
         } else {
-          container.innerHTML = data.patterns.map(p => `
+          container.innerHTML = data.patterns.map(p => {
+            const strengthLabel = p.current_strength >= 8 ? 'Muy fuerte — activo en la mayoría de tus decisiones' :
+                                  p.current_strength >= 6 ? 'Fuerte — aparece frecuentemente' :
+                                  p.current_strength >= 4 ? 'Moderado — aparece en situaciones específicas' :
+                                  'Débil — lo estás mejorando';
+            const nextDecisionHint = p.current_strength >= 6
+              ? `Antes de tu próxima decisión, pregúntate: ¿este patrón está influyendo ahora?`
+              : `Sigue registrando decisiones para ver si este patrón sube o baja.`;
+            return `
             <div style="padding: 14px; background: #f8f7ff; border-radius: 10px; margin-bottom: 12px; border-left: 3px solid #667eea;">
               <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
                 <div style="font-size: 20px; margin-right: 8px;">${p.icon}</div>
                 <div style="flex: 1;">
                   <div style="font-weight: 600; color: #2d3748;">${p.title}</div>
-                  <div style="font-size: 12px; color: #a0aec0; margin-top: 2px;">Fuerza actual: ${p.current_strength}/10 ${p.evolution > 0 ? '📈' : p.evolution < 0 ? '📉' : '→'}</div>
+                  <div style="font-size: 12px; color: #a0aec0; margin-top: 2px;">
+                    Fuerza: ${p.current_strength}/10 ${p.evolution > 0 ? '📈 +'+p.evolution : p.evolution < 0 ? '📉 '+p.evolution : '→ estable'} · ${strengthLabel}
+                  </div>
                 </div>
                 <button onclick="openEditPatternModal(${p.id})" class="btn btn-secondary" style="font-size: 12px; padding: 6px 10px; margin-left: 8px;" title="Editar">✏️</button>
               </div>
               <div style="color: #718096; font-size: 13px; line-height: 1.5;">${p.description}</div>
+              <div style="margin-top: 10px; padding: 8px 12px; background: white; border-radius: 6px; border: 1px solid #c3dafe;">
+                <span style="font-size: 11px; font-weight: 700; color: #434190; text-transform: uppercase; letter-spacing: 0.5px;">→ Próxima vez</span>
+                <div style="font-size: 13px; color: #2d3748; margin-top: 3px;">${nextDecisionHint}</div>
+              </div>
             </div>
-          `).join('');
+            `;
+          }).join('');
         }
       } catch (e) {
         document.getElementById('patternsContainer').innerHTML = '<p style="color: #c53030;">Error al cargar patrones.</p>';
