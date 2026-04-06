@@ -1258,6 +1258,57 @@ def analyze_patterns(user: User = Depends(get_token_user), db: Session = Depends
     }
 
 
+@app.get("/insights")
+def get_decision_insights(user: User = Depends(get_token_user), db: Session = Depends(get_db)):
+    """
+    Get structured insights on biases, strengths, and recommendations.
+    Sprint 3 feature: Advanced bias detection and conviction accuracy analysis.
+    """
+    # Get all decisions with outcomes
+    decisions = db.query(Decision).filter(Decision.user_id == user.user_id).limit(1000).all()
+
+    if not decisions:
+        return {
+            "user_id": user.user_id,
+            "total_decisions": 0,
+            "decisions_with_outcomes": 0,
+            "biases": [],
+            "strengths": {},
+            "conviction_accuracy": None,
+            "recommendations": [],
+            "message": "No hay suficientes decisiones registradas para análisis"
+        }
+
+    # Transform decisions to format expected by analyzer
+    decisions_data = [
+        {
+            "title": d.title,
+            "area": d.area,
+            "type": d.decision_type,
+            "status": d.status,
+            "expected": d.expected_outcome,
+            "actual": d.outcome_real,
+            "conviction": d.conviction
+        }
+        for d in decisions
+    ]
+
+    # Use analyzer to get structured bias data
+    analyzer = get_analyzer()
+    bias_analysis = analyzer.analyze_decision_biases(decisions_data)
+
+    return {
+        "user_id": user.user_id,
+        "total_decisions": len(decisions),
+        "decisions_with_outcomes": bias_analysis.get("decisions_with_outcomes", 0),
+        "biases": bias_analysis.get("biases", []),
+        "strengths": bias_analysis.get("strengths", {}),
+        "conviction_accuracy": bias_analysis.get("conviction_accuracy"),
+        "recommendations": bias_analysis.get("recommendations", []),
+        "generated_at": datetime.utcnow().isoformat()
+    }
+
+
 # ============================================================================
 # ENDPOINTS: REMINDERS (Temporal review triggers)
 # ============================================================================
@@ -1428,14 +1479,38 @@ def get_metrics(user: User = Depends(get_token_user), db: Session = Depends(get_
         if d.outcome_real:
             with_outcomes += 1
 
-    # Calculate conviction accuracy (for decisions with outcomes)
+    # Calculate conviction accuracy by bin (8-10, 5-7, 1-4)
+    conviction_bins = {}
+    success_keywords = [
+        "acertado", "logrado", "éxito", "achieved", "bien", "correcto", "expected"
+    ]
+
+    for bin_name, (min_c, max_c) in [("high", (8, 10)), ("medium", (5, 7)), ("low", (1, 4))]:
+        bin_decisions = [
+            d for d in decisions
+            if d.outcome_real and d.conviction and min_c <= d.conviction <= max_c
+        ]
+
+        if bin_decisions:
+            accurate = sum(
+                1 for d in bin_decisions
+                if any(kw in d.outcome_real.lower() for kw in success_keywords)
+            )
+            conviction_bins[bin_name] = {
+                "range": f"{min_c}-{max_c}",
+                "count": len(bin_decisions),
+                "accurate": accurate,
+                "accuracy_rate": round((accurate / len(bin_decisions)) * 100, 1)
+            }
+
+    # Overall conviction accuracy
     conviction_accuracy = None
     if with_outcomes > 0:
-        accurate = sum(
+        total_accurate = sum(
             1 for d in decisions
-            if d.outcome_real and d.conviction and d.conviction >= 7
+            if d.outcome_real and any(kw in d.outcome_real.lower() for kw in success_keywords)
         )
-        conviction_accuracy = round((accurate / with_outcomes) * 100, 1) if with_outcomes > 0 else None
+        conviction_accuracy = round((total_accurate / with_outcomes) * 100, 1)
 
     return {
         "user_id": user.user_id,
@@ -1446,6 +1521,7 @@ def get_metrics(user: User = Depends(get_token_user), db: Session = Depends(get_
         "decisions_by_area": decisions_by_area,
         "decisions_by_type": decisions_by_type,
         "conviction_accuracy": conviction_accuracy,
+        "conviction_bins": conviction_bins,
         "pending_reminders": len(db.query(Reminder).filter(
             Reminder.user_id == user.user_id,
             Reminder.status == "pending",

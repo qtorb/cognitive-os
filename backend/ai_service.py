@@ -220,6 +220,229 @@ Sé específico. Usa números si es posible."""
         result = self._call(prompt)
         return result or self._demo("review", decision)
 
+    def analyze_decision_biases(self, decisions: list) -> dict:
+        """
+        Analyze decisions to detect recurring biases and strengths.
+        Returns structured data instead of narrative text.
+        """
+        if not decisions:
+            return {
+                "biases": [],
+                "strengths": [],
+                "conviction_accuracy": None,
+                "recommendations": []
+            }
+
+        # Extract data from decisions
+        outcomes = []
+        conviction_data = []
+
+        for d in decisions:
+            outcome_real = d.get('actual', d.get('outcome_real', ''))
+            conviction = d.get('conviction')
+            expected = d.get('expected', d.get('expected_outcome', ''))
+
+            if outcome_real:
+                outcomes.append({
+                    'title': d.get('title', 'Decision'),
+                    'expected': expected,
+                    'actual': outcome_real,
+                    'conviction': conviction
+                })
+
+            if conviction and outcome_real:
+                conviction_data.append({
+                    'conviction': conviction,
+                    'outcome': outcome_real
+                })
+
+        # Detect biases from keywords in outcomes
+        biases = self._extract_biases(outcomes)
+
+        # Detect strengths (successful decisions)
+        strengths = self._extract_strengths(outcomes)
+
+        # Calculate conviction accuracy
+        conviction_accuracy = self._calculate_conviction_accuracy(conviction_data)
+
+        # Generate recommendations
+        recommendations = self._generate_recommendations(biases, strengths, conviction_accuracy)
+
+        return {
+            "biases": biases,
+            "strengths": strengths,
+            "conviction_accuracy": conviction_accuracy,
+            "recommendations": recommendations,
+            "total_decisions_analyzed": len(decisions),
+            "decisions_with_outcomes": len(outcomes)
+        }
+
+    def _extract_biases(self, outcomes: list) -> list:
+        """Extract recurring biases from decision outcomes."""
+        bias_patterns = {
+            "optimismo_temporal": {
+                "keywords": ["retraso", "delay", "tarde", "tardó", "tomó más tiempo"],
+                "pattern": "Sesgo de optimismo temporal",
+                "description": "Subestimas el tiempo que toman las cosas"
+            },
+            "optimismo_resultados": {
+                "keywords": ["fracaso", "failed", "no funcionó", "no trabajó", "resultó peor"],
+                "pattern": "Exceso de optimismo en resultados",
+                "description": "Esperas mejores resultados de los que ocurren"
+            },
+            "infraestimacion_riesgo": {
+                "keywords": ["riesgo", "problema", "issue", "complicación", "inesperado"],
+                "pattern": "Infraestimación de riesgos",
+                "description": "No consideras suficientemente los riesgos"
+            },
+            "sobreconfianza": {
+                "keywords": ["sorpresa", "inesperadamente", "no esperaba", "shock"],
+                "pattern": "Sobreconfianza",
+                "description": "Demasiada confianza en tu predicción"
+            }
+        }
+
+        detected_biases = {}
+
+        for outcome in outcomes:
+            actual_lower = outcome['actual'].lower()
+
+            for bias_key, bias_info in bias_patterns.items():
+                if any(kw in actual_lower for kw in bias_info['keywords']):
+                    if bias_key not in detected_biases:
+                        detected_biases[bias_key] = {
+                            "type": bias_info['pattern'],
+                            "description": bias_info['description'],
+                            "occurrences": 0,
+                            "examples": []
+                        }
+                    detected_biases[bias_key]['occurrences'] += 1
+                    if len(detected_biases[bias_key]['examples']) < 2:
+                        detected_biases[bias_key]['examples'].append(outcome['title'])
+
+        # Convert to list, sorted by frequency
+        biases = sorted(
+            [
+                {
+                    "type": v["type"],
+                    "description": v["description"],
+                    "count": v["occurrences"],
+                    "examples": v["examples"]
+                }
+                for v in detected_biases.values()
+            ],
+            key=lambda x: x['count'],
+            reverse=True
+        )
+
+        return biases
+
+    def _extract_strengths(self, outcomes: list) -> list:
+        """Extract decision strengths (successful outcomes)."""
+        success_keywords = [
+            "acertado", "logrado", "éxito", "exitoso", "achieved",
+            "bien", "correcto", "as expected", "expected", "cumplió"
+        ]
+
+        successes = []
+        for outcome in outcomes:
+            actual_lower = outcome['actual'].lower()
+            if any(kw in actual_lower for kw in success_keywords):
+                successes.append({
+                    "title": outcome['title'],
+                    "expected": outcome['expected'],
+                    "actual": outcome['actual']
+                })
+
+        # Group by area or type if available
+        return {
+            "successful_decisions": len(successes),
+            "success_rate": round((len(successes) / len(outcomes)) * 100, 1) if outcomes else 0,
+            "examples": successes[:3]
+        }
+
+    def _calculate_conviction_accuracy(self, conviction_data: list) -> dict:
+        """Calculate accuracy stratified by conviction level."""
+        if not conviction_data:
+            return None
+
+        bins = {
+            "high": {"range": (8, 10), "count": 0, "accurate": 0},
+            "medium": {"range": (5, 7), "count": 0, "accurate": 0},
+            "low": {"range": (1, 4), "count": 0, "accurate": 0}
+        }
+
+        success_keywords = [
+            "acertado", "logrado", "éxito", "achieved", "bien", "correcto", "expected"
+        ]
+
+        for item in conviction_data:
+            conviction = item['conviction']
+            outcome_lower = item['outcome'].lower()
+            is_accurate = any(kw in outcome_lower for kw in success_keywords)
+
+            if conviction >= 8:
+                bins["high"]["count"] += 1
+                if is_accurate:
+                    bins["high"]["accurate"] += 1
+            elif conviction >= 5:
+                bins["medium"]["count"] += 1
+                if is_accurate:
+                    bins["medium"]["accurate"] += 1
+            else:
+                bins["low"]["count"] += 1
+                if is_accurate:
+                    bins["low"]["accurate"] += 1
+
+        # Calculate percentages
+        result = {}
+        for bin_name, bin_data in bins.items():
+            if bin_data["count"] > 0:
+                accuracy_pct = round((bin_data["accurate"] / bin_data["count"]) * 100, 1)
+                result[bin_name] = {
+                    "range": f"{bin_data['range'][0]}-{bin_data['range'][1]}",
+                    "count": bin_data["count"],
+                    "accurate": bin_data["accurate"],
+                    "accuracy_rate": accuracy_pct
+                }
+
+        return result
+
+    def _generate_recommendations(self, biases: list, strengths: dict, conviction_accuracy: dict) -> list:
+        """Generate actionable recommendations based on analysis."""
+        recommendations = []
+
+        # Recommendations based on biases
+        if biases:
+            top_bias = biases[0]
+            if top_bias['type'] == 'Sesgo de optimismo temporal':
+                recommendations.append(
+                    f"⚠️ Aumenta tus estimaciones de tiempo en 30-40%. "
+                    f"Detectamos este sesgo en {top_bias['count']} decisiones."
+                )
+            elif top_bias['type'] == 'Infraestimación de riesgos':
+                recommendations.append(
+                    f"⚠️ Dedica más tiempo a análisis de riesgos. "
+                    f"Este patrón aparece en {top_bias['count']} decisiones."
+                )
+
+        # Recommendations based on conviction accuracy
+        if conviction_accuracy:
+            high_conviction = conviction_accuracy.get('high', {})
+            if high_conviction.get('accuracy_rate', 0) < 60:
+                recommendations.append(
+                    f"📊 Baja tu conviction en decisiones riesgosas. "
+                    f"Cuando te sientes muy seguro (8-10), solo aciertas {high_conviction.get('accuracy_rate', 0)}%."
+                )
+
+        # Recommendations based on strengths
+        if strengths and strengths.get('success_rate', 0) > 60:
+            recommendations.append(
+                f"✅ Mantén tu enfoque actual. Tienes {strengths.get('success_rate', 0)}% de éxito en decisiones completadas."
+            )
+
+        return recommendations
+
     def detect_patterns(self, decisions: list, user_context: str) -> str:
         decisions_text = "\n".join([
             f"- {d['title']} ({d['area']}, {d.get('type', d.get('decision_type', 'unknown'))}): {d.get('status', 'sin resultado')}"

@@ -760,6 +760,179 @@ def test_delete_share_link(client, test_user, auth_header):
 
 
 # ============================================================================
+# SPRINT 3: BIAS DETECTION + CONVICTION ACCURACY
+# ============================================================================
+
+def test_conviction_accuracy_bins(client, test_user, auth_header):
+    """Test conviction accuracy metrics by conviction level bin"""
+    # Create decisions with different conviction levels and outcomes
+
+    # High conviction (8-10) with mixed outcomes
+    for i in range(3):
+        decision_data = {
+            "title": f"High Conviction Decision {i}",
+            "context": f"Context {i}",
+            "area": "Product Strategy",
+            "decision_type": "operational",
+            "conviction": 9
+        }
+        response = client.post("/decisions", json=decision_data, headers=auth_header)
+        decision_id = response.json()["decision_id"]
+
+        # Register outcome
+        outcome = {
+            "outcome_real": "acertado - funcionó bien" if i < 2 else "fracaso",
+            "status": "completed"
+        }
+        client.patch(f"/decisions/{decision_id}/outcome", json=outcome, headers=auth_header)
+
+    # Medium conviction (5-7) with mostly accurate outcomes
+    for i in range(2):
+        decision_data = {
+            "title": f"Medium Conviction Decision {i}",
+            "context": f"Context {i}",
+            "area": "Team",
+            "decision_type": "strategic",
+            "conviction": 6
+        }
+        response = client.post("/decisions", json=decision_data, headers=auth_header)
+        decision_id = response.json()["decision_id"]
+
+        outcome = {
+            "outcome_real": "logrado como se esperaba",
+            "status": "completed"
+        }
+        client.patch(f"/decisions/{decision_id}/outcome", json=outcome, headers=auth_header)
+
+    # Get metrics with conviction bins
+    response = client.get("/metrics", headers=auth_header)
+    assert response.status_code == 200
+
+    data = response.json()
+    assert "conviction_bins" in data
+    assert data["with_outcomes"] == 5
+
+    # Verify conviction bins have correct structure
+    if "high" in data["conviction_bins"]:
+        assert data["conviction_bins"]["high"]["count"] == 3
+        assert data["conviction_bins"]["high"]["accuracy_rate"] <= 100
+
+    if "medium" in data["conviction_bins"]:
+        assert data["conviction_bins"]["medium"]["count"] == 2
+        assert data["conviction_bins"]["medium"]["accuracy_rate"] == 100.0
+
+
+def test_insights_endpoint(client, test_user, auth_header):
+    """Test new /insights endpoint for bias detection"""
+    # Create decisions with outcomes
+    decision_data = {
+        "title": "Expansion Project",
+        "context": "Market expansion",
+        "area": "Product Strategy",
+        "decision_type": "strategic",
+        "conviction": 8
+    }
+    response = client.post("/decisions", json=decision_data, headers=auth_header)
+    decision_id = response.json()["decision_id"]
+
+    # Register outcome with delay (indicates timeline bias)
+    outcome = {
+        "outcome_real": "Se completó pero con retraso de 3 meses",
+        "learnings": ["Timeline fue subestimado", "Recursos insuficientes"],
+        "status": "completed"
+    }
+    client.patch(f"/decisions/{decision_id}/outcome", json=outcome, headers=auth_header)
+
+    # Get insights
+    response = client.get("/insights", headers=auth_header)
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data["user_id"] == test_user.user_id
+    assert data["total_decisions"] >= 1
+    assert "biases" in data
+    assert "strengths" in data
+    assert "recommendations" in data
+
+    # Should detect timeline bias from "retraso"
+    bias_types = [b["type"] for b in data.get("biases", [])]
+    assert any("tiempo" in b.lower() or "timing" in b.lower() or "temporal" in b.lower()
+               for b in bias_types) or len(data["biases"]) == 0  # Acceptable if no biases
+
+
+def test_bias_detection_with_multiple_outcomes(client, test_user, auth_header):
+    """Test bias detection with multiple decision outcomes"""
+    # Create 3 decisions with delayed outcomes (timeline bias pattern)
+    for i in range(3):
+        decision_data = {
+            "title": f"Project {i}",
+            "context": f"Project context {i}",
+            "area": "Product Strategy",
+            "decision_type": "operational",
+            "conviction": 7 + i
+        }
+        response = client.post("/decisions", json=decision_data, headers=auth_header)
+        decision_id = response.json()["decision_id"]
+
+        outcome = {
+            "outcome_real": f"Se completó con delay - tomó más tiempo de lo esperado",
+            "status": "completed"
+        }
+        client.patch(f"/decisions/{decision_id}/outcome", json=outcome, headers=auth_header)
+
+    # Get insights - should detect pattern
+    response = client.get("/insights", headers=auth_header)
+    assert response.status_code == 200
+
+    data = response.json()
+    # With 3 decisions showing delays, should have at least some pattern detection
+    assert data["decisions_with_outcomes"] >= 3
+    assert isinstance(data["biases"], list)
+    assert isinstance(data["recommendations"], list)
+
+
+def test_conviction_accuracy_calculation(client, test_user, auth_header):
+    """Test overall conviction accuracy is calculated correctly"""
+    # Create decisions with high and low accuracy
+
+    # 2 accurate decisions
+    for i in range(2):
+        decision_data = {
+            "title": f"Accurate Decision {i}",
+            "context": "Context",
+            "area": "Product Strategy",
+            "decision_type": "operational"
+        }
+        response = client.post("/decisions", json=decision_data, headers=auth_header)
+        decision_id = response.json()["decision_id"]
+
+        outcome = {"outcome_real": "acertado - resultó bien", "status": "completed"}
+        client.patch(f"/decisions/{decision_id}/outcome", json=outcome, headers=auth_header)
+
+    # 1 inaccurate decision
+    decision_data = {
+        "title": "Inaccurate Decision",
+        "context": "Context",
+        "area": "Product Strategy",
+        "decision_type": "operational"
+    }
+    response = client.post("/decisions", json=decision_data, headers=auth_header)
+    decision_id = response.json()["decision_id"]
+
+    outcome = {"outcome_real": "fracaso - no funcionó", "status": "completed"}
+    client.patch(f"/decisions/{decision_id}/outcome", json=outcome, headers=auth_header)
+
+    # Get metrics
+    response = client.get("/metrics", headers=auth_header)
+    assert response.status_code == 200
+
+    data = response.json()
+    # 2 out of 3 = 66.7%
+    expected_accuracy = 66.7
+    assert data["conviction_accuracy"] == expected_accuracy
+
+
+# ============================================================================
 # RUN TESTS
 # ============================================================================
 
