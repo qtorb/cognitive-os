@@ -1,4 +1,6 @@
 from fastapi import FastAPI, Depends, HTTPException, Header
+from fastapi.responses import Response
+import io
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
@@ -16,8 +18,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-from models import User, Decision, Analysis, Thought, Connection, Reminder, PublicLink, get_db
+from models import User, Decision, Analysis, Thought, Connection, Reminder, PublicLink, PersonalPattern, get_db
 from ai_service import get_analyzer
+from export_service import generate_export_pdf
 from auth import (
     create_jwt_token,
     verify_jwt_token,
@@ -119,6 +122,9 @@ class DecisionCreate(BaseModel):
 
 
 class DecisionUpdate(BaseModel):
+    title: str | None = None
+    context: str | None = None
+    conviction: int | None = None
     status: str | None = None
     decision_taken: str | None = None
     expected_outcome: str | None = None
@@ -459,6 +465,45 @@ def get_user_profile(user_id: str, db: Session = Depends(get_db)):
     }
 
 
+@app.patch("/user/{user_id}")
+def update_user_profile(user_id: str, request: dict, db: Session = Depends(get_db)):
+    """
+    Update user profile during onboarding.
+    """
+    user = db.query(User).filter(User.user_id == user_id).first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+
+    # Update fields if provided
+    if "role" in request:
+        user.role = request["role"]
+    if "decision_areas" in request:
+        user.decision_areas = request["decision_areas"]
+    if "decision_types" in request:
+        user.decision_types = request["decision_types"]
+    if "horizon" in request:
+        user.horizon = request["horizon"]
+    if "known_bias" in request:
+        user.known_bias = request["known_bias"]
+    if "decision_style" in request:
+        user.decision_style = request["decision_style"]
+    if "risk_tolerance" in request:
+        user.risk_tolerance = request["risk_tolerance"]
+
+    user.updated_at = datetime.utcnow()
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    return {
+        "user_id": user.user_id,
+        "role": user.role,
+        "decision_areas": user.decision_areas,
+        "updated_at": user.updated_at.isoformat()
+    }
+
+
 # ============================================================================
 # ENDPOINTS: DECISIONS
 # ============================================================================
@@ -509,11 +554,66 @@ def create_decision(decision: DecisionCreate, user: User = Depends(get_token_use
 
 
 @app.get("/decisions")
-def list_decisions(user: User = Depends(get_token_user), db: Session = Depends(get_db)):
+def list_decisions(
+    user: User = Depends(get_token_user),
+    db: Session = Depends(get_db),
+    search: str = None,
+    area: str = None,
+    status: str = None,
+    conviction_min: int = None,
+    conviction_max: int = None,
+    sort_by: str = "created_at",
+    sort_order: str = "desc"
+):
     """
-    List all decisions for the authenticated user.
+    List decisions with search and filtering.
+
+    Query parameters:
+    - search: Search in title and context (full-text)
+    - area: Filter by decision area
+    - status: Filter by status (draft, analyzing, decided, reviewing, completed)
+    - conviction_min: Minimum conviction (1-10)
+    - conviction_max: Maximum conviction (1-10)
+    - sort_by: Field to sort by (created_at, conviction, title)
+    - sort_order: asc or desc
     """
-    decisions = db.query(Decision).filter(Decision.user_id == user.user_id).order_by(Decision.created_at.desc()).limit(100).all()
+    query = db.query(Decision).filter(Decision.user_id == user.user_id)
+
+    # Search filter (title and context)
+    if search:
+        search_term = f"%{search}%"
+        query = query.filter(
+            (Decision.title.ilike(search_term)) |
+            (Decision.context.ilike(search_term))
+        )
+
+    # Area filter
+    if area:
+        query = query.filter(Decision.area == area)
+
+    # Status filter
+    if status:
+        query = query.filter(Decision.status == status)
+
+    # Conviction range filter
+    if conviction_min is not None:
+        query = query.filter(Decision.conviction >= conviction_min)
+    if conviction_max is not None:
+        query = query.filter(Decision.conviction <= conviction_max)
+
+    # Sorting
+    sort_column = {
+        "created_at": Decision.created_at,
+        "conviction": Decision.conviction,
+        "title": Decision.title
+    }.get(sort_by, Decision.created_at)
+
+    if sort_order.lower() == "asc":
+        query = query.order_by(sort_column.asc())
+    else:
+        query = query.order_by(sort_column.desc())
+
+    decisions = query.limit(100).all()
 
     return {
         "user_id": user.user_id,
@@ -560,39 +660,6 @@ def get_decision(decision_id: int, user: User = Depends(get_token_user), db: Ses
         "learnings": decision.learnings,
         "created_at": decision.created_at.isoformat(),
         "updated_at": decision.updated_at.isoformat()
-    }
-
-
-@app.patch("/decisions/{decision_id}")
-def update_decision(decision_id: int, update: DecisionUpdate, user: User = Depends(get_token_user), db: Session = Depends(get_db)):
-    """
-    Update a decision.
-    """
-    decision = get_user_decision(decision_id, user, db)
-
-    # Update fields if provided
-    if update.status:
-        decision.status = update.status
-    if update.decision_taken:
-        decision.decision_taken = update.decision_taken
-    if update.expected_outcome:
-        decision.expected_outcome = update.expected_outcome
-    if update.review_date:
-        decision.review_date = update.review_date
-    if update.outcome_real:
-        decision.outcome_real = update.outcome_real
-    if update.learnings:
-        decision.learnings = update.learnings
-
-    decision.updated_at = datetime.utcnow()
-
-    db.commit()
-    db.refresh(decision)
-
-    return {
-        "status": "success",
-        "message": "Decisión actualizada",
-        "decision_id": decision.id
     }
 
 
@@ -1738,6 +1805,661 @@ def view_public_decision(token: str, db: Session = Depends(get_db)):
             for a in analyses
         ],
         "message": "Esta decisión fue compartida por alguien usando Cognitive OS - un sistema para transformar decisiones en aprendizaje acumulado."
+    }
+
+
+# ============================================================================
+# PATTERN ANALYSIS (Onboarding Discovery)
+# ============================================================================
+
+class DecisionInput(BaseModel):
+    context: str
+    conviction: int
+    fear: str
+    assumptions: str
+    result: str
+    difference: str
+    advice: str = None
+
+class PatternsRequest(BaseModel):
+    decisions: list[DecisionInput]
+
+@app.post("/analyze-patterns")
+def analyze_patterns_onboarding(request: PatternsRequest):
+    """
+    Analyze personal patterns from initial decisions.
+    This creates the "wow moment" by revealing insights about how the user makes decisions.
+    """
+    analyzer = get_analyzer()
+
+    # Build context for analysis
+    decisions_text = ""
+    for i, dec in enumerate(request.decisions, 1):
+        decisions_text += f"""
+DECISIÓN {i}:
+Contexto: {dec.context}
+Convicción (1-10): {dec.conviction}
+Principal miedo: {dec.fear}
+Supuestos: {dec.assumptions}
+Resultado: {dec.result}
+Diferencia con expectativa: {dec.difference}
+Consejo a sí mismo: {dec.advice or 'N/A'}
+"""
+
+    # Prompt for pattern analysis
+    prompt = f"""Eres un experto en análisis de sesgos cognitivos y patrones de toma de decisiones.
+
+He aquí cómo un usuario describe sus últimas decisiones:
+
+{decisions_text}
+
+Analiza PROFUNDAMENTE estos patrones personales y específicos del usuario. NO des consejos genéricos.
+
+Identifica 3-4 patrones REALES y PERSONALES que veas en cómo toma decisiones. Para cada patrón:
+1. Un título corto y memorable
+2. Una descripción específica de por qué crees que es su patrón (basado en lo que escribió)
+3. Un ejemplo o conexión con lo que contó
+4. Un emoji que lo represente
+
+Sé directo, honesto y perspicaz. Los insights deben sentirse como un "aha moment".
+
+Formato: JSON con array "patterns" donde cada uno tiene: {{"icon": "emoji", "title": "título", "description": "descripción detallada"}}"""
+
+    try:
+        logging.info("Iniciando análisis de patrones para onboarding...")
+        analysis = analyzer.analyze(prompt)
+        logging.info(f"Análisis completado. Respuesta: {analysis[:100]}...")
+
+        # Parse JSON response
+        import json
+        import re
+
+        # Extract JSON from response
+        json_match = re.search(r'\{.*\}', analysis, re.DOTALL)
+        if json_match:
+            patterns_data = json.loads(json_match.group())
+            logging.info(f"JSON parseado exitosamente: {len(patterns_data.get('patterns', []))} patrones")
+            return {"patterns": patterns_data.get("patterns", [])}
+        else:
+            logging.warning("No se encontró JSON en la respuesta del analyzer")
+            # Fallback: return generic patterns if parsing fails
+            return {
+                "patterns": [
+                    {
+                        "icon": "🎯",
+                        "title": "Análisis en progreso",
+                        "description": "Tus patrones están siendo analizados. Vuelve pronto para más insights."
+                    }
+                ]
+            }
+    except Exception as e:
+        logging.error(f"Error analizando patrones: {e}", exc_info=True)
+        # Return a valid response even on error
+        return {
+            "patterns": [
+                {
+                    "icon": "🧠",
+                    "title": "Autopercepción clara",
+                    "description": "Eres consciente de cómo tomas decisiones, lo que es el primer paso para mejorar."
+                }
+            ]
+        }
+
+
+# ============================================================================
+# PERSONAL PATTERNS TRACKING (Dashboard Evolution)
+# ============================================================================
+
+class SavePatternsRequest(BaseModel):
+    patterns: list
+
+@app.post("/user/{user_id}/patterns")
+def save_user_patterns(
+    user_id: str,
+    request: SavePatternsRequest,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_token_user)
+):
+    """
+    Save initial patterns discovered during onboarding.
+    These patterns evolve as the user makes more decisions.
+    """
+    # Delete any existing patterns (fresh start)
+    db.query(PersonalPattern).filter(PersonalPattern.user_id == user_id).delete()
+
+    # Save new patterns
+    for pattern in request.patterns:
+        db_pattern = PersonalPattern(
+            user_id=user_id,
+            pattern_type=pattern.get("title", "").lower().replace(" ", "_"),
+            title=pattern.get("title"),
+            description=pattern.get("description"),
+            icon=pattern.get("icon"),
+            initial_strength=5,
+            current_strength=5
+        )
+        db.add(db_pattern)
+
+    db.commit()
+    return {"message": "Patterns saved", "count": len(request.patterns)}
+
+
+@app.get("/user/{user_id}/patterns")
+def get_user_patterns(
+    user_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_token_user)
+):
+    """
+    Get user's current personal patterns.
+    Includes initial detection and evolution over time.
+    """
+    patterns = db.query(PersonalPattern).filter(PersonalPattern.user_id == user_id).all()
+
+    if not patterns:
+        return {
+            "patterns": [],
+            "message": "Complete the onboarding to discover your patterns"
+        }
+
+    return {
+        "patterns": [
+            {
+                "icon": p.icon,
+                "title": p.title,
+                "description": p.description,
+                "initial_strength": p.initial_strength,
+                "current_strength": p.current_strength,
+                "evolution": p.current_strength - p.initial_strength,
+                "examples_count": len(p.examples or [])
+            }
+            for p in patterns
+        ],
+        "discovered_at": patterns[0].created_at.isoformat() if patterns else None
+    }
+
+
+@app.get("/user/{user_id}/predictions")
+def get_personal_predictions(
+    user_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_token_user)
+):
+    """
+    Generate personalized predictions based on user's patterns and history.
+    Uses personal data to make context-specific recommendations.
+    """
+    # Get user patterns
+    patterns = db.query(PersonalPattern).filter(PersonalPattern.user_id == user_id).all()
+
+    if not patterns:
+        return {
+            "predictions": [],
+            "message": "Patterns not yet analyzed. Complete onboarding first."
+        }
+
+    # Get recent decisions
+    recent_decisions = db.query(Decision).filter(
+        Decision.user_id == user_id
+    ).order_by(Decision.created_at.desc()).limit(5).all()
+
+    if not recent_decisions:
+        return {
+            "predictions": [],
+            "message": "Make some decisions first to get personalized predictions"
+        }
+
+    analyzer = get_analyzer()
+
+    # Build context for prediction
+    patterns_context = "\n".join([
+        f"- {p.title}: {p.description}"
+        for p in patterns
+    ])
+
+    decisions_context = "\n".join([
+        f"Decision: {d.title}, Conviction: {d.conviction}/10, Status: {d.status}"
+        for d in recent_decisions
+    ])
+
+    prompt = f"""Basado en los siguientes patrones personales del usuario y sus decisiones recientes:
+
+PATRONES PERSONALES:
+{patterns_context}
+
+DECISIONES RECIENTES:
+{decisions_context}
+
+Genera 3 predicciones personalizadas sobre qué saldrá bien o mal en las próximas decisiones. Sé específico y basado en los patrones reales del usuario, no genérico.
+
+Formato JSON: {{"predictions": [{{icon: emoji, title: string, warning: string}}]}}"""
+
+    try:
+        analysis = analyzer.analyze(prompt)
+        import json
+        import re
+
+        json_match = re.search(r'\{.*\}', analysis, re.DOTALL)
+        if json_match:
+            predictions_data = json.loads(json_match.group())
+            return {"predictions": predictions_data.get("predictions", [])}
+        else:
+            return {
+                "predictions": [
+                    {
+                        "icon": "🎯",
+                        "title": "Predictions in progress",
+                        "warning": "Your personalized predictions are being generated"
+                    }
+                ]
+            }
+    except Exception as e:
+        logger.error(f"Error generating predictions: {e}")
+        return {
+            "predictions": [
+                {
+                    "icon": "💡",
+                    "title": "Self-awareness building",
+                    "warning": "You're becoming more aware of your decision patterns"
+                }
+            ]
+        }
+
+
+# ============================================================================
+# EDIT & UPDATE ENDPOINTS
+# ============================================================================
+
+class DecisionUpdate(BaseModel):
+    title: str | None = None
+    context: str | None = None
+    conviction: int | None = None
+    status: str | None = None
+    outcome_real: str | None = None
+    learnings: list | None = None
+
+class PatternUpdate(BaseModel):
+    title: str | None = None
+    description: str | None = None
+    current_strength: int | None = None
+    icon: str | None = None
+    pattern_type: str | None = None
+
+
+class PatternCreate(BaseModel):
+    title: str
+    description: str | None = None
+    icon: str | None = None
+    initial_strength: int = 5
+    current_strength: int = 5
+
+
+@app.post("/patterns")
+def create_pattern(pattern: PatternCreate, user: User = Depends(get_token_user), db: Session = Depends(get_db)):
+    """
+    Create a new personal pattern for the authenticated user.
+    """
+    new_pattern = PersonalPattern(
+        user_id=user.user_id,
+        title=pattern.title,
+        description=pattern.description or "",
+        icon=pattern.icon or "📌",
+        pattern_type=pattern.title.lower().replace(" ", "_"),
+        initial_strength=pattern.initial_strength,
+        current_strength=pattern.current_strength
+    )
+
+    db.add(new_pattern)
+    db.commit()
+    db.refresh(new_pattern)
+
+    return {
+        "status": "success",
+        "pattern": {
+            "id": new_pattern.id,
+            "title": new_pattern.title,
+            "description": new_pattern.description,
+            "icon": new_pattern.icon,
+            "initial_strength": new_pattern.initial_strength,
+            "current_strength": new_pattern.current_strength,
+            "created_at": new_pattern.created_at.isoformat()
+        }
+    }
+
+
+@app.patch("/decisions/{decision_id}")
+def update_decision(decision_id: int, updates: DecisionUpdate, user: User = Depends(get_token_user), db: Session = Depends(get_db)):
+    """
+    Editar una decisión ya guardada.
+    Permite cambiar: título, contexto, convicción, resultado, estado, etc.
+    """
+    decision = db.query(Decision).filter(
+        Decision.id == decision_id,
+        Decision.user_id == user.user_id
+    ).first()
+
+    if not decision:
+        raise HTTPException(status_code=404, detail="Decisión no encontrada")
+
+    # Campos editables
+    editable_fields = {
+        'title': str,
+        'context': str,
+        'conviction': int,
+        'status': str,
+        'outcome_real': str,
+        'learnings': list
+    }
+
+    # Actualizar solo campos editables
+    if updates.title is not None:
+        decision.title = updates.title
+    if updates.context is not None:
+        decision.context = updates.context
+    if updates.conviction is not None:
+        decision.conviction = max(1, min(10, updates.conviction))
+    if updates.status is not None:
+        decision.status = updates.status
+    if updates.outcome_real is not None:
+        decision.outcome_real = updates.outcome_real
+    if updates.learnings is not None:
+        decision.learnings = updates.learnings
+
+    decision.updated_at = datetime.utcnow()
+    db.add(decision)
+    db.commit()
+    db.refresh(decision)
+
+    return {
+        "status": "success",
+        "message": "Decisión actualizada",
+        "decision": {
+            "id": decision.id,
+            "title": decision.title,
+            "conviction": decision.conviction,
+            "status": decision.status,
+            "updated_at": decision.updated_at.isoformat()
+        }
+    }
+
+
+@app.patch("/patterns/{pattern_id}")
+def update_pattern(pattern_id: int, updates: PatternUpdate, user: User = Depends(get_token_user), db: Session = Depends(get_db)):
+    """
+    Editar un patrón personal descubierto.
+    Permite cambiar: título, descripción, fuerza actual, etc.
+    """
+    pattern = db.query(PersonalPattern).filter(
+        PersonalPattern.id == pattern_id,
+        PersonalPattern.user_id == user.user_id
+    ).first()
+
+    if not pattern:
+        raise HTTPException(status_code=404, detail="Patrón no encontrado")
+
+    # Actualizar solo campos editables
+    if updates.title is not None:
+        pattern.title = updates.title
+    if updates.description is not None:
+        pattern.description = updates.description
+    if updates.current_strength is not None:
+        pattern.current_strength = max(1, min(10, updates.current_strength))
+    if updates.icon is not None:
+        pattern.icon = updates.icon
+    if updates.pattern_type is not None:
+        pattern.pattern_type = updates.pattern_type
+
+    pattern.updated_at = datetime.utcnow()
+    db.add(pattern)
+    db.commit()
+    db.refresh(pattern)
+
+    return {
+        "status": "success",
+        "message": "Patrón actualizado",
+        "pattern": {
+            "id": pattern.id,
+            "title": pattern.title,
+            "current_strength": pattern.current_strength,
+            "evolution": pattern.current_strength - pattern.initial_strength,
+            "updated_at": pattern.updated_at.isoformat()
+        }
+    }
+
+
+# ============================================================================
+# EXPORT & IMPORT
+# ============================================================================
+
+@app.get("/export/decisions")
+def export_decisions_json(user: User = Depends(get_token_user), db: Session = Depends(get_db)):
+    """
+    Exportar todas las decisiones del usuario en JSON.
+    Incluye: decisiones, análisis, patrones relacionados.
+    """
+    decisions = db.query(Decision).filter(Decision.user_id == user.user_id).all()
+    analyses = db.query(Analysis).filter(Analysis.user_id == user.user_id).all()
+    patterns = db.query(PersonalPattern).filter(PersonalPattern.user_id == user.user_id).all()
+
+    export_data = {
+        "exported_at": datetime.utcnow().isoformat(),
+        "user": {
+            "user_id": user.user_id,
+            "email": user.email,
+            "role": user.role,
+            "decision_areas": user.decision_areas,
+            "horizon": user.horizon
+        },
+        "decisions": [
+            {
+                "id": d.id,
+                "title": d.title,
+                "context": d.context,
+                "area": d.area,
+                "type": d.decision_type,
+                "conviction": d.conviction,
+                "status": d.status,
+                "outcome": d.outcome_real,
+                "learnings": d.learnings,
+                "created_at": d.created_at.isoformat(),
+                "updated_at": d.updated_at.isoformat()
+            }
+            for d in decisions
+        ],
+        "analyses": [
+            {
+                "id": a.id,
+                "decision_id": a.decision_id,
+                "type": a.analysis_type,
+                "content": a.content,
+                "created_at": a.created_at.isoformat()
+            }
+            for a in analyses
+        ],
+        "patterns": [
+            {
+                "id": p.id,
+                "title": p.title,
+                "description": p.description,
+                "icon": p.icon,
+                "initial_strength": p.initial_strength,
+                "current_strength": p.current_strength,
+                "examples": p.examples,
+                "created_at": p.created_at.isoformat()
+            }
+            for p in patterns
+        ],
+        "summary": {
+            "total_decisions": len(decisions),
+            "total_analyses": len(analyses),
+            "total_patterns": len(patterns),
+            "decision_completion_rate": sum(1 for d in decisions if d.status == "completed") / max(len(decisions), 1)
+        }
+    }
+
+    return export_data
+
+
+@app.get("/export/decision/{decision_id}")
+def export_single_decision_json(decision_id: int, user: User = Depends(get_token_user), db: Session = Depends(get_db)):
+    """
+    Exportar una decisión específica con todos sus análisis.
+    """
+    decision = db.query(Decision).filter(
+        Decision.id == decision_id,
+        Decision.user_id == user.user_id
+    ).first()
+
+    if not decision:
+        raise HTTPException(status_code=404, detail="Decisión no encontrada")
+
+    analyses = db.query(Analysis).filter(Analysis.decision_id == decision_id).all()
+
+    export_data = {
+        "exported_at": datetime.utcnow().isoformat(),
+        "decision": {
+            "id": decision.id,
+            "title": decision.title,
+            "context": decision.context,
+            "area": decision.area,
+            "type": decision.decision_type,
+            "conviction": decision.conviction,
+            "status": decision.status,
+            "options": decision.options,
+            "hypotheses": decision.hypotheses,
+            "signals": decision.signals,
+            "expected_outcome": decision.expected_outcome,
+            "outcome_real": decision.outcome_real,
+            "learnings": decision.learnings,
+            "created_at": decision.created_at.isoformat(),
+            "updated_at": decision.updated_at.isoformat()
+        },
+        "analyses": [
+            {
+                "type": a.analysis_type,
+                "content": a.content,
+                "created_at": a.created_at.isoformat()
+            }
+            for a in analyses
+        ]
+    }
+
+    return export_data
+
+
+@app.get("/export/patterns")
+def export_patterns_json(user: User = Depends(get_token_user), db: Session = Depends(get_db)):
+    """
+    Exportar patrones personales descubiertos.
+    """
+    patterns = db.query(PersonalPattern).filter(PersonalPattern.user_id == user.user_id).all()
+
+    export_data = {
+        "exported_at": datetime.utcnow().isoformat(),
+        "user": {
+            "user_id": user.user_id,
+            "email": user.email,
+            "role": user.role
+        },
+        "patterns": [
+            {
+                "id": p.id,
+                "title": p.title,
+                "description": p.description,
+                "icon": p.icon,
+                "type": p.pattern_type,
+                "initial_strength": p.initial_strength,
+                "current_strength": p.current_strength,
+                "evolution": p.current_strength - p.initial_strength,
+                "examples_count": len(p.examples) if p.examples else 0,
+                "created_at": p.created_at.isoformat(),
+                "updated_at": p.updated_at.isoformat()
+            }
+            for p in patterns
+        ],
+        "summary": {
+            "total_patterns": len(patterns),
+            "avg_strength": sum(p.current_strength for p in patterns) / max(len(patterns), 1),
+            "patterns_strengthened": sum(1 for p in patterns if p.current_strength > p.initial_strength),
+            "patterns_weakened": sum(1 for p in patterns if p.current_strength < p.initial_strength)
+        }
+    }
+
+    return export_data
+
+
+@app.get("/export/pdf")
+def export_decisions_pdf(user: User = Depends(get_token_user), db: Session = Depends(get_db)):
+    """
+    Descargar reporte PDF con decisiones y patrones del usuario.
+    """
+    try:
+        pdf_bytes = generate_export_pdf(user, db)
+
+        # Retornar como descarga
+        filename = f"Cognitive_OS_{user.email.split('@')[0]}_{datetime.utcnow().strftime('%Y%m%d')}.pdf"
+
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
+    except Exception as e:
+        logger.error(f"Error generating PDF: {e}")
+        raise HTTPException(status_code=500, detail="Error generating PDF")
+
+
+# ============================================================================
+# AI CONFIGURATION (Model-Agnostic)
+# ============================================================================
+
+class AIConfigRequest(BaseModel):
+    provider: str  # anthropic, openai, ollama
+    model: str     # claude-sonnet-4-20250514, gpt-4o, llama3, etc.
+
+@app.get("/ai/config")
+def get_ai_config():
+    """
+    Obtener configuración actual de IA.
+    """
+    provider = os.getenv('AI_PROVIDER', 'anthropic')
+    model = os.getenv('AI_MODEL', 'claude-sonnet-4-20250514')
+
+    return {
+        "provider": provider,
+        "model": model,
+        "available_providers": ["anthropic", "openai", "ollama"],
+        "note": "Cambiar variables de entorno: AI_PROVIDER, AI_MODEL"
+    }
+
+@app.post("/ai/config")
+def update_ai_config(config: AIConfigRequest):
+    """
+    Cambiar proveedor y modelo de IA en runtime.
+    Nota: En producción, guardaría en DB. Por ahora, retorna instrucciones.
+    """
+    valid_providers = ["anthropic", "openai", "ollama"]
+
+    if config.provider not in valid_providers:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Proveedor inválido. Soportados: {', '.join(valid_providers)}"
+        )
+
+    return {
+        "status": "config_instructions",
+        "message": "Para cambiar el modelo en runtime, actualiza las variables de entorno:",
+        "steps": [
+            "1. Detén el backend (Ctrl+C)",
+            f"2. Exporta: export AI_PROVIDER={config.provider}",
+            f"3. Exporta: export AI_MODEL={config.model}",
+            "4. Reinicia: python main.py"
+        ],
+        "env_vars": {
+            "AI_PROVIDER": config.provider,
+            "AI_MODEL": config.model
+        },
+        "note": "En futuras versiones: cambio en tiempo real sin reinicio"
     }
 
 

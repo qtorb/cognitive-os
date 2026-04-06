@@ -135,27 +135,87 @@ class PublicLink(Base):
     expires_at = Column(DateTime, nullable=True)  # Optional expiration
 
 
+class PersonalPattern(Base):
+    """
+    Personal decision-making patterns discovered during onboarding.
+    Evolves as user makes more decisions.
+    """
+    __tablename__ = "personal_patterns"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(String, index=True)
+    pattern_type = Column(String)  # Type of pattern (e.g., "overconfidence", "external_attribution")
+    title = Column(String)  # User-friendly title
+    description = Column(String)  # Pattern description
+    icon = Column(String)  # Emoji icon
+    initial_strength = Column(Integer, default=5)  # How strong is this pattern (1-10)
+    current_strength = Column(Integer, default=5)  # Updated based on new decisions
+    examples = Column(JSON, nullable=True)  # Array of decision IDs that exemplify this pattern
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
 # Database setup
 DATABASE_URL = "sqlite:///./cognitive_os.db"
 
-try:
-    engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
-    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    # Try to create tables - if database is corrupted, use in-memory fallback
+def init_db():
+    """Initialize database with proper error handling and schema migration."""
+    global engine, SessionLocal
+    import os
+
     try:
+        # Try main database first
+        engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
         Base.metadata.create_all(bind=engine)
-    except Exception as db_error:
-        logging.warning(r"Could not create tables in main database: {db_error}")
-        logging.info("   Falling back to in-memory database for this session")
-        engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
         SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-        Base.metadata.create_all(bind=engine)
-except Exception as e:
-    logging.warning(r"Database error: {e}")
-    logging.info("   Using in-memory database for this session")
-    engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
-    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    Base.metadata.create_all(bind=engine)
+        logging.info(f"✅ Database tables created successfully in {DATABASE_URL}")
+        return True
+    except Exception as db_error:
+        # If it's a schema mismatch, try to reset the database
+        if "no such column" in str(db_error):
+            logging.warning(f"Schema mismatch detected: {db_error}")
+            logging.info("   Resetting database to fix schema...")
+
+            # Extract database filename from DATABASE_URL
+            db_file = DATABASE_URL.replace("sqlite:///", "")
+            if os.path.exists(db_file):
+                os.remove(db_file)
+                logging.info(f"   Deleted old database file: {db_file}")
+
+            # Retry with fresh database
+            try:
+                engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+                Base.metadata.create_all(bind=engine)
+                SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+                logging.info(f"✅ Database reset and recreated successfully in {DATABASE_URL}")
+                return True
+            except Exception as retry_error:
+                logging.error(f"Failed to recreate database: {retry_error}")
+                raise
+
+        logging.warning(f"Could not use main database: {db_error}")
+        logging.info("   Falling back to temporary file-based database for this session")
+
+        # Use a temporary file-based database instead of pure in-memory
+        # This ensures the database is properly shared across connections
+        try:
+            import tempfile
+            temp_db = tempfile.gettempdir() + "/cognitive_os_temp.db"
+            fallback_url = f"sqlite:///{temp_db}"
+
+            engine = create_engine(fallback_url, connect_args={"check_same_thread": False})
+            SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+            Base.metadata.create_all(bind=engine)
+            logging.info(f"✅ Temporary database initialized at {temp_db}")
+            return True
+        except Exception as fallback_error:
+            logging.error(f"Failed to initialize fallback database: {fallback_error}")
+            raise
+
+# Initialize database on import
+engine = None
+SessionLocal = None
+init_db()
 
 
 def get_db():

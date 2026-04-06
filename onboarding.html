@@ -3,16 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cognitive OS - Onboarding</title>
+  <title>Cognitive OS - Descubre cómo tomas decisiones</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       min-height: 100vh;
       display: flex;
@@ -23,352 +19,101 @@
 
     .container {
       width: 100%;
-      max-width: 680px;
+      max-width: 700px;
       background: white;
       border-radius: 24px;
       box-shadow: 0 25px 60px rgba(0, 0, 0, 0.15);
       overflow: hidden;
     }
 
-    /* ===== HEADER ===== */
     .header {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
       padding: 48px 40px 32px;
       text-align: center;
-      position: relative;
-      overflow: hidden;
     }
 
-    .header h1 {
-      font-size: 28px;
-      margin-bottom: 4px;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-      position: relative;
-      z-index: 1;
-    }
+    .header h1 { font-size: 28px; margin-bottom: 4px; font-weight: 700; }
+    .header p { opacity: 0.9; font-size: 13px; }
 
-    .header p {
-      opacity: 0.9;
-      font-size: 13px;
-      letter-spacing: 0.3px;
-      position: relative;
-      z-index: 1;
-    }
-
-    /* ===== PROGRESS BAR ===== */
     .progress-bar {
       height: 3px;
       background: #e2e8f0;
       position: relative;
-      overflow: hidden;
     }
 
     .progress-fill {
       height: 100%;
       background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-      transition: width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      transition: width 0.4s ease;
     }
 
-    .progress-text {
-      position: absolute;
-      top: 8px;
-      right: 16px;
-      font-size: 11px;
-      color: #a0aec0;
-      font-weight: 600;
-      background: white;
-      padding: 2px 8px;
-      border-radius: 10px;
-    }
+    .content { padding: 48px 40px; min-height: 400px; }
 
-    /* ===== CONTENT ===== */
-    .content {
-      padding: 48px 40px;
-      min-height: 420px;
-    }
+    .screen { display: none; animation: fadeIn 0.35s ease; }
+    .screen.active { display: block; }
 
-    .screen {
-      display: none;
-      animation: fadeIn 0.35s ease;
-    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    .screen.active {
-      display: block;
-    }
+    h2 { font-size: 22px; color: #2d3748; margin-bottom: 12px; }
+    .subtitle { color: #718096; font-size: 14px; margin-bottom: 24px; line-height: 1.6; }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* ===== INTRO SCREEN ===== */
-    .intro-content {
-      text-align: center;
-    }
-
-    .intro-emoji {
-      font-size: 64px;
-      display: block;
-      margin-bottom: 24px;
-    }
-
-    .intro-content h2 {
-      font-size: 32px;
-      color: #2d3748;
-      margin-bottom: 12px;
-      font-weight: 700;
-    }
-
-    .intro-content p {
-      color: #718096;
-      font-size: 15px;
-      line-height: 1.6;
-      margin-bottom: 8px;
-    }
-
-    .intro-content .subtitle {
-      color: #a0aec0;
-      font-size: 13px;
-      margin-bottom: 32px;
-    }
-
-    /* ===== FLOW DIAGRAM ===== */
-    .flow-diagram {
-      background: #f7fafc;
-      border-radius: 12px;
-      padding: 24px;
-      margin: 24px 0 32px;
-      text-align: center;
-    }
-
-    .flow-step {
-      display: inline-flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 14px;
-      font-weight: 600;
-      color: #2d3748;
-    }
-
-    .flow-step:not(:last-child)::after {
-      content: '→';
-      margin-left: 12px;
-      color: #cbd5e0;
-      font-size: 18px;
-    }
-
-    .flow-diagram .flow-step {
-      display: block;
-      margin: 8px 0;
-    }
-
-    .flow-diagram .flow-step:not(:last-child)::after {
-      content: '↓';
-      display: block;
-      margin: 4px 0;
-      font-size: 16px;
-    }
-
-    /* ===== EXAMPLE SCREEN ===== */
-    .example-case {
-      background: #f7fafc;
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 20px;
-    }
-
-    .example-step {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 16px;
-      padding-bottom: 16px;
-      border-bottom: 1px solid #e2e8f0;
-    }
-
-    .example-step:last-child {
-      margin-bottom: 0;
-      padding-bottom: 0;
-      border-bottom: none;
-    }
-
-    .example-emoji {
-      font-size: 28px;
-      min-width: 40px;
-    }
-
-    .example-content {
-      flex: 1;
-    }
-
-    .example-content .label {
-      font-size: 12px;
-      font-weight: 600;
-      color: #667eea;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 4px;
-    }
-
-    .example-content .text {
-      color: #2d3748;
-      font-size: 14px;
-      line-height: 1.5;
-    }
-
-    .example-insights {
-      background: #eef2ff;
-      border-radius: 8px;
-      padding: 12px;
-      margin-top: 16px;
-      border-left: 3px solid #667eea;
-    }
-
-    .example-insights .insight {
-      font-size: 13px;
-      color: #2d3748;
-      margin: 6px 0;
-      line-height: 1.5;
-    }
-
-    .example-insights .insight strong {
-      color: #667eea;
-    }
-
-    /* ===== FORM ELEMENTS ===== */
-    .question-number {
-      font-size: 12px;
-      font-weight: 600;
-      color: #a0aec0;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 16px;
-    }
-
-    .question-text {
-      font-size: 24px;
-      color: #2d3748;
-      margin-bottom: 24px;
-      font-weight: 700;
-      line-height: 1.3;
-    }
-
-    .form-group {
-      margin-bottom: 24px;
-    }
-
-    .info-box {
-      background: #eef2ff;
-      border-left: 3px solid #667eea;
-      color: #2d3748;
-      padding: 12px 16px;
-      border-radius: 6px;
-      font-size: 13px;
-      margin-bottom: 16px;
-      line-height: 1.5;
-    }
-
-    input[type="text"],
-    input[type="email"],
-    textarea,
-    select {
+    .form-group { margin-bottom: 20px; }
+    label { display: block; font-weight: 600; color: #4a5568; margin-bottom: 8px; font-size: 14px; }
+    textarea, input, select {
       width: 100%;
       padding: 12px 14px;
-      font-size: 14px;
       border: 1px solid #e2e8f0;
-      border-radius: 8px;
+      border-radius: 10px;
+      font-size: 14px;
       font-family: inherit;
-      transition: all 0.2s;
+      transition: border-color 0.2s;
     }
-
-    input[type="text"]:focus,
-    input[type="email"]:focus,
-    textarea:focus,
-    select:focus {
-      outline: none;
+    textarea:focus, input:focus, select:focus {
       border-color: #667eea;
+      outline: none;
       box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     }
+    textarea { resize: vertical; min-height: 100px; }
 
-    textarea {
-      resize: vertical;
-      min-height: 80px;
+    .insight-box {
+      background: #f0f4ff;
+      border: 1px solid #e6e9f5;
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px 0;
+      border-left: 4px solid #667eea;
     }
 
-    .help-text {
-      font-size: 12px;
-      color: #a0aec0;
-      margin-top: 8px;
-    }
+    .insight-label { font-size: 12px; color: #667eea; font-weight: 700; text-transform: uppercase; }
+    .insight-text { font-size: 15px; color: #2d3748; margin-top: 8px; line-height: 1.6; }
 
-    .checkbox-group,
-    .radio-group {
-      display: grid;
-      gap: 8px;
+    .pattern-card {
+      background: #f8f7ff;
+      border: 1px solid #e6e9f5;
+      border-radius: 10px;
+      padding: 16px;
+      margin: 12px 0;
     }
+    .pattern-icon { font-size: 20px; margin-right: 8px; }
+    .pattern-title { font-weight: 600; color: #2d3748; margin: 4px 0; }
+    .pattern-description { color: #718096; font-size: 13px; }
 
-    .checkbox-item,
-    .radio-item {
-      display: flex;
-      align-items: center;
-      padding: 10px 12px;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-      background: white;
-    }
-
-    .checkbox-item:hover,
-    .radio-item:hover {
-      background: #f7fafc;
-      border-color: #cbd5e0;
-    }
-
-    .checkbox-item input,
-    .radio-item input {
-      margin-right: 10px;
-      cursor: pointer;
-    }
-
-    .checkbox-item label,
-    .radio-item label {
-      flex: 1;
-      cursor: pointer;
-      font-size: 14px;
-      color: #2d3748;
-      margin: 0;
-    }
-
-    .checkbox-item input:checked,
-    .radio-item input:checked {
-      accent-color: #667eea;
-    }
-
-    .checkbox-item input:checked + label,
-    .radio-item input:checked + label {
-      font-weight: 600;
-      color: #667eea;
-    }
-
-    /* ===== BUTTONS ===== */
-    .buttons {
+    .button-group {
       display: flex;
       gap: 12px;
-      margin-top: 32px;
+      margin-top: 28px;
       justify-content: space-between;
     }
 
-    .btn {
+    button {
       padding: 12px 24px;
+      border: none;
+      border-radius: 10px;
       font-size: 14px;
       font-weight: 600;
-      border: none;
-      border-radius: 8px;
       cursor: pointer;
       transition: all 0.2s;
-      white-space: nowrap;
     }
 
     .btn-primary {
@@ -376,388 +121,314 @@
       color: white;
       flex: 1;
     }
-
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 16px rgba(102, 126, 234, 0.4);
-    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3); }
 
     .btn-secondary {
       background: #f7fafc;
       color: #4a5568;
       border: 1px solid #e2e8f0;
     }
+    .btn-secondary:hover { background: #edf2f7; }
 
-    .btn-secondary:hover {
-      background: #edf2f7;
-      border-color: #cbd5e0;
-    }
-
-    .btn-start {
-      width: 100%;
-    }
-
-    /* ===== SUMMARY ===== */
-    .summary-content {
+    .loading {
       text-align: center;
-    }
-
-    .summary-emoji {
-      font-size: 64px;
-      display: block;
-      margin-bottom: 20px;
-    }
-
-    .summary-content h2 {
-      font-size: 32px;
-      color: #2d3748;
-      margin-bottom: 12px;
-      font-weight: 700;
-    }
-
-    .summary-content > p {
-      color: #718096;
-      margin-bottom: 24px;
-      font-size: 14px;
-    }
-
-    .profile-display {
-      background: #f7fafc;
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 28px;
-      text-align: left;
-    }
-
-    .profile-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 0;
-      border-bottom: 1px solid #e2e8f0;
-    }
-
-    .profile-item:last-child {
-      border-bottom: none;
-    }
-
-    .profile-label {
-      font-size: 13px;
-      font-weight: 600;
-      color: #718096;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-    }
-
-    .profile-value {
-      font-size: 14px;
-      color: #2d3748;
-      font-weight: 600;
-      text-align: right;
-      max-width: 50%;
-    }
-
-    /* ===== FIRST STEP FORM ===== */
-    .first-step-header {
-      text-align: center;
-      margin-bottom: 24px;
-    }
-
-    .first-step-header h3 {
-      font-size: 20px;
-      color: #2d3748;
-      margin-bottom: 8px;
-      font-weight: 700;
-    }
-
-    .first-step-header p {
-      color: #718096;
-      font-size: 14px;
-      line-height: 1.5;
-    }
-
-    .first-step-form {
-      background: #f7fafc;
-      border-radius: 12px;
       padding: 20px;
     }
 
-    /* ===== RESPONSIVE ===== */
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid #e2e8f0;
+      border-top-color: #667eea;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 12px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .wow-moment { color: #667eea; font-weight: 700; }
+
+    .emoji { font-size: 20px; margin-right: 8px; }
+
     @media (max-width: 600px) {
-      .content {
-        padding: 32px 24px;
-        min-height: auto;
-      }
-
-      .question-text {
-        font-size: 20px;
-      }
-
-      .intro-content h2 {
-        font-size: 26px;
-      }
-
-      .buttons {
-        flex-direction: column;
-        gap: 8px;
-      }
-
-      .btn-secondary {
-        display: none;
-      }
+      .content { padding: 32px 24px; }
+      h2 { font-size: 18px; }
+      .button-group { flex-direction: column-reverse; }
     }
   </style>
 </head>
 <body>
+
   <div class="container">
     <div class="header">
       <h1>🧠 Cognitive OS</h1>
-      <p>Tu sistema para pensar mejor en el tiempo</p>
+      <p>Descubre cómo tomas decisiones</p>
     </div>
 
     <div class="progress-bar">
       <div class="progress-fill" id="progressFill"></div>
-      <div class="progress-text" id="progressText">0/10</div>
     </div>
 
     <div class="content">
-      <!-- Screen 0: Intro + Flow -->
+
+      <!-- SCREEN 0: INTRO -->
       <div class="screen active" id="screen-0">
-        <div class="intro-content">
-          <span class="intro-emoji">💡</span>
-          <h2>Tu sistema para pensar mejor</h2>
-          <p class="subtitle">Captura ideas, documenta decisiones, registra resultados, aprende patrones</p>
+        <h2>Bienvenido a Cognitive OS</h2>
+        <p class="subtitle">
+          No te vamos a pedir que llenes un formulario aburrido.
+          <br><br>
+          En su lugar, vamos a <span class="wow-moment">descubrir patrones reales sobre cómo tomas decisiones</span>.
+          <br><br>
+          Al terminar, tendrás insights personalizados que probablemente no esperabas.
+        </p>
 
-          <div class="flow-diagram">
-            <div class="flow-step">💡 <strong>Ideas</strong> (Lo que piensas)</div>
-            <div class="flow-step">📊 <strong>Decisiones</strong> (Lo que decides)</div>
-            <div class="flow-step">🎯 <strong>Resultados</strong> (Lo que pasó)</div>
-            <div class="flow-step">📈 <strong>Aprendizaje</strong> (Lo que aprendiste)</div>
+        <div class="insight-box">
+          <div class="insight-label">¿Qué vamos a hacer?</div>
+          <div class="insight-text">
+            Te haremos preguntas sobre 2 decisiones recientes. Nada complicado. Solo queremos entender cómo piensas.
+            <br><br>
+            Luego, nuestra IA analizará tus respuestas para identificar <strong>patrones personales</strong> sobre ti.
           </div>
+        </div>
 
-          <p style="color: #718096; font-size: 14px; margin-bottom: 24px;">
-            El sistema cierra el ciclo: captura tu pensamiento, analiza patrones, y mejora tus decisiones futuras.
-          </p>
-
-          <button class="btn btn-primary btn-start" onclick="goToScreen(1)">Ver ejemplo en vivo →</button>
+        <div class="button-group">
+          <button class="btn-primary" onclick="goToScreen(1)">Empecemos →</button>
         </div>
       </div>
 
-      <!-- Screen 1: Example -->
+      <!-- SCREEN 1: DECISION 1 - CONTEXT -->
       <div class="screen" id="screen-1">
-        <div class="question-number">Ejemplo práctico</div>
-        <h2 style="font-size: 22px; color: #2d3748; margin-bottom: 24px;">Así funciona en la realidad</h2>
+        <h2><span class="emoji">🎯</span>Primera decisión</h2>
+        <p class="subtitle">Cuéntame sobre una decisión importante que tomaste en los últimos 3 meses</p>
 
-        <div class="example-case">
-          <div class="example-step">
-            <div class="example-emoji">💡</div>
-            <div class="example-content">
-              <div class="label">Idea</div>
-              <div class="text">"¿Debería expandir a Europa?"</div>
-            </div>
-          </div>
-
-          <div class="example-step">
-            <div class="example-emoji">📊</div>
-            <div class="example-content">
-              <div class="label">Decisión</div>
-              <div class="text">"Sí, comenzar con España en Q2" <strong>(Convicción: 8/10)</strong></div>
-            </div>
-          </div>
-
-          <div class="example-step">
-            <div class="example-emoji">🎯</div>
-            <div class="example-content">
-              <div class="label">Resultado Real</div>
-              <div class="text">"Retraso 2 meses, pero logré 18% de crecimiento"</div>
-            </div>
-          </div>
-
-          <div class="example-step">
-            <div class="example-emoji">📈</div>
-            <div class="example-content">
-              <div class="label">Aprendizaje</div>
-              <div class="text">"Subestimo timelines. Próxima expansión: agregar 40% buffer"</div>
-            </div>
-          </div>
-
-          <div class="example-insights">
-            <div class="insight">
-              🔍 <strong>Bias Detection:</strong> "Detectamos sesgo de optimismo temporal en tus expansiones"
-            </div>
-            <div class="insight">
-              💡 <strong>Decision Advisor:</strong> "Basado en Italia (2022), aquí están tus 3 riesgos principales"
-            </div>
-            <div class="insight">
-              📊 <strong>Conviction Accuracy:</strong> "Cuando tienes convicción 8-10, aciertas 45% de las veces"
-            </div>
-          </div>
+        <div class="form-group">
+          <label>¿Qué decidiste? (sé específico)</label>
+          <textarea id="decision1Context" placeholder="Ej: Cambiar a un nuevo proveedor de hosting porque el actual estaba lento"></textarea>
         </div>
 
-        <div class="buttons">
-          <button class="btn btn-secondary" onclick="goToScreen(0)">← Atrás</button>
-          <button class="btn btn-primary" onclick="goToScreen(2)">Empezar configuración →</button>
+        <div class="form-group">
+          <label>¿Qué tan seguro estabas de que era la decisión correcta? (1-10)</label>
+          <input type="range" id="decision1Conviction" min="1" max="10" value="5" style="width: 100%;">
+          <div style="text-align: center; color: #718096; margin-top: 8px;"><span id="conviction1Display">5</span>/10</div>
+        </div>
+
+        <div class="form-group">
+          <label>¿Cuál era tu principal miedo o preocupación?</label>
+          <textarea id="decision1Fear" placeholder="Ej: Que el cambio rompiera algo en producción..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>¿Qué supuestos diste por sentado? (cosas que asumiste que eran ciertas)</label>
+          <textarea id="decision1Assumptions" placeholder="Ej: Asumí que el nuevo proveedor tenía 99.9% uptime, que era fácil de migrar..."></textarea>
+        </div>
+
+        <div class="button-group">
+          <button class="btn-secondary" onclick="goToScreen(0)">← Atrás</button>
+          <button class="btn-primary" onclick="goToScreen(2)">Siguiente →</button>
         </div>
       </div>
 
-      <!-- Screen 2: Role -->
+      <!-- SCREEN 2: DECISION 1 - OUTCOME -->
       <div class="screen" id="screen-2">
-        <div class="question-number">Pregunta 1 de 8</div>
-        <h3 class="question-text">¿Cuál es tu rol o contexto?</h3>
+        <h2><span class="emoji">📊</span>¿Cómo resultó?</h2>
+        <p class="subtitle">¿Qué pasó realmente con esa decisión?</p>
+
         <div class="form-group">
-          <input type="text" id="role" placeholder="Ej: Fundador, Inversor, Ejecutivo, Jubilado..." maxlength="100">
-          <div class="help-text">Personaliza los análisis de IA a tu situación específica</div>
+          <label>¿Fue la decisión correcta?</label>
+          <select id="decision1Result">
+            <option value="">Selecciona...</option>
+            <option value="great">Excelente - exactamente lo que esperaba</option>
+            <option value="good">Bien - salió como esperaba</option>
+            <option value="mixed">Mixto - algunos aspectos bien, otros mal</option>
+            <option value="bad">Mal - no fue lo que esperaba</option>
+            <option value="early">Aún es muy temprano para saber</option>
+          </select>
         </div>
-        <div class="buttons">
-          <button class="btn btn-secondary" onclick="goToScreen(1)">← Atrás</button>
-          <button class="btn btn-primary" onclick="nextQuestion(2)">Siguiente →</button>
+
+        <div class="form-group">
+          <label>¿Qué salió diferente a lo que esperabas?</label>
+          <textarea id="decision1Difference" placeholder="Ej: La migración fue mucho más complicada de lo que pensé, pero una vez hecho, el performance mejoró más de lo esperado..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Si tuvieras que dar un consejo a ti mismo (cuando estabas decidiendo), ¿cuál sería?</label>
+          <textarea id="decision1Advice" placeholder="Ej: Hubieras invertido más tiempo en testing antes de hacer la migración..."></textarea>
+        </div>
+
+        <div class="button-group">
+          <button class="btn-secondary" onclick="goToScreen(1)">← Atrás</button>
+          <button class="btn-primary" onclick="goToScreen(3)">Siguiente →</button>
         </div>
       </div>
 
-      <!-- Screen 3: Areas -->
+      <!-- SCREEN 3: DECISION 2 - CONTEXT -->
       <div class="screen" id="screen-3">
-        <div class="question-number">Pregunta 2 de 8</div>
-        <h3 class="question-text">¿En qué áreas tomas decisiones?</h3>
-        <div class="info-box">Selecciona hasta 5 áreas donde tomas decisiones importantes. El sistema se enfoca en tus prioridades.</div>
+        <h2><span class="emoji">🎯</span>Segunda decisión (diferente tipo)</h2>
+        <p class="subtitle">Cuéntame sobre otra decisión importante, pero diferente a la anterior</p>
+
         <div class="form-group">
-          <div class="checkbox-group" id="areasCheckboxes"></div>
+          <label>¿Qué decidiste? (algo en otra área o contexto)</label>
+          <textarea id="decision2Context" placeholder="Ej: Decidir contratar a un nuevo desarrollador senior vs entrenar a alguien junior del equipo..."></textarea>
         </div>
-        <div class="buttons">
-          <button class="btn btn-secondary" onclick="goToScreen(2)">← Atrás</button>
-          <button class="btn btn-primary" onclick="nextQuestion(3)">Siguiente →</button>
+
+        <div class="form-group">
+          <label>¿Qué tan seguro estabas? (1-10)</label>
+          <input type="range" id="decision2Conviction" min="1" max="10" value="5" style="width: 100%;">
+          <div style="text-align: center; color: #718096; margin-top: 8px;"><span id="conviction2Display">5</span>/10</div>
+        </div>
+
+        <div class="form-group">
+          <label>¿Cuál era el principal riesgo?</label>
+          <textarea id="decision2Fear" placeholder="Ej: Que el junior nunca alcance el nivel o que contratar afecte la cultura..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>¿Qué supuestos hiciste?</label>
+          <textarea id="decision2Assumptions" placeholder="Ej: Asumí que el junior podría aprender rápido, que el senior entería la vision..."></textarea>
+        </div>
+
+        <div class="button-group">
+          <button class="btn-secondary" onclick="goToScreen(2)">← Atrás</button>
+          <button class="btn-primary" onclick="goToScreen(4)">Siguiente →</button>
         </div>
       </div>
 
-      <!-- Screen 4: Decision Types -->
+      <!-- SCREEN 4: DECISION 2 - OUTCOME -->
       <div class="screen" id="screen-4">
-        <div class="question-number">Pregunta 3 de 8</div>
-        <h3 class="question-text">¿Qué tipos de decisiones enfrentas?</h3>
-        <div class="info-box">Cada tipo necesita análisis diferentes. Selecciona los que se apliquen a ti.</div>
+        <h2><span class="emoji">📊</span>¿Y esta otra?</h2>
+        <p class="subtitle">¿Cómo resultó?</p>
+
         <div class="form-group">
-          <div class="checkbox-group" id="decisionTypesCheckboxes"></div>
+          <label>¿Fue la decisión correcta?</label>
+          <select id="decision2Result">
+            <option value="">Selecciona...</option>
+            <option value="great">Excelente</option>
+            <option value="good">Bien</option>
+            <option value="mixed">Mixto</option>
+            <option value="bad">Mal</option>
+            <option value="early">Aún es temprano</option>
+          </select>
         </div>
-        <div class="buttons">
-          <button class="btn btn-secondary" onclick="goToScreen(3)">← Atrás</button>
-          <button class="btn btn-primary" onclick="nextQuestion(4)">Siguiente →</button>
+
+        <div class="form-group">
+          <label>¿Qué salió diferente?</label>
+          <textarea id="decision2Difference" placeholder="Describe la diferencia entre lo esperado y la realidad..."></textarea>
+        </div>
+
+        <div class="button-group">
+          <button class="btn-secondary" onclick="goToScreen(3)">← Atrás</button>
+          <button class="btn-primary" onclick="analyzePatterns()">Analizar mis patrones →</button>
         </div>
       </div>
 
-      <!-- Screen 5: Horizon -->
+      <!-- SCREEN 5: ANALYSIS (Loading) -->
       <div class="screen" id="screen-5">
-        <div class="question-number">Pregunta 4 de 8</div>
-        <h3 class="question-text">¿Cuál es tu horizonte temporal?</h3>
-        <div class="info-box">Define cómo el sistema mide resultados y aprende de tus decisiones.</div>
-        <div class="form-group">
-          <div class="radio-group" id="horizonRadios"></div>
-        </div>
-        <div class="buttons">
-          <button class="btn btn-secondary" onclick="goToScreen(4)">← Atrás</button>
-          <button class="btn btn-primary" onclick="nextQuestion(5)">Siguiente →</button>
+        <h2>Analizando tus patrones...</h2>
+        <p class="subtitle">Nuestra IA está buscando patrones en cómo tomas decisiones</p>
+
+        <div class="loading">
+          <div class="spinner"></div>
+          <p style="color: #718096;">Esto toma 10-15 segundos...</p>
         </div>
       </div>
 
-      <!-- Screen 6: Decision Style -->
+      <!-- SCREEN 6: INSIGHTS REVEALED -->
       <div class="screen" id="screen-6">
-        <div class="question-number">Pregunta 5 de 8</div>
-        <h3 class="question-text">¿Cuál es tu estilo de decisión?</h3>
-        <div class="info-box">El asesor IA adaptará recomendaciones a cómo naturalmente decides.</div>
-        <div class="form-group">
-          <div class="radio-group" id="decisionStyleRadios"></div>
+        <h2><span class="emoji">💡</span>Tus patrones personales</h2>
+        <p class="subtitle">Basado en cómo hablas de tus decisiones, encontramos esto:</p>
+
+        <div id="insightsContainer"></div>
+
+        <div class="insight-box" style="background: #f0fff4; border-left-color: #48bb78;">
+          <div class="insight-label" style="color: #48bb78;">¿Y ahora qué?</div>
+          <div class="insight-text">
+            Estos patrones no son "malos" - son cómo eres. Pero conocerlos te permite:
+            <br><br>
+            • Anticipar dónde podrías equivocarte
+            <br>
+            • Pedir feedback en esas áreas específicas
+            <br>
+            • Cambiar el proceso antes de decidir
+          </div>
         </div>
-        <div class="buttons">
-          <button class="btn btn-secondary" onclick="goToScreen(5)">← Atrás</button>
-          <button class="btn btn-primary" onclick="nextQuestion(6)">Siguiente →</button>
+
+        <div class="button-group">
+          <button class="btn-primary" onclick="goToScreen(7)">Continuar →</button>
         </div>
       </div>
 
-      <!-- Screen 7: Known Bias -->
+      <!-- SCREEN 7: BASIC SETUP -->
       <div class="screen" id="screen-7">
-        <div class="question-number">Pregunta 6 de 8</div>
-        <h3 class="question-text">¿Cuál es tu sesgo más visible?</h3>
-        <div class="info-box">Opcional pero mejora mucho la detección de patrones recurrentes.</div>
+        <h2><span class="emoji">⚙️</span>Configuración básica</h2>
+        <p class="subtitle">Ahora que sabemos cómo piensas, algunas preguntas de setup</p>
+
         <div class="form-group">
-          <textarea id="knownBias" placeholder="Ej: Tiendo al optimismo, evito conflictos, me cuesta delegar, subestimo riesgos..."></textarea>
-          <div class="help-text">No tiene que ser perfecto. Cualquier insight nos ayuda.</div>
+          <label>Tu rol (ej: CTO, Product Manager, Fundador...)</label>
+          <input type="text" id="role" placeholder="Mi rol es..." required>
         </div>
-        <div class="buttons">
-          <button class="btn btn-secondary" onclick="goToScreen(6)">← Atrás</button>
-          <button class="btn btn-primary" onclick="nextQuestion(7)">Siguiente →</button>
+
+        <div class="form-group">
+          <label>¿En qué áreas tomas decisiones? (puedes listar varias)</label>
+          <textarea id="areas" placeholder="Ej: Producto, Tecnología, Finanzas, Hiring, Estrategia..." required></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>¿Cuál es tu horizonte de decisión? (a cuánto tiempo ves el futuro)</label>
+          <select id="horizon" required>
+            <option value="">Selecciona...</option>
+            <option value="weeks">Semanas (pienso en corto plazo)</option>
+            <option value="quarters">Trimestres (3-4 meses)</option>
+            <option value="years">Años (visión a largo plazo)</option>
+            <option value="mixed">Mixto (depende de la decisión)</option>
+          </select>
+        </div>
+
+        <div class="button-group">
+          <button class="btn-secondary" onclick="goToScreen(6)">← Atrás</button>
+          <button class="btn-primary" onclick="goToScreen(8)">Siguiente →</button>
         </div>
       </div>
 
-      <!-- Screen 8: Risk Tolerance -->
+      <!-- SCREEN 8: FIRST IDEA -->
       <div class="screen" id="screen-8">
-        <div class="question-number">Pregunta 7 de 8</div>
-        <h3 class="question-text">¿Cómo describes tu relación con el riesgo?</h3>
-        <div class="info-box">Personaliza cómo el sistema te alerta sobre riesgos potenciales.</div>
+        <h2><span class="emoji">💭</span>Tu primera idea</h2>
+        <p class="subtitle">Algo que hayas estado pensando últimamente</p>
+
         <div class="form-group">
-          <div class="radio-group" id="riskToleranceRadios"></div>
+          <label>Una idea, pregunta o problema que tienes en mente</label>
+          <textarea id="firstIdea" placeholder="Ej: ¿Deberíamos cambiar nuestro pricing model? / Noté que nadie usa feature X... / Tenemos un problema con onboarding..." required></textarea>
         </div>
-        <div class="buttons">
-          <button class="btn btn-secondary" onclick="goToScreen(7)">← Atrás</button>
-          <button class="btn btn-primary" onclick="nextQuestion(8)">Siguiente →</button>
+
+        <div class="button-group">
+          <button class="btn-secondary" onclick="goToScreen(7)">← Atrás</button>
+          <button class="btn-primary" onclick="completeOnboarding()">Finalizar onboarding →</button>
         </div>
       </div>
 
-      <!-- Screen 9: Summary + First Step -->
+      <!-- SCREEN 9: SUMMARY -->
       <div class="screen" id="screen-9">
-        <div class="summary-content">
-          <span class="summary-emoji">✨</span>
-          <h2>¡Listo! Tu perfil está configurado</h2>
+        <h2><span class="emoji">✨</span>¡Bienvenido!</h2>
+        <p class="subtitle">Ya estás dentro de Cognitive OS</p>
 
-          <div class="profile-display">
-            <div class="profile-item">
-              <div class="profile-label">Rol</div>
-              <div class="profile-value" id="summaryRole">-</div>
-            </div>
-            <div class="profile-item">
-              <div class="profile-label">Áreas</div>
-              <div class="profile-value" id="summaryAreas">-</div>
-            </div>
-            <div class="profile-item">
-              <div class="profile-label">Tipos de decisión</div>
-              <div class="profile-value" id="summaryTypes">-</div>
-            </div>
-            <div class="profile-item">
-              <div class="profile-label">Horizonte</div>
-              <div class="profile-value" id="summaryHorizon">-</div>
-            </div>
-            <div class="profile-item">
-              <div class="profile-label">Estilo</div>
-              <div class="profile-value" id="summaryStyle">-</div>
-            </div>
-          </div>
-
-          <div class="first-step-header">
-            <h3>Tu primer paso: Captura una idea</h3>
-            <p>¿Hay una pregunta o decisión en tu mente ahora? Vamos a guardarla.</p>
-          </div>
-
-          <div class="first-step-form">
-            <div class="form-group">
-              <label style="display: block; font-weight: 600; color: #2d3748; margin-bottom: 8px; font-size: 13px;">Idea o pregunta</label>
-              <textarea id="firstIdea" placeholder="Ej: ¿Debería cambiar de trabajo? / Una idea para nuevo producto..." style="margin-bottom: 12px;"></textarea>
-            </div>
-            <div class="form-group">
-              <label style="display: block; font-weight: 600; color: #2d3748; margin-bottom: 8px; font-size: 13px;">¿De qué área es?</label>
-              <select id="firstIdeaArea" style="margin-bottom: 12px;">
-                <option value="">Selecciona un área...</option>
-              </select>
-            </div>
-            <button class="btn btn-primary" onclick="submitOnboardingWithFirstIdea()" style="width: 100%;">Crear idea y empezar →</button>
-          </div>
-
-          <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: left;">
-            <p style="color: #718096; font-size: 13px; line-height: 1.6;">
-              <strong>¿Qué sigue?</strong><br>
-              • Tu idea está guardada en la sección <strong>Ideas</strong><br>
-              • Cuando estés listo, convierte esto en <strong>Decisión</strong><br>
-              • Registra el <strong>Resultado</strong> cuando se resuelva<br>
-              • El sistema aprende y mejora sus análisis
-            </p>
+        <div class="insight-box" style="background: #f0f4ff;">
+          <div class="insight-label">Lo que acabas de crear:</div>
+          <div class="insight-text">
+            ✓ Tu perfil de decisor
+            <br>
+            ✓ Un análisis de tus patrones
+            <br>
+            ✓ Tu primera idea capturada
+            <br><br>
+            <strong>Próximo paso:</strong> Ve al dashboard y verás cómo Cognitive OS evoluciona a medida que tomas más decisiones.
           </div>
         </div>
+
+        <div class="button-group">
+          <button class="btn-primary" onclick="window.location.href='dashboard.html'" style="width: 100%;">Ir al Dashboard →</button>
+        </div>
       </div>
+
     </div>
   </div>
 
@@ -766,298 +437,202 @@
     let currentScreen = 0;
     const totalScreens = 10;
 
-    const areas = [
-      'Finanzas Personales',
-      'Inversión',
-      'Emprendimiento',
-      'Carrera Profesional',
-      'Marketing',
-      'Desarrollo de Negocio',
-      'Aprendizaje',
-      'Familia',
-      'Relaciones',
-      'Salud',
-      'Educación',
-      'Vivienda',
-      'Viajes',
-      'Creatividad',
-      'Tecnología',
-      'Liderazgo'
-    ];
-
-    const decisionTypes = [
-      'Operativa (decisiones diarias)',
-      'Estratégica (3-12 meses)',
-      'Vital (1+ años)'
-    ];
-
-    const horizons = [
-      'Próximos 3 meses',
-      'Próximo año',
-      '2-5 años',
-      '5+ años'
-    ];
-
-    const decisionStyles = [
-      'Deliberativo (análisis profundo antes de decidir)',
-      'Intuitivo (datos + instinto)',
-      'Data-driven (números y pruebas)'
-    ];
-
-    const riskTolerances = [
-      'Conservador (prefiero seguridad)',
-      'Moderado (riesgo calculado)',
-      'Agresivo (busco oportunidades)'
-    ];
-
-    // Initialize
-    document.addEventListener('DOMContentLoaded', () => {
-      initializeCheckboxes();
-      updateProgress();
+    // Update conviction display
+    document.getElementById('decision1Conviction')?.addEventListener('input', (e) => {
+      document.getElementById('conviction1Display').textContent = e.target.value;
     });
-
-    function initializeCheckboxes() {
-      // Areas
-      const areasCheckboxes = document.getElementById('areasCheckboxes');
-      areas.forEach(area => {
-        const label = document.createElement('label');
-        label.className = 'checkbox-item';
-        label.innerHTML = `
-          <input type="checkbox" class="area-checkbox" value="${area}">
-          <label>${area}</label>
-        `;
-        areasCheckboxes.appendChild(label);
-      });
-
-      // Decision types
-      const typesCheckboxes = document.getElementById('decisionTypesCheckboxes');
-      decisionTypes.forEach(type => {
-        const label = document.createElement('label');
-        label.className = 'checkbox-item';
-        label.innerHTML = `
-          <input type="checkbox" class="type-checkbox" value="${type}">
-          <label>${type}</label>
-        `;
-        typesCheckboxes.appendChild(label);
-      });
-
-      // Horizons
-      const horizonRadios = document.getElementById('horizonRadios');
-      horizons.forEach(horizon => {
-        const label = document.createElement('label');
-        label.className = 'radio-item';
-        label.innerHTML = `
-          <input type="radio" class="horizon-radio" name="horizon" value="${horizon}">
-          <label>${horizon}</label>
-        `;
-        horizonRadios.appendChild(label);
-      });
-
-      // Decision styles
-      const styleRadios = document.getElementById('decisionStyleRadios');
-      decisionStyles.forEach(style => {
-        const label = document.createElement('label');
-        label.className = 'radio-item';
-        label.innerHTML = `
-          <input type="radio" class="style-radio" name="style" value="${style}">
-          <label>${style}</label>
-        `;
-        styleRadios.appendChild(label);
-      });
-
-      // Risk tolerances
-      const riskRadios = document.getElementById('riskToleranceRadios');
-      riskTolerances.forEach(risk => {
-        const label = document.createElement('label');
-        label.className = 'radio-item';
-        label.innerHTML = `
-          <input type="radio" class="risk-radio" name="risk" value="${risk}">
-          <label>${risk}</label>
-        `;
-        riskRadios.appendChild(label);
-      });
-
-      // First idea area select
-      const areaSelect = document.getElementById('firstIdeaArea');
-      areas.forEach(area => {
-        const opt = document.createElement('option');
-        opt.value = area;
-        opt.textContent = area;
-        areaSelect.appendChild(opt);
-      });
-    }
+    document.getElementById('decision2Conviction')?.addEventListener('input', (e) => {
+      document.getElementById('conviction2Display').textContent = e.target.value;
+    });
 
     function goToScreen(screenNum) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById(`screen-${screenNum}`).classList.add('active');
       currentScreen = screenNum;
       updateProgress();
-      updateSummary();
       window.scrollTo(0, 0);
     }
 
     function updateProgress() {
-      const progress = ((currentScreen) / (totalScreens - 1)) * 100;
+      const progress = (currentScreen / (totalScreens - 1)) * 100;
       document.getElementById('progressFill').style.width = progress + '%';
-      document.getElementById('progressText').textContent = `${currentScreen}/${totalScreens - 1}`;
     }
 
-    function updateSummary() {
-      if (currentScreen === 9) {
-        const role = document.getElementById('role').value;
-        const areas = Array.from(document.querySelectorAll('.area-checkbox:checked')).map(c => c.value).join(', ') || '-';
-        const types = Array.from(document.querySelectorAll('.type-checkbox:checked')).map(c => c.value).join(', ') || '-';
-        const horizon = document.querySelector('.horizon-radio:checked')?.value || '-';
-        const style = document.querySelector('.style-radio:checked')?.value?.split('(')[0].trim() || '-';
+    async function analyzePatterns() {
+      // Validate inputs
+      const decision1Context = document.getElementById('decision1Context').value;
+      const decision1Conviction = document.getElementById('decision1Conviction').value;
+      const decision1Fear = document.getElementById('decision1Fear').value;
+      const decision1Assumptions = document.getElementById('decision1Assumptions').value;
+      const decision1Result = document.getElementById('decision1Result').value;
+      const decision1Difference = document.getElementById('decision1Difference').value;
+      const decision1Advice = document.getElementById('decision1Advice').value;
 
-        document.getElementById('summaryRole').textContent = role || '-';
-        document.getElementById('summaryAreas').textContent = areas;
-        document.getElementById('summaryTypes').textContent = types;
-        document.getElementById('summaryHorizon').textContent = horizon;
-        document.getElementById('summaryStyle').textContent = style;
-      }
-    }
+      const decision2Context = document.getElementById('decision2Context').value;
+      const decision2Conviction = document.getElementById('decision2Conviction').value;
+      const decision2Fear = document.getElementById('decision2Fear').value;
+      const decision2Assumptions = document.getElementById('decision2Assumptions').value;
+      const decision2Result = document.getElementById('decision2Result').value;
+      const decision2Difference = document.getElementById('decision2Difference').value;
 
-    async function nextQuestion(currentScreenNum) {
-      // Validate
-      if (currentScreenNum === 2) {
-        const role = document.getElementById('role').value.trim();
-        if (!role) {
-          alert('Por favor, ingresa tu rol');
-          return;
-        }
+      if (!decision1Context || !decision1Fear || !decision1Assumptions || !decision1Result ||
+          !decision2Context || !decision2Fear || !decision2Assumptions || !decision2Result) {
+        alert('Por favor completa todos los campos');
+        return;
       }
 
-      if (currentScreenNum === 3) {
-        const selected = document.querySelectorAll('.area-checkbox:checked');
-        if (selected.length === 0) {
-          alert('Por favor, selecciona al menos un área');
-          return;
-        }
-        if (selected.length > 5) {
-          alert('Selecciona máximo 5 áreas');
-          return;
-        }
-      }
+      goToScreen(5); // Show loading
 
-      if (currentScreenNum === 4) {
-        const selected = document.querySelectorAll('.type-checkbox:checked');
-        if (selected.length === 0) {
-          alert('Por favor, selecciona al menos un tipo de decisión');
-          return;
-        }
-      }
-
-      if (currentScreenNum === 5) {
-        const horizon = document.querySelector('.horizon-radio:checked');
-        if (!horizon) {
-          alert('Por favor, selecciona un horizonte temporal');
-          return;
-        }
-      }
-
-      if (currentScreenNum === 6) {
-        const style = document.querySelector('.style-radio:checked');
-        if (!style) {
-          alert('Por favor, selecciona tu estilo de decisión');
-          return;
-        }
-      }
-
-      if (currentScreenNum === 8) {
-        const risk = document.querySelector('.risk-radio:checked');
-        if (!risk) {
-          alert('Por favor, selecciona tu relación con el riesgo');
-          return;
-        }
-      }
-
-      goToScreen(currentScreenNum + 1);
-    }
-
-    async function submitOnboardingWithFirstIdea() {
       try {
-        const firstIdea = document.getElementById('firstIdea').value.trim();
-        const firstIdeaArea = document.getElementById('firstIdeaArea').value;
-
-        if (!firstIdea) {
-          alert('Por favor, escribe una idea o pregunta');
-          return;
-        }
-
-        if (!firstIdeaArea) {
-          alert('Por favor, selecciona un área para tu idea');
-          return;
-        }
-
-        // Google login first
-        const loginResp = await fetch(`${API_URL}/auth/test-login`, {
+        // Call backend to analyze patterns
+        const response = await fetch(`${API_URL}/analyze-patterns`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: 'onboarded@example.com' })
+          body: JSON.stringify({
+            decisions: [
+              {
+                context: decision1Context,
+                conviction: parseInt(decision1Conviction),
+                fear: decision1Fear,
+                assumptions: decision1Assumptions,
+                result: decision1Result,
+                difference: decision1Difference,
+                advice: decision1Advice
+              },
+              {
+                context: decision2Context,
+                conviction: parseInt(decision2Conviction),
+                fear: decision2Fear,
+                assumptions: decision2Assumptions,
+                result: decision2Result,
+                difference: decision2Difference
+              }
+            ]
+          })
         });
 
-        if (!loginResp.ok) throw new Error('Auth failed');
+        if (!response.ok) throw new Error('Error analyzing');
+        const data = await response.json();
 
-        const { token, user_id } = await loginResp.json();
+        // Display insights
+        displayInsights(data.patterns);
+        goToScreen(6);
+      } catch (e) {
+        console.error('Error:', e);
+        alert('Error analizando patrones. Por favor intenta de nuevo.');
+        goToScreen(4);
+      }
+    }
 
-        // Complete onboarding
-        const role = document.getElementById('role').value;
-        const areas = Array.from(document.querySelectorAll('.area-checkbox:checked')).map(c => c.value);
-        const types = Array.from(document.querySelectorAll('.type-checkbox:checked')).map(c => c.value);
-        const horizon = document.querySelector('.horizon-radio:checked')?.value;
-        const bias = document.getElementById('knownBias').value || null;
-        const style = document.querySelector('.style-radio:checked')?.value;
-        const risk = document.querySelector('.risk-radio:checked')?.value;
+    function displayInsights(patterns) {
+      const container = document.getElementById('insightsContainer');
+      container.innerHTML = patterns.map(pattern => `
+        <div class="pattern-card">
+          <div><span class="pattern-icon">${pattern.icon}</span></div>
+          <div class="pattern-title">${pattern.title}</div>
+          <div class="pattern-description">${pattern.description}</div>
+        </div>
+      `).join('');
+    }
 
-        const onboardingResp = await fetch(`${API_URL}/onboarding`, {
+    async function completeOnboarding() {
+      const role = document.getElementById('role').value;
+      const areas = document.getElementById('areas').value.split('\n').filter(a => a.trim());
+      const horizon = document.getElementById('horizon').value;
+      const firstIdea = document.getElementById('firstIdea').value;
+
+      if (!role || areas.length === 0 || !horizon || !firstIdea) {
+        alert('Por favor completa todos los campos');
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/auth/test-login`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: 'user@example.com' })
+        });
+
+        if (!response.ok) throw new Error('Auth error');
+        const auth = await response.json();
+
+        const headers = {
+          'Authorization': `Bearer ${auth.access_token}`,
+          'Content-Type': 'application/json'
+        };
+
+        // Save user profile
+        await fetch(`${API_URL}/user/${auth.user_id}`, {
+          method: 'PATCH',
+          headers,
           body: JSON.stringify({
             role,
             decision_areas: areas,
-            decision_types: types,
-            horizon,
-            known_bias: bias,
-            decision_style: style,
-            risk_tolerance: risk
+            horizon
           })
         });
 
-        if (!onboardingResp.ok) throw new Error('Onboarding failed');
+        // Save patterns discovered during analysis
+        const patternsElements = document.querySelectorAll('.pattern-card');
+        if (patternsElements.length > 0) {
+          const patterns = Array.from(patternsElements).map(card => ({
+            icon: card.querySelector('.pattern-icon')?.textContent || '',
+            title: card.querySelector('.pattern-title')?.textContent || '',
+            description: card.querySelector('.pattern-description')?.textContent || ''
+          }));
 
-        // Create first idea
-        const ideaResp = await fetch(`${API_URL}/thoughts`, {
+          await fetch(`${API_URL}/user/${auth.user_id}/patterns`, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({ patterns })
+          });
+        }
+
+        // Save first idea
+        await fetch(`${API_URL}/thoughts`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
+          headers,
           body: JSON.stringify({
-            title: firstIdea,
+            title: firstIdea.split('\n')[0],
             content: firstIdea,
-            thought_type: 'idea',
-            area: firstIdeaArea,
-            tags: []
+            thought_type: 'idea'
           })
         });
 
-        if (!ideaResp.ok) throw new Error('Idea creation failed');
+        // Save to localStorage and redirect
+        localStorage.setItem('userId', auth.user_id);
+        localStorage.setItem('token', auth.access_token);
 
-        // Save to localStorage
-        localStorage.setItem('userId', user_id);
-        localStorage.setItem('token', token);
-        localStorage.setItem('firstTime', 'true');
-
-        // Redirect to dashboard
-        window.location.href = 'dashboard.html';
-      } catch (error) {
-        alert(`Error: ${error.message}`);
+        goToScreen(9);
+        setTimeout(() => {
+          window.location.href = 'dashboard.html';
+        }, 2000);
+      } catch (e) {
+        console.error('Error:', e);
+        alert('Error completando onboarding: ' + e.message);
       }
     }
+
+    // Check if user already has session
+    window.addEventListener('DOMContentLoaded', async () => {
+      const token = localStorage.getItem('token');
+      const userId = localStorage.getItem('userId');
+
+      if (token && userId) {
+        try {
+          const response = await fetch(`${API_URL}/user/${userId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+
+          if (response.ok) {
+            window.location.href = 'dashboard.html';
+          }
+        } catch (e) {
+          // Continue with onboarding
+        }
+      }
+    });
   </script>
+
 </body>
 </html>

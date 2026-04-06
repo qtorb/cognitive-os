@@ -376,6 +376,7 @@
     <button class="nav-btn" data-view="decisions">📊 <span class="nav-label">Decisiones</span></button>
     <button class="nav-btn" data-view="review">🔄 <span class="nav-label">Review</span><span class="nav-badge" id="reviewBadge" style="display:none;">0</span></button>
     <button class="nav-btn" data-view="insights">🧠 <span class="nav-label">Insights</span></button>
+    <button class="nav-btn" onclick="window.location.href='settings.html'" style="margin-left: auto;">⚙️ <span class="nav-label">Config</span></button>
   </nav>
 
   <div class="container">
@@ -413,6 +414,43 @@
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h2 style="font-size: 22px; font-weight: 700;">Tus decisiones</h2>
         <button class="btn btn-primary" onclick="openRegisterModal()">+ Nueva decisión</button>
+      </div>
+
+      <!-- Search & Filter Panel -->
+      <div class="card" style="margin-bottom: 20px; padding: 16px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+          <div>
+            <label style="font-size: 12px; font-weight: 600; color: #718096; display: block; margin-bottom: 6px;">🔍 Buscar</label>
+            <input type="text" id="searchDecisions" placeholder="Buscar en título o contexto..." style="width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px;">
+          </div>
+          <div>
+            <label style="font-size: 12px; font-weight: 600; color: #718096; display: block; margin-bottom: 6px;">📍 Área</label>
+            <select id="filterArea" style="width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px;">
+              <option value="">Todas las áreas</option>
+            </select>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+          <div>
+            <label style="font-size: 12px; font-weight: 600; color: #718096; display: block; margin-bottom: 6px;">🎯 Convicción</label>
+            <div style="display: flex; gap: 6px;">
+              <input type="number" id="convictionMin" min="1" max="10" placeholder="Min" style="width: 45px; padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px;">
+              <span style="align-self: center; color: #cbd5e0;">-</span>
+              <input type="number" id="convictionMax" min="1" max="10" placeholder="Max" style="width: 45px; padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px;">
+            </div>
+          </div>
+          <div>
+            <label style="font-size: 12px; font-weight: 600; color: #718096; display: block; margin-bottom: 6px;">📊 Ordenar por</label>
+            <select id="sortBy" style="width: 100%; padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px;">
+              <option value="created_at">Más recientes</option>
+              <option value="conviction">Convicción</option>
+              <option value="title">Título (A-Z)</option>
+            </select>
+          </div>
+          <div style="display: flex; flex-direction: column; justify-content: flex-end;">
+            <button class="btn btn-primary" onclick="applyDecisionsFilter()" style="padding: 8px 14px; font-size: 13px;">Aplicar filtros</button>
+          </div>
+        </div>
       </div>
 
       <div class="tabs" id="decisionTabs">
@@ -511,6 +549,24 @@
       <div class="card" style="margin-bottom: 20px; border-left: 4px solid #ed8936;">
         <h2 style="display: flex; align-items: center; gap: 8px;">💡 Recomendaciones</h2>
         <div id="recommendationsContainer" style="margin-top: 12px;">
+          <div class="spinner"></div>
+        </div>
+      </div>
+
+      <!-- Personal Patterns -->
+      <div class="card" style="margin-bottom: 20px; border-left: 4px solid #667eea;">
+        <h2>🧠 Tus patrones personales</h2>
+        <p style="color: #a0aec0; font-size: 13px; margin: 8px 0 16px;">Cómo tomas decisiones - descubierto en tu onboarding y evolucionando</p>
+        <div id="patternsContainer" style="margin-top: 12px;">
+          <div class="spinner"></div>
+        </div>
+      </div>
+
+      <!-- Personal Predictions -->
+      <div class="card" style="margin-bottom: 20px; border-left: 4px solid #ed8936;">
+        <h2>💡 Predicciones personalizadas</h2>
+        <p style="color: #a0aec0; font-size: 13px; margin: 8px 0 16px;">Basadas en tus patrones y decisiones recientes</p>
+        <div id="predictionsContainer" style="margin-top: 12px;">
           <div class="spinner"></div>
         </div>
       </div>
@@ -678,6 +734,88 @@
     </div>
   </div>
 
+  <!-- EDIT DECISION MODAL -->
+  <div id="editDecisionModal" class="modal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('editDecisionModal')">&times;</button>
+      <div class="analysis-header">
+        <h2>✏️ Editar decisión</h2>
+      </div>
+      <form id="editDecisionForm">
+        <div class="form-group">
+          <label>Título</label>
+          <input type="text" id="editTitle" required>
+        </div>
+        <div class="form-group">
+          <label>Contexto</label>
+          <textarea id="editContext" required></textarea>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div class="form-group">
+            <label>Convicción (1-10)</label>
+            <input type="number" id="editConviction" min="1" max="10">
+          </div>
+          <div class="form-group">
+            <label>Estado</label>
+            <select id="editStatus">
+              <option value="draft">Borrador</option>
+              <option value="analyzing">Analizando</option>
+              <option value="decided">Decidida</option>
+              <option value="reviewing">En revisión</option>
+              <option value="completed">Completada</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Resultado real (opcional)</label>
+          <textarea id="editOutcome" placeholder="¿Qué pasó realmente?"></textarea>
+        </div>
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+          <button type="submit" class="btn btn-primary" style="flex: 1;">💾 Guardar cambios</button>
+          <button type="button" class="btn btn-secondary" onclick="closeModal('editDecisionModal')" style="flex: 1;">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- EDIT PATTERN MODAL -->
+  <div id="editPatternModal" class="modal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('editPatternModal')">&times;</button>
+      <div class="analysis-header">
+        <h2>✏️ Editar patrón personal</h2>
+      </div>
+      <form id="editPatternForm">
+        <div class="form-group">
+          <label>Título del patrón</label>
+          <input type="text" id="editPatternTitle" required>
+        </div>
+        <div class="form-group">
+          <label>Descripción</label>
+          <textarea id="editPatternDescription" required placeholder="¿En qué consiste este patrón?"></textarea>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div class="form-group">
+            <label>Emoji representativo</label>
+            <input type="text" id="editPatternIcon" maxlength="2" placeholder="ej: 🎯">
+          </div>
+          <div class="form-group">
+            <label>Fuerza actual (1-10)</label>
+            <input type="number" id="editPatternStrength" min="1" max="10" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Tipo de patrón (opcional)</label>
+          <input type="text" id="editPatternType" placeholder="ej: sesgo, fortaleza, hábito">
+        </div>
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+          <button type="submit" class="btn btn-primary" style="flex: 1;">💾 Guardar cambios</button>
+          <button type="button" class="btn btn-secondary" onclick="closeModal('editPatternModal')" style="flex: 1;">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
 
   <!-- ================================================================ -->
   <!-- JAVASCRIPT -->
@@ -692,6 +830,7 @@
     let allConnections = [];
     let currentTab = 'all';
     let currentView = 'home';
+    let currentFilters = {};
 
     // ===== AUTH =====
     async function authenticatedFetch(url, options = {}) {
@@ -702,9 +841,30 @@
     }
 
     // ===== INIT =====
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
       userId = localStorage.getItem('userId');
-      if (!userId) {
+      const token = localStorage.getItem('token');
+
+      // If no userId or token, redirect to onboarding
+      if (!userId || !token) {
+        window.location.href = 'onboarding.html';
+        return;
+      }
+
+      // Verify token is still valid
+      try {
+        const response = await authenticatedFetch(`${API_URL}/user/${userId}`);
+        if (!response.ok) {
+          // Token expired or invalid, go back to onboarding
+          localStorage.removeItem('token');
+          localStorage.removeItem('userId');
+          window.location.href = 'onboarding.html';
+          return;
+        }
+      } catch (e) {
+        console.error('Error verifying session:', e);
+        localStorage.removeItem('token');
+        localStorage.removeItem('userId');
         window.location.href = 'onboarding.html';
         return;
       }
@@ -760,18 +920,80 @@
           opt.value = area; opt.textContent = area;
           areaSelect.appendChild(opt);
         });
+
+        // Fill filter area dropdown
+        const filterArea = document.getElementById('filterArea');
+        if (filterArea) {
+          filterArea.innerHTML = '<option value="">Todas las áreas</option>';
+          userProfile.decision_areas.forEach(area => {
+            const opt = document.createElement('option');
+            opt.value = area; opt.textContent = area;
+            filterArea.appendChild(opt);
+          });
+        }
       } catch (e) { console.error('Profile error:', e); }
     }
 
-    async function loadDecisions() {
+    async function loadDecisions(filters = {}) {
       try {
-        const response = await authenticatedFetch(`${API_URL}/decisions`);
+        let url = `${API_URL}/decisions`;
+        const params = new URLSearchParams();
+
+        if (filters.search) params.append('search', filters.search);
+        if (filters.area) params.append('area', filters.area);
+        if (filters.status) params.append('status', filters.status);
+        if (filters.conviction_min) params.append('conviction_min', filters.conviction_min);
+        if (filters.conviction_max) params.append('conviction_max', filters.conviction_max);
+        if (filters.sort_by) params.append('sort_by', filters.sort_by);
+        if (filters.sort_order) params.append('sort_order', filters.sort_order);
+
+        if (params.toString()) {
+          url += '?' + params.toString();
+        }
+
+        const response = await authenticatedFetch(url);
         if (!response.ok) throw new Error('Error');
         const result = await response.json();
         allDecisions = result.decisions || [];
+
+        // If called without filters, reset currentFilters and UI
+        if (Object.keys(filters).length === 0) {
+          currentFilters = {};
+          document.getElementById('searchDecisions').value = '';
+          document.getElementById('filterArea').value = '';
+          document.getElementById('convictionMin').value = '';
+          document.getElementById('convictionMax').value = '';
+          currentTab = 'all';
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          document.querySelector('.tab[data-tab="all"]').classList.add('active');
+        }
+
         updateTabCounts();
         displayDecisions();
       } catch (e) { console.error('Decisions error:', e); }
+    }
+
+    async function applyDecisionsFilter() {
+      const search = document.getElementById('searchDecisions').value;
+      const area = document.getElementById('filterArea').value;
+      const convictionMin = document.getElementById('convictionMin').value;
+      const convictionMax = document.getElementById('convictionMax').value;
+      const sortBy = document.getElementById('sortBy').value;
+
+      currentFilters = {
+        search: search || undefined,
+        area: area || undefined,
+        conviction_min: convictionMin ? parseInt(convictionMin) : undefined,
+        conviction_max: convictionMax ? parseInt(convictionMax) : undefined,
+        sort_by: sortBy || 'created_at'
+      };
+
+      // Reset tab selection to 'all' when applying filters
+      currentTab = 'all';
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelector('.tab[data-tab="all"]').classList.add('active');
+
+      await loadDecisions(currentFilters);
     }
 
     async function loadIdeas() {
@@ -868,12 +1090,42 @@
 
     function displayDecisions() {
       const container = document.getElementById('decisionsContainer');
-      let filtered = currentTab === 'all' ? allDecisions : allDecisions.filter(d => d.status === currentTab);
 
+      // Start with all decisions
+      let filtered = allDecisions;
+
+      // Apply tab filtering (status filter)
+      if (currentTab !== 'all') {
+        filtered = filtered.filter(d => d.status === currentTab);
+      }
+
+      // Apply advanced filters if any are set
+      if (currentFilters.search) {
+        const searchLower = currentFilters.search.toLowerCase();
+        filtered = filtered.filter(d =>
+          d.title.toLowerCase().includes(searchLower) ||
+          (d.context && d.context.toLowerCase().includes(searchLower))
+        );
+      }
+
+      if (currentFilters.area) {
+        filtered = filtered.filter(d => d.area === currentFilters.area);
+      }
+
+      if (currentFilters.conviction_min !== undefined) {
+        filtered = filtered.filter(d => (d.conviction || 0) >= currentFilters.conviction_min);
+      }
+
+      if (currentFilters.conviction_max !== undefined) {
+        filtered = filtered.filter(d => (d.conviction || 0) <= currentFilters.conviction_max);
+      }
+
+      // Display results
       if (filtered.length === 0) {
-        container.innerHTML = '<div class="empty-state" style="grid-column: 1/-1;"><div class="empty-state-emoji">📝</div><p>No hay decisiones en esta categoría</p></div>';
+        container.innerHTML = '<div class="empty-state" style="grid-column: 1/-1;"><div class="empty-state-emoji">🔍</div><p>No hay decisiones que coincidan con tu búsqueda</p></div>';
         return;
       }
+
       container.innerHTML = filtered.map(d => renderDecisionCard(d)).join('');
 
       // Update areas
@@ -902,6 +1154,7 @@
               : `<button onclick="analyzeDecision(${d.id}, 'analyze')" class="btn btn-primary">📊 Analizar</button>`
             }
             <div style="display: flex; gap: 4px;">
+              <button onclick="openEditDecisionModal(${d.id})" class="btn btn-secondary" title="Editar">✏️</button>
               ${d.outcome_real
                 ? `<button onclick="viewOutcomeComparison(${d.id})" class="btn btn-secondary" title="Ver resultado">📋</button>`
                 : `<button onclick="analyzeDecision(${d.id}, 'counterargument')" class="btn btn-secondary" title="Contra">⚠️</button>`
@@ -915,14 +1168,18 @@
     }
 
     function filterByArea(area) {
-      currentTab = 'all';
-      const container = document.getElementById('decisionsContainer');
-      const filtered = allDecisions.filter(d => d.area === area);
-      if (filtered.length === 0) {
-        container.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><div class="empty-state-emoji">🔍</div><p>No hay decisiones en esta área</p></div>';
-      } else {
-        container.innerHTML = filtered.map(d => renderDecisionCard(d)).join('');
+      // Update the filter area dropdown to reflect the selection
+      const filterAreaSelect = document.getElementById('filterArea');
+      if (filterAreaSelect) {
+        filterAreaSelect.value = area;
       }
+
+      // Set currentTab to 'all' and the area filter
+      currentTab = 'all';
+      currentFilters.area = area;
+
+      // Re-display with the new filter
+      displayDecisions();
     }
 
     // ===== REVIEW VIEW (THE CORE) =====
@@ -1137,6 +1394,56 @@
       } catch (e) {
         console.error('Error loading insights:', e);
         document.getElementById('biasesContainer').innerHTML = '<p style="color: #c53030;">Error al cargar análisis de sesgos.</p>';
+      }
+
+      // Personal Patterns
+      try {
+        const resp = await authenticatedFetch(`${API_URL}/user/${userId}/patterns`);
+        const data = await resp.json();
+        const container = document.getElementById('patternsContainer');
+
+        if (!data.patterns || data.patterns.length === 0) {
+          container.innerHTML = '<div class="empty-state"><div class="empty-state-emoji">✨</div><p>Completa el onboarding para descubrir tus patrones personales.</p></div>';
+        } else {
+          container.innerHTML = data.patterns.map(p => `
+            <div style="padding: 14px; background: #f8f7ff; border-radius: 10px; margin-bottom: 12px; border-left: 3px solid #667eea;">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                <div style="font-size: 20px; margin-right: 8px;">${p.icon}</div>
+                <div style="flex: 1;">
+                  <div style="font-weight: 600; color: #2d3748;">${p.title}</div>
+                  <div style="font-size: 12px; color: #a0aec0; margin-top: 2px;">Fuerza actual: ${p.current_strength}/10 ${p.evolution > 0 ? '📈' : p.evolution < 0 ? '📉' : '→'}</div>
+                </div>
+                <button onclick="openEditPatternModal(${p.id})" class="btn btn-secondary" style="font-size: 12px; padding: 6px 10px; margin-left: 8px;" title="Editar">✏️</button>
+              </div>
+              <div style="color: #718096; font-size: 13px; line-height: 1.5;">${p.description}</div>
+            </div>
+          `).join('');
+        }
+      } catch (e) {
+        document.getElementById('patternsContainer').innerHTML = '<p style="color: #c53030;">Error al cargar patrones.</p>';
+      }
+
+      // Personal Predictions
+      try {
+        const resp = await authenticatedFetch(`${API_URL}/user/${userId}/predictions`);
+        const data = await resp.json();
+        const container = document.getElementById('predictionsContainer');
+
+        if (!data.predictions || data.predictions.length === 0) {
+          container.innerHTML = '<div class="empty-state"><div class="empty-state-emoji">🔮</div><p>Las predicciones aparecerán cuando tengas patrones detectados.</p></div>';
+        } else {
+          container.innerHTML = data.predictions.map(p => `
+            <div style="padding: 14px; background: #fff8f0; border-radius: 10px; margin-bottom: 12px; border-left: 3px solid #ed8936;">
+              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                <span style="font-size: 20px;">${p.icon}</span>
+                <div style="font-weight: 600; color: #c05621;">${p.title}</div>
+              </div>
+              <div style="color: #7c2d12; font-size: 13px; line-height: 1.5;">${p.warning}</div>
+            </div>
+          `).join('');
+        }
+      } catch (e) {
+        document.getElementById('predictionsContainer').innerHTML = '<p style="color: #c53030;">Error al cargar predicciones.</p>';
       }
 
       // Reminders
@@ -1414,6 +1721,54 @@
       document.getElementById('reminderModal').classList.add('active');
     }
 
+    async function openEditDecisionModal(decisionId) {
+      try {
+        // Cargar los datos de la decisión desde el backend
+        const resp = await authenticatedFetch(`${API_URL}/decisions/${decisionId}`);
+        if (!resp.ok) throw new Error('No se pudo cargar la decisión');
+
+        const decision = await resp.json();
+
+        // Rellenar el formulario con los datos actuales
+        document.getElementById('editDecisionForm').dataset.decisionId = decisionId;
+        document.getElementById('editTitle').value = decision.title || '';
+        document.getElementById('editContext').value = decision.context || '';
+        document.getElementById('editConviction').value = decision.conviction || '';
+        document.getElementById('editStatus').value = decision.status || 'draft';
+        document.getElementById('editOutcome').value = decision.outcome_real || '';
+
+        document.getElementById('editDecisionModal').classList.add('active');
+      } catch (e) {
+        alert('Error al abrir el editor: ' + e.message);
+      }
+    }
+
+    async function openEditPatternModal(patternId) {
+      try {
+        // Cargar los datos del patrón desde el backend
+        const userId = localStorage.getItem('userId');
+        const resp = await authenticatedFetch(`${API_URL}/user/${userId}/patterns`);
+        if (!resp.ok) throw new Error('No se pudo cargar los patrones');
+
+        const data = await resp.json();
+        const pattern = data.patterns.find(p => p.id === patternId);
+
+        if (!pattern) throw new Error('Patrón no encontrado');
+
+        // Rellenar el formulario con los datos actuales
+        document.getElementById('editPatternForm').dataset.patternId = patternId;
+        document.getElementById('editPatternTitle').value = pattern.title || '';
+        document.getElementById('editPatternDescription').value = pattern.description || '';
+        document.getElementById('editPatternIcon').value = pattern.icon || '📌';
+        document.getElementById('editPatternStrength').value = pattern.current_strength || 5;
+        document.getElementById('editPatternType').value = pattern.pattern_type || '';
+
+        document.getElementById('editPatternModal').classList.add('active');
+      } catch (e) {
+        alert('Error al abrir el editor: ' + e.message);
+      }
+    }
+
     // ===== FORM HANDLERS =====
     async function handleSubmitDecision(e) {
       e.preventDefault();
@@ -1496,6 +1851,74 @@
       } catch (e) { alert('Error: ' + e.message); }
     }
 
+    async function handleEditDecision(e) {
+      e.preventDefault();
+      const decisionId = parseInt(document.getElementById('editDecisionForm').dataset.decisionId);
+      try {
+        const resp = await authenticatedFetch(`${API_URL}/decisions/${decisionId}`, {
+          method: 'PATCH',
+          body: JSON.stringify({
+            title: document.getElementById('editTitle').value,
+            context: document.getElementById('editContext').value,
+            conviction: parseInt(document.getElementById('editConviction').value) || null,
+            status: document.getElementById('editStatus').value,
+            outcome_real: document.getElementById('editOutcome').value || null
+          })
+        });
+        if (!resp.ok) throw new Error('Error al guardar');
+        closeModal('editDecisionModal');
+        document.getElementById('editDecisionForm').reset();
+        await loadDecisions();
+        displayDecisions();
+        alert('✓ Decisión actualizada exitosamente');
+      } catch (e) { alert('Error: ' + e.message); }
+    }
+
+    async function handleEditPattern(e) {
+      e.preventDefault();
+      const patternId = parseInt(document.getElementById('editPatternForm').dataset.patternId);
+      try {
+        const resp = await authenticatedFetch(`${API_URL}/patterns/${patternId}`, {
+          method: 'PATCH',
+          body: JSON.stringify({
+            title: document.getElementById('editPatternTitle').value,
+            description: document.getElementById('editPatternDescription').value,
+            icon: document.getElementById('editPatternIcon').value,
+            current_strength: parseInt(document.getElementById('editPatternStrength').value),
+            pattern_type: document.getElementById('editPatternType').value || null
+          })
+        });
+        if (!resp.ok) throw new Error('Error al guardar');
+        closeModal('editPatternModal');
+        document.getElementById('editPatternForm').reset();
+        // Recargar los patrones
+        const userId = localStorage.getItem('userId');
+        const patternsResp = await authenticatedFetch(`${API_URL}/user/${userId}/patterns`);
+        const patternsData = await patternsResp.json();
+        const container = document.getElementById('patternsContainer');
+
+        if (!patternsData.patterns || patternsData.patterns.length === 0) {
+          container.innerHTML = '<div class="empty-state"><div class="empty-state-emoji">✨</div><p>Completa el onboarding para descubrir tus patrones personales.</p></div>';
+        } else {
+          container.innerHTML = patternsData.patterns.map(p => `
+            <div style="padding: 14px; background: #f8f7ff; border-radius: 10px; margin-bottom: 12px; border-left: 3px solid #667eea;">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                <div style="font-size: 20px; margin-right: 8px;">${p.icon}</div>
+                <div style="flex: 1;">
+                  <div style="font-weight: 600; color: #2d3748;">${p.title}</div>
+                  <div style="font-size: 12px; color: #a0aec0; margin-top: 2px;">Fuerza actual: ${p.current_strength}/10 ${p.evolution > 0 ? '📈' : p.evolution < 0 ? '📉' : '→'}</div>
+                </div>
+                <button onclick="openEditPatternModal(${p.id})" class="btn btn-secondary" style="font-size: 12px; padding: 6px 10px; margin-left: 8px;" title="Editar">✏️</button>
+              </div>
+              <div style="color: #718096; font-size: 13px; line-height: 1.5;">${p.description}</div>
+            </div>
+          `).join('');
+        }
+
+        alert('✓ Patrón actualizado exitosamente');
+      } catch (e) { alert('Error: ' + e.message); }
+    }
+
     // ===== CONNECTION HELPERS =====
     async function loadSourceItems() {
       const type = document.getElementById('sourceType').value;
@@ -1547,6 +1970,8 @@
       document.getElementById('outcomeForm').addEventListener('submit', handleSubmitOutcome);
       document.getElementById('connectionForm').addEventListener('submit', handleSubmitConnection);
       document.getElementById('reminderForm').addEventListener('submit', handleSubmitReminder);
+      document.getElementById('editDecisionForm').addEventListener('submit', handleEditDecision);
+      document.getElementById('editPatternForm').addEventListener('submit', handleEditPattern);
 
       document.getElementById('decisionConviction').addEventListener('input', (e) => {
         document.getElementById('convictionValue').textContent = e.target.value;
