@@ -18,7 +18,8 @@ SQLALCHEMY_TEST_DATABASE_URL = "sqlite:///./test_cognitive_os.db"
 test_engine = create_engine(SQLALCHEMY_TEST_DATABASE_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
 
-# Create all tables
+# Create all tables (drop first to ensure latest schema)
+Base.metadata.drop_all(bind=test_engine)
 Base.metadata.create_all(bind=test_engine)
 
 # Override get_db for all tests

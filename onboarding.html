@@ -23,7 +23,7 @@
 
     .container {
       width: 100%;
-      max-width: 620px;
+      max-width: 680px;
       background: white;
       border-radius: 24px;
       box-shadow: 0 25px 60px rgba(0, 0, 0, 0.15);
@@ -34,45 +34,27 @@
     .header {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
-      padding: 56px 40px;
+      padding: 48px 40px 32px;
       text-align: center;
       position: relative;
       overflow: hidden;
     }
 
-    .header::before {
-      content: '';
-      position: absolute;
-      top: -50%;
-      right: -10%;
-      width: 400px;
-      height: 400px;
-      background: rgba(255, 255, 255, 0.08);
-      border-radius: 50%;
-      animation: float 20s infinite ease-in-out;
-    }
-
-    @keyframes float {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-20px); }
-    }
-
     .header h1 {
-      font-size: 36px;
-      margin-bottom: 8px;
+      font-size: 28px;
+      margin-bottom: 4px;
       font-weight: 700;
-      letter-spacing: -0.8px;
+      letter-spacing: -0.5px;
       position: relative;
       z-index: 1;
     }
 
     .header p {
-      opacity: 0.95;
-      font-size: 14px;
+      opacity: 0.9;
+      font-size: 13px;
       letter-spacing: 0.3px;
       position: relative;
       z-index: 1;
-      font-weight: 400;
     }
 
     /* ===== PROGRESS BAR ===== */
@@ -89,56 +71,22 @@
       transition: width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
-    /* ===== STATUS INDICATOR ===== */
-    .status-indicator {
+    .progress-text {
       position: absolute;
-      top: 16px;
-      right: 20px;
+      top: 8px;
+      right: 16px;
       font-size: 11px;
-      padding: 6px 12px;
-      border-radius: 20px;
+      color: #a0aec0;
       font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      z-index: 2;
-      letter-spacing: 0.3px;
-    }
-
-    .status-indicator.connected {
-      background: rgba(72, 187, 120, 0.15);
-      color: #22543d;
-    }
-
-    .status-indicator.disconnected {
-      background: rgba(245, 101, 101, 0.15);
-      color: #742a2a;
-    }
-
-    .status-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      animation: pulse 2s infinite;
-    }
-
-    .status-indicator.connected .status-dot {
-      background: #48bb78;
-    }
-
-    .status-indicator.disconnected .status-dot {
-      background: #f56565;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.6; }
+      background: white;
+      padding: 2px 8px;
+      border-radius: 10px;
     }
 
     /* ===== CONTENT ===== */
     .content {
       padding: 48px 40px;
-      min-height: 320px;
+      min-height: 420px;
     }
 
     .screen {
@@ -151,14 +99,8 @@
     }
 
     @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(8px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     /* ===== INTRO SCREEN ===== */
@@ -168,258 +110,281 @@
 
     .intro-emoji {
       font-size: 64px;
-      margin-bottom: 24px;
       display: block;
+      margin-bottom: 24px;
     }
 
     .intro-content h2 {
-      font-size: 28px;
+      font-size: 32px;
       color: #2d3748;
-      margin-bottom: 16px;
+      margin-bottom: 12px;
       font-weight: 700;
     }
 
     .intro-content p {
       color: #718096;
-      line-height: 1.7;
-      margin-bottom: 14px;
       font-size: 15px;
+      line-height: 1.6;
+      margin-bottom: 8px;
     }
 
-    /* ===== QUESTION SCREENS ===== */
-    .question-number {
-      font-size: 11px;
+    .intro-content .subtitle {
       color: #a0aec0;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-      margin-bottom: 20px;
-      font-weight: 700;
+      font-size: 13px;
+      margin-bottom: 32px;
     }
 
-    .question-text {
-      font-size: 22px;
-      color: #2d3748;
-      margin-bottom: 32px;
+    /* ===== FLOW DIAGRAM ===== */
+    .flow-diagram {
+      background: #f7fafc;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 24px 0 32px;
+      text-align: center;
+    }
+
+    .flow-step {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
       font-weight: 600;
-      line-height: 1.4;
+      color: #2d3748;
+    }
+
+    .flow-step:not(:last-child)::after {
+      content: '→';
+      margin-left: 12px;
+      color: #cbd5e0;
+      font-size: 18px;
+    }
+
+    .flow-diagram .flow-step {
+      display: block;
+      margin: 8px 0;
+    }
+
+    .flow-diagram .flow-step:not(:last-child)::after {
+      content: '↓';
+      display: block;
+      margin: 4px 0;
+      font-size: 16px;
+    }
+
+    /* ===== EXAMPLE SCREEN ===== */
+    .example-case {
+      background: #f7fafc;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .example-step {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .example-step:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+
+    .example-emoji {
+      font-size: 28px;
+      min-width: 40px;
+    }
+
+    .example-content {
+      flex: 1;
+    }
+
+    .example-content .label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #667eea;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .example-content .text {
+      color: #2d3748;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .example-insights {
+      background: #eef2ff;
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 16px;
+      border-left: 3px solid #667eea;
+    }
+
+    .example-insights .insight {
+      font-size: 13px;
+      color: #2d3748;
+      margin: 6px 0;
+      line-height: 1.5;
+    }
+
+    .example-insights .insight strong {
+      color: #667eea;
     }
 
     /* ===== FORM ELEMENTS ===== */
-    .form-group {
-      margin-bottom: 28px;
+    .question-number {
+      font-size: 12px;
+      font-weight: 600;
+      color: #a0aec0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 16px;
     }
 
-    .form-group label {
-      display: block;
-      margin-bottom: 10px;
-      color: #4a5568;
+    .question-text {
+      font-size: 24px;
+      color: #2d3748;
+      margin-bottom: 24px;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+
+    .form-group {
+      margin-bottom: 24px;
+    }
+
+    .info-box {
+      background: #eef2ff;
+      border-left: 3px solid #667eea;
+      color: #2d3748;
+      padding: 12px 16px;
+      border-radius: 6px;
       font-size: 13px;
-      font-weight: 600;
-      letter-spacing: 0.3px;
+      margin-bottom: 16px;
+      line-height: 1.5;
     }
 
     input[type="text"],
+    input[type="email"],
     textarea,
     select {
       width: 100%;
       padding: 12px 14px;
-      border: 1.5px solid #e2e8f0;
-      border-radius: 10px;
       font-size: 14px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
       font-family: inherit;
-      transition: all 0.3s ease;
-      background: #fafbfc;
-      color: #2d3748;
-    }
-
-    input[type="text"]::placeholder,
-    textarea::placeholder,
-    select::placeholder {
-      color: #cbd5e0;
+      transition: all 0.2s;
     }
 
     input[type="text"]:focus,
+    input[type="email"]:focus,
     textarea:focus,
     select:focus {
       outline: none;
       border-color: #667eea;
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.08);
-      background: white;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     }
 
     textarea {
       resize: vertical;
-      min-height: 100px;
-      font-family: inherit;
+      min-height: 80px;
     }
 
     .help-text {
       font-size: 12px;
       color: #a0aec0;
       margin-top: 8px;
-      font-weight: 400;
     }
 
-    /* ===== CHECKBOXES & RADIO BUTTONS ===== */
     .checkbox-group,
     .radio-group {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
+      display: grid;
+      gap: 8px;
     }
 
     .checkbox-item,
     .radio-item {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 14px 14px;
-      border: 1.5px solid #e2e8f0;
-      border-radius: 10px;
+      padding: 10px 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
       cursor: pointer;
-      transition: all 0.3s ease;
-      background: #fafbfc;
+      transition: all 0.2s;
+      background: white;
     }
 
     .checkbox-item:hover,
     .radio-item:hover {
+      background: #f7fafc;
       border-color: #cbd5e0;
-      background: white;
     }
 
     .checkbox-item input,
     .radio-item input {
+      margin-right: 10px;
       cursor: pointer;
-      width: 18px;
-      height: 18px;
-      accent-color: #667eea;
     }
 
     .checkbox-item label,
     .radio-item label {
-      margin: 0;
-      cursor: pointer;
       flex: 1;
-      font-weight: 500;
-      color: #2d3748;
+      cursor: pointer;
       font-size: 14px;
+      color: #2d3748;
+      margin: 0;
+    }
+
+    .checkbox-item input:checked,
+    .radio-item input:checked {
+      accent-color: #667eea;
     }
 
     .checkbox-item input:checked + label,
     .radio-item input:checked + label {
+      font-weight: 600;
       color: #667eea;
-      font-weight: 600;
-    }
-
-    /* ===== INFO BOX ===== */
-    .info-box {
-      background: linear-gradient(135deg, #f8f7ff 0%, #faf8ff 100%);
-      border-left: 3px solid #667eea;
-      padding: 12px 14px;
-      margin-bottom: 24px;
-      border-radius: 10px;
-      font-size: 13px;
-      color: #4a5568;
-      font-weight: 500;
-    }
-
-    /* ===== SUMMARY SCREEN ===== */
-    .summary-content {
-      text-align: center;
-    }
-
-    .summary-emoji {
-      font-size: 64px;
-      margin-bottom: 20px;
-      display: block;
-    }
-
-    .summary-content h2 {
-      font-size: 28px;
-      color: #2d3748;
-      margin-bottom: 24px;
-      font-weight: 700;
-    }
-
-    .profile-display {
-      background: linear-gradient(135deg, #f8f7ff 0%, #faf8ff 100%);
-      border-radius: 12px;
-      padding: 24px;
-      margin-bottom: 32px;
-      text-align: left;
-      border: 1px solid #e2e8f0;
-    }
-
-    .profile-item {
-      margin-bottom: 18px;
-      padding-bottom: 18px;
-      border-bottom: 1px solid #e2e8f0;
-    }
-
-    .profile-item:last-child {
-      border-bottom: none;
-      margin-bottom: 0;
-      padding-bottom: 0;
-    }
-
-    .profile-label {
-      font-size: 11px;
-      color: #a0aec0;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-      margin-bottom: 6px;
-      font-weight: 700;
-    }
-
-    .profile-value {
-      font-size: 15px;
-      color: #2d3748;
-      font-weight: 600;
     }
 
     /* ===== BUTTONS ===== */
     .buttons {
       display: flex;
       gap: 12px;
-      margin-top: 40px;
+      margin-top: 32px;
+      justify-content: space-between;
     }
 
     .btn {
-      flex: 1;
       padding: 12px 24px;
-      border: none;
-      border-radius: 10px;
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 600;
+      border: none;
+      border-radius: 8px;
       cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-      letter-spacing: 0.3px;
+      transition: all 0.2s;
+      white-space: nowrap;
     }
 
     .btn-primary {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
-      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+      flex: 1;
     }
 
     .btn-primary:hover {
       transform: translateY(-2px);
-      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
-    }
-
-    .btn-primary:active {
-      transform: translateY(0);
-    }
-
-    .btn-primary:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none;
+      box-shadow: 0 8px 16px rgba(102, 126, 234, 0.4);
     }
 
     .btn-secondary {
       background: #f7fafc;
-      color: #2d3748;
+      color: #4a5568;
       border: 1px solid #e2e8f0;
     }
 
@@ -430,109 +395,218 @@
 
     .btn-start {
       width: 100%;
-      padding: 14px;
-      font-size: 15px;
     }
 
-    /* ===== MESSAGES ===== */
-    .error {
-      background: linear-gradient(135deg, #fee2e2 0%, #fef2f2 100%);
-      border: 1px solid #feb2b2;
-      color: #c53030;
-      padding: 14px 16px;
-      border-radius: 10px;
-      font-size: 13px;
-      margin-bottom: 20px;
-      font-weight: 500;
+    /* ===== SUMMARY ===== */
+    .summary-content {
+      text-align: center;
     }
 
-    .success-message {
-      background: linear-gradient(135deg, #dcfce7 0%, #f0fdf4 100%);
-      border: 1px solid #a7f3d0;
-      color: #22543d;
-      padding: 14px 16px;
-      border-radius: 10px;
-      font-size: 13px;
+    .summary-emoji {
+      font-size: 64px;
+      display: block;
       margin-bottom: 20px;
-      font-weight: 500;
+    }
+
+    .summary-content h2 {
+      font-size: 32px;
+      color: #2d3748;
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    .summary-content > p {
+      color: #718096;
+      margin-bottom: 24px;
+      font-size: 14px;
+    }
+
+    .profile-display {
+      background: #f7fafc;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 28px;
+      text-align: left;
+    }
+
+    .profile-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .profile-item:last-child {
+      border-bottom: none;
+    }
+
+    .profile-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #718096;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .profile-value {
+      font-size: 14px;
+      color: #2d3748;
+      font-weight: 600;
+      text-align: right;
+      max-width: 50%;
+    }
+
+    /* ===== FIRST STEP FORM ===== */
+    .first-step-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .first-step-header h3 {
+      font-size: 20px;
+      color: #2d3748;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    .first-step-header p {
+      color: #718096;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .first-step-form {
+      background: #f7fafc;
+      border-radius: 12px;
+      padding: 20px;
     }
 
     /* ===== RESPONSIVE ===== */
-    @media (max-width: 640px) {
-      .header {
-        padding: 40px 28px;
-      }
-
-      .header h1 {
-        font-size: 28px;
-      }
-
+    @media (max-width: 600px) {
       .content {
-        padding: 36px 28px;
+        padding: 32px 24px;
+        min-height: auto;
       }
 
       .question-text {
-        font-size: 18px;
+        font-size: 20px;
+      }
+
+      .intro-content h2 {
+        font-size: 26px;
       }
 
       .buttons {
-        flex-direction: column-reverse;
+        flex-direction: column;
+        gap: 8px;
       }
 
-      .btn {
-        flex: 1;
+      .btn-secondary {
+        display: none;
       }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="progress-bar">
-      <div class="progress-fill" id="progressFill"></div>
+    <div class="header">
+      <h1>🧠 Cognitive OS</h1>
+      <p>Tu sistema para pensar mejor en el tiempo</p>
     </div>
 
-    <div class="header">
-      <div class="status-indicator" id="statusIndicator">
-        <div class="status-dot"></div>
-        <span id="statusText">Conectando...</span>
-      </div>
-      <h1>🧠 Cognitive OS</h1>
-      <p>Tu sistema cognitivo personal</p>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill"></div>
+      <div class="progress-text" id="progressText">0/10</div>
     </div>
 
     <div class="content">
-      <!-- Screen 0: Intro -->
+      <!-- Screen 0: Intro + Flow -->
       <div class="screen active" id="screen-0">
         <div class="intro-content">
-          <span class="intro-emoji">👋</span>
-          <h2>Hola</h2>
-          <p>Vamos a preparar tu sistema cognitivo personal en menos de 5 minutos.</p>
-          <p style="color: #a0aec0; font-size: 14px; margin-bottom: 32px;">Esto nos ayuda a entender quién eres y cómo pensar mejor en el tiempo.</p>
-          <button class="btn btn-primary btn-start" onclick="goToScreen(1)">Comenzar →</button>
+          <span class="intro-emoji">💡</span>
+          <h2>Tu sistema para pensar mejor</h2>
+          <p class="subtitle">Captura ideas, documenta decisiones, registra resultados, aprende patrones</p>
+
+          <div class="flow-diagram">
+            <div class="flow-step">💡 <strong>Ideas</strong> (Lo que piensas)</div>
+            <div class="flow-step">📊 <strong>Decisiones</strong> (Lo que decides)</div>
+            <div class="flow-step">🎯 <strong>Resultados</strong> (Lo que pasó)</div>
+            <div class="flow-step">📈 <strong>Aprendizaje</strong> (Lo que aprendiste)</div>
+          </div>
+
+          <p style="color: #718096; font-size: 14px; margin-bottom: 24px;">
+            El sistema cierra el ciclo: captura tu pensamiento, analiza patrones, y mejora tus decisiones futuras.
+          </p>
+
+          <button class="btn btn-primary btn-start" onclick="goToScreen(1)">Ver ejemplo en vivo →</button>
         </div>
       </div>
 
-      <!-- Screen 1: Role -->
+      <!-- Screen 1: Example -->
       <div class="screen" id="screen-1">
-        <div class="question-number">Pregunta 1 de 5</div>
-        <h3 class="question-text">¿Cuál es tu rol o contexto actual?</h3>
-        <div class="form-group">
-          <input type="text" id="role" placeholder="Ej: Fundador, Inversor, Jubilado..." maxlength="100">
-          <div class="help-text">Esto personaliza los análisis de IA</div>
+        <div class="question-number">Ejemplo práctico</div>
+        <h2 style="font-size: 22px; color: #2d3748; margin-bottom: 24px;">Así funciona en la realidad</h2>
+
+        <div class="example-case">
+          <div class="example-step">
+            <div class="example-emoji">💡</div>
+            <div class="example-content">
+              <div class="label">Idea</div>
+              <div class="text">"¿Debería expandir a Europa?"</div>
+            </div>
+          </div>
+
+          <div class="example-step">
+            <div class="example-emoji">📊</div>
+            <div class="example-content">
+              <div class="label">Decisión</div>
+              <div class="text">"Sí, comenzar con España en Q2" <strong>(Convicción: 8/10)</strong></div>
+            </div>
+          </div>
+
+          <div class="example-step">
+            <div class="example-emoji">🎯</div>
+            <div class="example-content">
+              <div class="label">Resultado Real</div>
+              <div class="text">"Retraso 2 meses, pero logré 18% de crecimiento"</div>
+            </div>
+          </div>
+
+          <div class="example-step">
+            <div class="example-emoji">📈</div>
+            <div class="example-content">
+              <div class="label">Aprendizaje</div>
+              <div class="text">"Subestimo timelines. Próxima expansión: agregar 40% buffer"</div>
+            </div>
+          </div>
+
+          <div class="example-insights">
+            <div class="insight">
+              🔍 <strong>Bias Detection:</strong> "Detectamos sesgo de optimismo temporal en tus expansiones"
+            </div>
+            <div class="insight">
+              💡 <strong>Decision Advisor:</strong> "Basado en Italia (2022), aquí están tus 3 riesgos principales"
+            </div>
+            <div class="insight">
+              📊 <strong>Conviction Accuracy:</strong> "Cuando tienes convicción 8-10, aciertas 45% de las veces"
+            </div>
+          </div>
         </div>
+
         <div class="buttons">
           <button class="btn btn-secondary" onclick="goToScreen(0)">← Atrás</button>
-          <button class="btn btn-primary" onclick="nextQuestion(1)">Siguiente →</button>
+          <button class="btn btn-primary" onclick="goToScreen(2)">Empezar configuración →</button>
         </div>
       </div>
 
-      <!-- Screen 2: Areas -->
+      <!-- Screen 2: Role -->
       <div class="screen" id="screen-2">
-        <div class="question-number">Pregunta 2 de 5</div>
-        <h3 class="question-text">¿En qué áreas tomas decisiones?</h3>
-        <div class="info-box">Selecciona hasta 5 áreas clave donde tomas decisiones importantes</div>
+        <div class="question-number">Pregunta 1 de 8</div>
+        <h3 class="question-text">¿Cuál es tu rol o contexto?</h3>
         <div class="form-group">
-          <div class="checkbox-group" id="areasCheckboxes"></div>
+          <input type="text" id="role" placeholder="Ej: Fundador, Inversor, Ejecutivo, Jubilado..." maxlength="100">
+          <div class="help-text">Personaliza los análisis de IA a tu situación específica</div>
         </div>
         <div class="buttons">
           <button class="btn btn-secondary" onclick="goToScreen(1)">← Atrás</button>
@@ -540,12 +614,13 @@
         </div>
       </div>
 
-      <!-- Screen 3: Decision Types -->
+      <!-- Screen 3: Areas -->
       <div class="screen" id="screen-3">
-        <div class="question-number">Pregunta 3 de 5</div>
-        <h3 class="question-text">¿Qué tipos de decisiones enfrentas?</h3>
+        <div class="question-number">Pregunta 2 de 8</div>
+        <h3 class="question-text">¿En qué áreas tomas decisiones?</h3>
+        <div class="info-box">Selecciona hasta 5 áreas donde tomas decisiones importantes. El sistema se enfoca en tus prioridades.</div>
         <div class="form-group">
-          <div class="checkbox-group" id="decisionTypesCheckboxes"></div>
+          <div class="checkbox-group" id="areasCheckboxes"></div>
         </div>
         <div class="buttons">
           <button class="btn btn-secondary" onclick="goToScreen(2)">← Atrás</button>
@@ -553,12 +628,13 @@
         </div>
       </div>
 
-      <!-- Screen 4: Horizon -->
+      <!-- Screen 4: Decision Types -->
       <div class="screen" id="screen-4">
-        <div class="question-number">Pregunta 4 de 5</div>
-        <h3 class="question-text">¿Cuál es tu horizonte temporal?</h3>
+        <div class="question-number">Pregunta 3 de 8</div>
+        <h3 class="question-text">¿Qué tipos de decisiones enfrentas?</h3>
+        <div class="info-box">Cada tipo necesita análisis diferentes. Selecciona los que se apliquen a ti.</div>
         <div class="form-group">
-          <div class="radio-group" id="horizonRadios"></div>
+          <div class="checkbox-group" id="decisionTypesCheckboxes"></div>
         </div>
         <div class="buttons">
           <button class="btn btn-secondary" onclick="goToScreen(3)">← Atrás</button>
@@ -566,13 +642,13 @@
         </div>
       </div>
 
-      <!-- Screen 5: Known Bias -->
+      <!-- Screen 5: Horizon -->
       <div class="screen" id="screen-5">
-        <div class="question-number">Pregunta 5 de 5</div>
-        <h3 class="question-text">¿Cuál es tu sesgo cognitivo más conocido?</h3>
+        <div class="question-number">Pregunta 4 de 8</div>
+        <h3 class="question-text">¿Cuál es tu horizonte temporal?</h3>
+        <div class="info-box">Define cómo el sistema mide resultados y aprende de tus decisiones.</div>
         <div class="form-group">
-          <textarea id="knownBias" placeholder="Ej: Tiendo al optimismo, evito conflictos, me cuesta delegar..."></textarea>
-          <div class="help-text">Opcional pero útil para análisis más precisos</div>
+          <div class="radio-group" id="horizonRadios"></div>
         </div>
         <div class="buttons">
           <button class="btn btn-secondary" onclick="goToScreen(4)">← Atrás</button>
@@ -580,35 +656,106 @@
         </div>
       </div>
 
-      <!-- Screen 6: Summary -->
+      <!-- Screen 6: Decision Style -->
       <div class="screen" id="screen-6">
+        <div class="question-number">Pregunta 5 de 8</div>
+        <h3 class="question-text">¿Cuál es tu estilo de decisión?</h3>
+        <div class="info-box">El asesor IA adaptará recomendaciones a cómo naturalmente decides.</div>
+        <div class="form-group">
+          <div class="radio-group" id="decisionStyleRadios"></div>
+        </div>
+        <div class="buttons">
+          <button class="btn btn-secondary" onclick="goToScreen(5)">← Atrás</button>
+          <button class="btn btn-primary" onclick="nextQuestion(6)">Siguiente →</button>
+        </div>
+      </div>
+
+      <!-- Screen 7: Known Bias -->
+      <div class="screen" id="screen-7">
+        <div class="question-number">Pregunta 6 de 8</div>
+        <h3 class="question-text">¿Cuál es tu sesgo más visible?</h3>
+        <div class="info-box">Opcional pero mejora mucho la detección de patrones recurrentes.</div>
+        <div class="form-group">
+          <textarea id="knownBias" placeholder="Ej: Tiendo al optimismo, evito conflictos, me cuesta delegar, subestimo riesgos..."></textarea>
+          <div class="help-text">No tiene que ser perfecto. Cualquier insight nos ayuda.</div>
+        </div>
+        <div class="buttons">
+          <button class="btn btn-secondary" onclick="goToScreen(6)">← Atrás</button>
+          <button class="btn btn-primary" onclick="nextQuestion(7)">Siguiente →</button>
+        </div>
+      </div>
+
+      <!-- Screen 8: Risk Tolerance -->
+      <div class="screen" id="screen-8">
+        <div class="question-number">Pregunta 7 de 8</div>
+        <h3 class="question-text">¿Cómo describes tu relación con el riesgo?</h3>
+        <div class="info-box">Personaliza cómo el sistema te alerta sobre riesgos potenciales.</div>
+        <div class="form-group">
+          <div class="radio-group" id="riskToleranceRadios"></div>
+        </div>
+        <div class="buttons">
+          <button class="btn btn-secondary" onclick="goToScreen(7)">← Atrás</button>
+          <button class="btn btn-primary" onclick="nextQuestion(8)">Siguiente →</button>
+        </div>
+      </div>
+
+      <!-- Screen 9: Summary + First Step -->
+      <div class="screen" id="screen-9">
         <div class="summary-content">
           <span class="summary-emoji">✨</span>
-          <h2>¡Listo!</h2>
-          <p style="color: #718096; margin-bottom: 32px;">Aquí está tu perfil cognitivo:</p>
+          <h2>¡Listo! Tu perfil está configurado</h2>
+
           <div class="profile-display">
             <div class="profile-item">
               <div class="profile-label">Rol</div>
               <div class="profile-value" id="summaryRole">-</div>
             </div>
             <div class="profile-item">
-              <div class="profile-label">Áreas de decisión</div>
+              <div class="profile-label">Áreas</div>
               <div class="profile-value" id="summaryAreas">-</div>
             </div>
             <div class="profile-item">
-              <div class="profile-label">Tipos de decisiones</div>
+              <div class="profile-label">Tipos de decisión</div>
               <div class="profile-value" id="summaryTypes">-</div>
             </div>
             <div class="profile-item">
-              <div class="profile-label">Horizonte temporal</div>
+              <div class="profile-label">Horizonte</div>
               <div class="profile-value" id="summaryHorizon">-</div>
             </div>
             <div class="profile-item">
-              <div class="profile-label">Sesgo conocido</div>
-              <div class="profile-value" id="summaryBias">-</div>
+              <div class="profile-label">Estilo</div>
+              <div class="profile-value" id="summaryStyle">-</div>
             </div>
           </div>
-          <button class="btn btn-primary btn-start" onclick="submitOnboarding()">Empezar con Cognitive OS →</button>
+
+          <div class="first-step-header">
+            <h3>Tu primer paso: Captura una idea</h3>
+            <p>¿Hay una pregunta o decisión en tu mente ahora? Vamos a guardarla.</p>
+          </div>
+
+          <div class="first-step-form">
+            <div class="form-group">
+              <label style="display: block; font-weight: 600; color: #2d3748; margin-bottom: 8px; font-size: 13px;">Idea o pregunta</label>
+              <textarea id="firstIdea" placeholder="Ej: ¿Debería cambiar de trabajo? / Una idea para nuevo producto..." style="margin-bottom: 12px;"></textarea>
+            </div>
+            <div class="form-group">
+              <label style="display: block; font-weight: 600; color: #2d3748; margin-bottom: 8px; font-size: 13px;">¿De qué área es?</label>
+              <select id="firstIdeaArea" style="margin-bottom: 12px;">
+                <option value="">Selecciona un área...</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" onclick="submitOnboardingWithFirstIdea()" style="width: 100%;">Crear idea y empezar →</button>
+          </div>
+
+          <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: left;">
+            <p style="color: #718096; font-size: 13px; line-height: 1.6;">
+              <strong>¿Qué sigue?</strong><br>
+              • Tu idea está guardada en la sección <strong>Ideas</strong><br>
+              • Cuando estés listo, convierte esto en <strong>Decisión</strong><br>
+              • Registra el <strong>Resultado</strong> cuando se resuelva<br>
+              • El sistema aprende y mejora sus análisis
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -617,7 +764,7 @@
   <script>
     const API_URL = 'http://127.0.0.1:8000';
     let currentScreen = 0;
-    const totalScreens = 7;
+    const totalScreens = 10;
 
     const areas = [
       'Finanzas Personales',
@@ -637,45 +784,40 @@
       'Tecnología',
       'Liderazgo'
     ];
-    const decisionTypes = ['Operativa (diaria)', 'Estratégica (3-12 meses)', 'Vital (1+ años)'];
-    const horizons = ['Próximos 3 meses', 'Próximo año', '2-5 años', '5+ años'];
 
-    // Check API status
-    async function checkConnectionStatus() {
-      try {
-        const response = await fetch(`${API_URL}/health`, { method: 'GET', timeout: 5000 });
-        if (response.ok) {
-          updateStatus(true);
-        } else {
-          updateStatus(false);
-        }
-      } catch (error) {
-        updateStatus(false);
-      }
-      setTimeout(checkConnectionStatus, 5000);
-    }
+    const decisionTypes = [
+      'Operativa (decisiones diarias)',
+      'Estratégica (3-12 meses)',
+      'Vital (1+ años)'
+    ];
 
-    function updateStatus(connected) {
-      const indicator = document.getElementById('statusIndicator');
-      const text = document.getElementById('statusText');
+    const horizons = [
+      'Próximos 3 meses',
+      'Próximo año',
+      '2-5 años',
+      '5+ años'
+    ];
 
-      if (connected) {
-        indicator.className = 'status-indicator connected';
-        text.textContent = 'Conectado';
-      } else {
-        indicator.className = 'status-indicator disconnected';
-        text.textContent = 'Desconectado';
-      }
-    }
+    const decisionStyles = [
+      'Deliberativo (análisis profundo antes de decidir)',
+      'Intuitivo (datos + instinto)',
+      'Data-driven (números y pruebas)'
+    ];
+
+    const riskTolerances = [
+      'Conservador (prefiero seguridad)',
+      'Moderado (riesgo calculado)',
+      'Agresivo (busco oportunidades)'
+    ];
 
     // Initialize
     document.addEventListener('DOMContentLoaded', () => {
-      checkConnectionStatus();
-      initializeScreens();
+      initializeCheckboxes();
+      updateProgress();
     });
 
-    function initializeScreens() {
-      // Areas checkboxes
+    function initializeCheckboxes() {
+      // Areas
       const areasCheckboxes = document.getElementById('areasCheckboxes');
       areas.forEach(area => {
         const label = document.createElement('label');
@@ -687,7 +829,7 @@
         areasCheckboxes.appendChild(label);
       });
 
-      // Decision types checkboxes
+      // Decision types
       const typesCheckboxes = document.getElementById('decisionTypesCheckboxes');
       decisionTypes.forEach(type => {
         const label = document.createElement('label');
@@ -699,7 +841,7 @@
         typesCheckboxes.appendChild(label);
       });
 
-      // Horizons radios
+      // Horizons
       const horizonRadios = document.getElementById('horizonRadios');
       horizons.forEach(horizon => {
         const label = document.createElement('label');
@@ -710,6 +852,39 @@
         `;
         horizonRadios.appendChild(label);
       });
+
+      // Decision styles
+      const styleRadios = document.getElementById('decisionStyleRadios');
+      decisionStyles.forEach(style => {
+        const label = document.createElement('label');
+        label.className = 'radio-item';
+        label.innerHTML = `
+          <input type="radio" class="style-radio" name="style" value="${style}">
+          <label>${style}</label>
+        `;
+        styleRadios.appendChild(label);
+      });
+
+      // Risk tolerances
+      const riskRadios = document.getElementById('riskToleranceRadios');
+      riskTolerances.forEach(risk => {
+        const label = document.createElement('label');
+        label.className = 'radio-item';
+        label.innerHTML = `
+          <input type="radio" class="risk-radio" name="risk" value="${risk}">
+          <label>${risk}</label>
+        `;
+        riskRadios.appendChild(label);
+      });
+
+      // First idea area select
+      const areaSelect = document.getElementById('firstIdeaArea');
+      areas.forEach(area => {
+        const opt = document.createElement('option');
+        opt.value = area;
+        opt.textContent = area;
+        areaSelect.appendChild(opt);
+      });
     }
 
     function goToScreen(screenNum) {
@@ -717,16 +892,35 @@
       document.getElementById(`screen-${screenNum}`).classList.add('active');
       currentScreen = screenNum;
       updateProgress();
+      updateSummary();
+      window.scrollTo(0, 0);
     }
 
     function updateProgress() {
       const progress = ((currentScreen) / (totalScreens - 1)) * 100;
       document.getElementById('progressFill').style.width = progress + '%';
+      document.getElementById('progressText').textContent = `${currentScreen}/${totalScreens - 1}`;
+    }
+
+    function updateSummary() {
+      if (currentScreen === 9) {
+        const role = document.getElementById('role').value;
+        const areas = Array.from(document.querySelectorAll('.area-checkbox:checked')).map(c => c.value).join(', ') || '-';
+        const types = Array.from(document.querySelectorAll('.type-checkbox:checked')).map(c => c.value).join(', ') || '-';
+        const horizon = document.querySelector('.horizon-radio:checked')?.value || '-';
+        const style = document.querySelector('.style-radio:checked')?.value?.split('(')[0].trim() || '-';
+
+        document.getElementById('summaryRole').textContent = role || '-';
+        document.getElementById('summaryAreas').textContent = areas;
+        document.getElementById('summaryTypes').textContent = types;
+        document.getElementById('summaryHorizon').textContent = horizon;
+        document.getElementById('summaryStyle').textContent = style;
+      }
     }
 
     async function nextQuestion(currentScreenNum) {
-      // Validate current screen
-      if (currentScreenNum === 1) {
+      // Validate
+      if (currentScreenNum === 2) {
         const role = document.getElementById('role').value.trim();
         if (!role) {
           alert('Por favor, ingresa tu rol');
@@ -734,7 +928,7 @@
         }
       }
 
-      if (currentScreenNum === 2) {
+      if (currentScreenNum === 3) {
         const selected = document.querySelectorAll('.area-checkbox:checked');
         if (selected.length === 0) {
           alert('Por favor, selecciona al menos un área');
@@ -746,7 +940,7 @@
         }
       }
 
-      if (currentScreenNum === 3) {
+      if (currentScreenNum === 4) {
         const selected = document.querySelectorAll('.type-checkbox:checked');
         if (selected.length === 0) {
           alert('Por favor, selecciona al menos un tipo de decisión');
@@ -754,10 +948,26 @@
         }
       }
 
-      if (currentScreenNum === 4) {
-        const selected = document.querySelector('.horizon-radio:checked');
-        if (!selected) {
+      if (currentScreenNum === 5) {
+        const horizon = document.querySelector('.horizon-radio:checked');
+        if (!horizon) {
           alert('Por favor, selecciona un horizonte temporal');
+          return;
+        }
+      }
+
+      if (currentScreenNum === 6) {
+        const style = document.querySelector('.style-radio:checked');
+        if (!style) {
+          alert('Por favor, selecciona tu estilo de decisión');
+          return;
+        }
+      }
+
+      if (currentScreenNum === 8) {
+        const risk = document.querySelector('.risk-radio:checked');
+        if (!risk) {
+          alert('Por favor, selecciona tu relación con el riesgo');
           return;
         }
       }
@@ -765,30 +975,42 @@
       goToScreen(currentScreenNum + 1);
     }
 
-    async function submitOnboarding() {
-      const role = document.getElementById('role').value;
-      const areas = Array.from(document.querySelectorAll('.area-checkbox:checked')).map(c => c.value);
-      const types = Array.from(document.querySelectorAll('.type-checkbox:checked')).map(c => c.value);
-      const horizon = document.querySelector('.horizon-radio:checked').value;
-      const bias = document.getElementById('knownBias').value || 'No especificado';
-
+    async function submitOnboardingWithFirstIdea() {
       try {
-        // Step 1: Authenticate or create user
-        const tempEmail = `user-${Date.now()}@cognitive-os.local`;
-        const loginResponse = await fetch(`${API_URL}/auth/test-login`, {
+        const firstIdea = document.getElementById('firstIdea').value.trim();
+        const firstIdeaArea = document.getElementById('firstIdeaArea').value;
+
+        if (!firstIdea) {
+          alert('Por favor, escribe una idea o pregunta');
+          return;
+        }
+
+        if (!firstIdeaArea) {
+          alert('Por favor, selecciona un área para tu idea');
+          return;
+        }
+
+        // Google login first
+        const loginResp = await fetch(`${API_URL}/auth/test-login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: tempEmail })
+          body: JSON.stringify({ email: 'onboarded@example.com' })
         });
 
-        if (!loginResponse.ok) throw new Error('Error al autenticar usuario');
+        if (!loginResp.ok) throw new Error('Auth failed');
 
-        const loginResult = await loginResponse.json();
-        const token = loginResult.token;
-        const userId = loginResult.user_id;
+        const { token, user_id } = await loginResp.json();
 
-        // Step 2: Complete onboarding with authentication token
-        const onboardingResponse = await fetch(`${API_URL}/onboarding`, {
+        // Complete onboarding
+        const role = document.getElementById('role').value;
+        const areas = Array.from(document.querySelectorAll('.area-checkbox:checked')).map(c => c.value);
+        const types = Array.from(document.querySelectorAll('.type-checkbox:checked')).map(c => c.value);
+        const horizon = document.querySelector('.horizon-radio:checked')?.value;
+        const bias = document.getElementById('knownBias').value || null;
+        const style = document.querySelector('.style-radio:checked')?.value;
+        const risk = document.querySelector('.risk-radio:checked')?.value;
+
+        const onboardingResp = await fetch(`${API_URL}/onboarding`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -799,43 +1021,43 @@
             decision_areas: areas,
             decision_types: types,
             horizon,
-            known_bias: bias
+            known_bias: bias,
+            decision_style: style,
+            risk_tolerance: risk
           })
         });
 
-        if (!onboardingResponse.ok) throw new Error('Error al completar onboarding');
+        if (!onboardingResp.ok) throw new Error('Onboarding failed');
 
-        const result = await onboardingResponse.json();
+        // Create first idea
+        const ideaResp = await fetch(`${API_URL}/thoughts`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            title: firstIdea,
+            content: firstIdea,
+            thought_type: 'idea',
+            area: firstIdeaArea,
+            tags: []
+          })
+        });
 
-        // Save to localStorage for dashboard
-        localStorage.setItem('userId', userId);
+        if (!ideaResp.ok) throw new Error('Idea creation failed');
+
+        // Save to localStorage
+        localStorage.setItem('userId', user_id);
         localStorage.setItem('token', token);
         localStorage.setItem('firstTime', 'true');
 
+        // Redirect to dashboard
         window.location.href = 'dashboard.html';
       } catch (error) {
         alert(`Error: ${error.message}`);
       }
     }
-
-    // Update summary before showing final screen
-    document.addEventListener('DOMContentLoaded', () => {
-      const observeScreenChanges = setInterval(() => {
-        if (currentScreen === 6) {
-          const role = document.getElementById('role').value;
-          const areas = Array.from(document.querySelectorAll('.area-checkbox:checked')).map(c => c.value).join(', ') || '-';
-          const types = Array.from(document.querySelectorAll('.type-checkbox:checked')).map(c => c.value).join(', ') || '-';
-          const horizon = document.querySelector('.horizon-radio:checked')?.value || '-';
-          const bias = document.getElementById('knownBias').value || 'No especificado';
-
-          document.getElementById('summaryRole').textContent = role || '-';
-          document.getElementById('summaryAreas').textContent = areas;
-          document.getElementById('summaryTypes').textContent = types;
-          document.getElementById('summaryHorizon').textContent = horizon;
-          document.getElementById('summaryBias').textContent = bias;
-        }
-      }, 100);
-    });
   </script>
 </body>
 </html>

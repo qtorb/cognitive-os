@@ -22,6 +22,8 @@ class User(Base):
     decision_types = Column(JSON, nullable=True)  # Array of strings
     horizon = Column(String, nullable=True)
     known_bias = Column(String, nullable=True)
+    decision_style = Column(String, nullable=True)  # "deliberativo", "intuitivo", "data-driven"
+    risk_tolerance = Column(String, nullable=True)  # "conservador", "moderado", "agresivo"
     context_prompt = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

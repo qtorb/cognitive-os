@@ -80,6 +80,8 @@ class OnboardingRequest(BaseModel):
     decision_types: list[str]
     horizon: str
     known_bias: str | None = None
+    decision_style: str | None = None
+    risk_tolerance: str | None = None
 
 
 class UserProfile(BaseModel):
@@ -89,6 +91,8 @@ class UserProfile(BaseModel):
     decision_types: list[str]
     horizon: str
     known_bias: str | None
+    decision_style: str | None = None
+    risk_tolerance: str | None = None
     context_prompt: str | None
     created_at: str
 
@@ -396,6 +400,8 @@ def complete_onboarding(request: OnboardingRequest, user: User = Depends(get_tok
         decision_types=request.decision_types,
         horizon=request.horizon,
         known_bias=request.known_bias,
+        decision_style=request.decision_style,
+        risk_tolerance=request.risk_tolerance,
         email=user.email
     )
     context_prompt = generate_context_prompt(temp_user)
@@ -406,6 +412,8 @@ def complete_onboarding(request: OnboardingRequest, user: User = Depends(get_tok
     user.decision_types = request.decision_types
     user.horizon = request.horizon
     user.known_bias = request.known_bias
+    user.decision_style = request.decision_style
+    user.risk_tolerance = request.risk_tolerance
     user.context_prompt = context_prompt
     user.onboarded = 1
 
@@ -422,6 +430,8 @@ def complete_onboarding(request: OnboardingRequest, user: User = Depends(get_tok
             "decision_areas": user.decision_areas,
             "decision_types": user.decision_types,
             "horizon": user.horizon,
+            "decision_style": user.decision_style,
+            "risk_tolerance": user.risk_tolerance,
             "created_at": user.created_at.isoformat()
         }
     }
