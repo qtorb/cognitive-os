@@ -471,20 +471,51 @@
     </div>
 
     <!-- ================================================================ -->
-    <!-- VIEW: INSIGHTS (Patterns + Metrics) -->
+    <!-- VIEW: INSIGHTS (Bias Detection + Conviction Accuracy) -->
     <!-- ================================================================ -->
     <div class="view" id="view-insights">
       <h2 style="font-size: 22px; font-weight: 700; margin-bottom: 8px;">🧠 Insights: Aprende de tus patrones</h2>
-      <p style="color: #718096; margin-bottom: 24px;">Métricas y patrones detectados en tu historial de decisiones.</p>
+      <p style="color: #718096; margin-bottom: 24px;">Análisis de sesgos, fortalezas y precisión de tus decisiones.</p>
 
+      <!-- Metrics Overview -->
       <div class="metrics-grid" id="metricsContainer">
         <div class="spinner"></div>
       </div>
 
-      <div style="display: flex; gap: 16px; margin-bottom: 24px;">
-        <button class="btn btn-primary" onclick="openPatterns()">🔍 Detectar patrones con IA</button>
+      <!-- Bias Detection Card -->
+      <div class="card" style="margin-bottom: 20px; border-left: 4px solid #f56565;">
+        <h2 style="display: flex; align-items: center; gap: 8px;">🚨 Sesgos Detectados</h2>
+        <div id="biasesContainer" style="margin-top: 12px;">
+          <div class="spinner"></div>
+        </div>
       </div>
 
+      <!-- Strengths Card -->
+      <div class="card" style="margin-bottom: 20px; border-left: 4px solid #48bb78;">
+        <h2 style="display: flex; align-items: center; gap: 8px;">✅ Fortalezas</h2>
+        <div id="strengthsContainer" style="margin-top: 12px;">
+          <div class="spinner"></div>
+        </div>
+      </div>
+
+      <!-- Conviction Accuracy Card -->
+      <div class="card" style="margin-bottom: 20px; border-left: 4px solid #667eea;">
+        <h2 style="display: flex; align-items: center; gap: 8px;">📊 Precisión por Nivel de Convicción</h2>
+        <p style="color: #a0aec0; font-size: 13px; margin: 8px 0 12px;">Compara qué tan seguro estabas vs los resultados reales</p>
+        <div id="convictionAccuracyContainer" style="margin-top: 12px;">
+          <div class="spinner"></div>
+        </div>
+      </div>
+
+      <!-- Recommendations Card -->
+      <div class="card" style="margin-bottom: 20px; border-left: 4px solid #ed8936;">
+        <h2 style="display: flex; align-items: center; gap: 8px;">💡 Recomendaciones</h2>
+        <div id="recommendationsContainer" style="margin-top: 12px;">
+          <div class="spinner"></div>
+        </div>
+      </div>
+
+      <!-- Areas & Reminders -->
       <div class="card" style="margin-bottom: 20px;">
         <h2>📊 Decisiones por área</h2>
         <div id="insightsAreas" class="area-breakdown" style="margin-top: 12px;"></div>
@@ -973,7 +1004,7 @@
 
     // ===== INSIGHTS VIEW =====
     async function loadInsightsView() {
-      // Metrics
+      // Load Metrics
       try {
         const resp = await authenticatedFetch(`${API_URL}/metrics`);
         const m = await resp.json();
@@ -982,7 +1013,7 @@
           <div class="metric-card"><div class="metric-label">Total decisiones</div><div class="metric-value">${m.total_decisions}</div><div class="metric-sub">Documentadas</div></div>
           <div class="metric-card"><div class="metric-label">Completadas</div><div class="metric-value">${m.completed}</div><div class="metric-sub">${m.completion_rate}% del total</div></div>
           <div class="metric-card"><div class="metric-label">Con resultados</div><div class="metric-value">${m.with_outcomes}</div><div class="metric-sub">Feedback loop cerrado</div></div>
-          ${m.conviction_accuracy !== null ? `<div class="metric-card"><div class="metric-label">Precisión convicción</div><div class="metric-value">${m.conviction_accuracy}%</div><div class="metric-sub">Accuracy alta convicción</div></div>` : ''}
+          ${m.conviction_accuracy !== null ? `<div class="metric-card"><div class="metric-label">Precisión general</div><div class="metric-value">${m.conviction_accuracy}%</div><div class="metric-sub">Accuracy de decisiones</div></div>` : ''}
           <div class="metric-card"><div class="metric-label">Recordatorios</div><div class="metric-value">${m.pending_reminders}</div><div class="metric-sub">Pendientes</div></div>
         `;
 
@@ -997,6 +1028,110 @@
         }
       } catch (e) {
         document.getElementById('metricsContainer').innerHTML = '<p style="color: #c53030;">Error al cargar métricas.</p>';
+      }
+
+      // Load Bias Detection Insights
+      try {
+        const resp = await authenticatedFetch(`${API_URL}/insights`);
+        const insights = await resp.json();
+
+        // Biases
+        const biasesContainer = document.getElementById('biasesContainer');
+        if (insights.biases && insights.biases.length > 0) {
+          biasesContainer.innerHTML = insights.biases.map(bias => `
+            <div style="margin-bottom: 12px; padding: 12px; background: #fff5f5; border-radius: 8px; border-left: 3px solid #f56565;">
+              <div style="font-weight: 600; color: #c53030; font-size: 14px;">${bias.type}</div>
+              <div style="color: #742a2a; font-size: 13px; margin: 4px 0;">${bias.description}</div>
+              <div style="color: #a0aec0; font-size: 12px; margin-top: 6px;">
+                Apariciones: <strong>${bias.count}</strong>
+                ${bias.examples && bias.examples.length > 0 ? ` • Ejemplos: ${bias.examples.slice(0, 2).join(', ')}` : ''}
+              </div>
+            </div>
+          `).join('');
+        } else {
+          biasesContainer.innerHTML = '<div class="empty-state"><div class="empty-state-emoji">✨</div><p>No se detectaron sesgos recurrentes. ¡Excelente!</p></div>';
+        }
+
+        // Strengths
+        const strengthsContainer = document.getElementById('strengthsContainer');
+        if (insights.strengths && insights.strengths.successful_decisions !== undefined) {
+          const str = insights.strengths;
+          strengthsContainer.innerHTML = `
+            <div style="padding: 12px; background: #f0fdf4; border-radius: 8px; border-left: 3px solid #48bb78;">
+              <div style="font-weight: 600; color: #276749; font-size: 14px;">📈 Tasa de éxito</div>
+              <div style="color: #22543d; font-size: 24px; font-weight: 700; margin: 8px 0;">${str.success_rate || 0}%</div>
+              <div style="color: #22543d; font-size: 13px; margin-top: 6px;">
+                ${str.successful_decisions} de ${str.successful_decisions + (insights.decisions_with_outcomes - str.successful_decisions)} decisiones completadas exitosamente
+              </div>
+              ${str.examples && str.examples.length > 0 ? `
+                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #d1fae5;">
+                  <div style="font-size: 12px; color: #065f46; font-weight: 600;">Decisiones acertadas:</div>
+                  <ul style="margin: 6px 0 0 20px; color: #047857; font-size: 12px;">
+                    ${str.examples.slice(0, 3).map(ex => `<li>${ex.title}</li>`).join('')}
+                  </ul>
+                </div>
+              ` : ''}
+            </div>
+          `;
+        } else {
+          strengthsContainer.innerHTML = '<p style="color: #a0aec0;">Completa más decisiones para ver análisis de fortalezas.</p>';
+        }
+
+        // Conviction Accuracy Bins
+        const convictionContainer = document.getElementById('convictionAccuracyContainer');
+        if (insights.conviction_accuracy) {
+          const bins = insights.conviction_accuracy;
+          const binEntries = Object.entries(bins);
+
+          if (binEntries.length > 0) {
+            convictionContainer.innerHTML = `
+              <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                  <thead>
+                    <tr style="border-bottom: 2px solid #e2e8f0;">
+                      <th style="text-align: left; padding: 8px; color: #718096;">Nivel Convicción</th>
+                      <th style="text-align: center; padding: 8px; color: #718096;">Cantidad</th>
+                      <th style="text-align: center; padding: 8px; color: #718096;">Acertadas</th>
+                      <th style="text-align: center; padding: 8px; color: #718096;">Accuracy</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${binEntries.map(([level, data]) => {
+                      const accuracyColor = data.accuracy_rate >= 70 ? '#22863a' : data.accuracy_rate >= 50 ? '#d4a017' : '#cb2431';
+                      return `
+                        <tr style="border-bottom: 1px solid #e2e8f0;">
+                          <td style="padding: 8px; color: #2d3748;">${level === 'high' ? '🔥 Alta (8-10)' : level === 'medium' ? '⚡ Media (5-7)' : '❄️ Baja (1-4)'}</td>
+                          <td style="text-align: center; padding: 8px; color: #2d3748;">${data.count}</td>
+                          <td style="text-align: center; padding: 8px; color: #2d3748;">${data.accurate}</td>
+                          <td style="text-align: center; padding: 8px; font-weight: 600; color: ${accuracyColor};">${data.accuracy_rate}%</td>
+                        </tr>
+                      `;
+                    }).join('')}
+                  </tbody>
+                </table>
+              </div>
+            `;
+          } else {
+            convictionContainer.innerHTML = '<p style="color: #a0aec0;">Registra outcomes para ver análisis de convicción.</p>';
+          }
+        } else {
+          convictionContainer.innerHTML = '<p style="color: #a0aec0;">Sin datos de convicción aún.</p>';
+        }
+
+        // Recommendations
+        const recsContainer = document.getElementById('recommendationsContainer');
+        if (insights.recommendations && insights.recommendations.length > 0) {
+          recsContainer.innerHTML = insights.recommendations.map(rec => `
+            <div style="margin-bottom: 10px; padding: 10px; background: #fffaf0; border-radius: 6px; border-left: 3px solid #ed8936; color: #7c2d12; font-size: 13px;">
+              ${rec}
+            </div>
+          `).join('');
+        } else {
+          recsContainer.innerHTML = '<p style="color: #a0aec0;">Más datos permitirán generar recomendaciones personalizadas.</p>';
+        }
+      } catch (e) {
+        console.error('Error loading insights:', e);
+        document.getElementById('biasesContainer').innerHTML = '<p style="color: #c53030;">Error al cargar análisis de sesgos.</p>';
       }
 
       // Reminders
