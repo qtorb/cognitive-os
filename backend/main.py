@@ -546,7 +546,7 @@ def update_decision(decision_id: int, update: DecisionUpdate, user: User = Depen
     }
 
 
-@app.post("/decisions/{decision_id}/outcome")
+@app.patch("/decisions/{decision_id}/outcome")
 def register_outcome(
     decision_id: int,
     outcome: OutcomeRecord,
@@ -1235,11 +1235,15 @@ def analyze_patterns(user: User = Depends(get_token_user), db: Session = Depends
 # ENDPOINTS: REMINDERS (Temporal review triggers)
 # ============================================================================
 
+class ReminderCreate(BaseModel):
+    reminder_type: str
+    message: str | None = None
+
+
 @app.post("/decisions/{decision_id}/reminder")
 def create_reminder(
     decision_id: int,
-    reminder_type: str,
-    message: str = None,
+    reminder: ReminderCreate,
     user: User = Depends(get_token_user),
     db: Session = Depends(get_db)
 ):
@@ -1258,32 +1262,32 @@ def create_reminder(
         "6months": datetime.utcnow() + timedelta(days=180),
     }
 
-    if reminder_type in reminder_date_map:
-        reminder_date = reminder_date_map[reminder_type]
+    if reminder.reminder_type in reminder_date_map:
+        reminder_date = reminder_date_map[reminder.reminder_type]
     else:
         # For custom, use current date + 30 days as default
         reminder_date = datetime.utcnow() + timedelta(days=30)
 
-    reminder = Reminder(
+    reminder_obj = Reminder(
         user_id=user.user_id,
         decision_id=decision_id,
         reminder_date=reminder_date,
-        reminder_type=reminder_type,
-        message=message or f"Review outcome for: {decision.title}",
+        reminder_type=reminder.reminder_type,
+        message=reminder.message or f"Review outcome for: {decision.title}",
         status="pending"
     )
 
-    db.add(reminder)
+    db.add(reminder_obj)
     db.commit()
-    db.refresh(reminder)
+    db.refresh(reminder_obj)
 
     return {
-        "id": reminder.id,
+        "id": reminder_obj.id,
         "decision_id": decision_id,
-        "reminder_date": reminder.reminder_date.isoformat(),
-        "reminder_type": reminder.reminder_type,
-        "message": reminder.message,
-        "status": reminder.status
+        "reminder_date": reminder_obj.reminder_date.isoformat(),
+        "reminder_type": reminder_obj.reminder_type,
+        "message": reminder_obj.message,
+        "status": reminder_obj.status
     }
 
 
@@ -1363,7 +1367,13 @@ def get_metrics(user: User = Depends(get_token_user), db: Session = Depends(get_
         return {
             "user_id": user.user_id,
             "total_decisions": 0,
-            "metrics": {}
+            "completed": 0,
+            "with_outcomes": 0,
+            "completion_rate": 0,
+            "decisions_by_area": {},
+            "decisions_by_type": {},
+            "conviction_accuracy": None,
+            "pending_reminders": 0
         }
 
     # Count by area
@@ -1396,9 +1406,9 @@ def get_metrics(user: User = Depends(get_token_user), db: Session = Depends(get_
     if with_outcomes > 0:
         accurate = sum(
             1 for d in decisions
-            if d.outcome_real and d.conviction >= 7
+            if d.outcome_real and d.conviction and d.conviction >= 7
         )
-        conviction_accuracy = round((accurate / with_outcomes) * 100, 1)
+        conviction_accuracy = round((accurate / with_outcomes) * 100, 1) if with_outcomes > 0 else None
 
     return {
         "user_id": user.user_id,

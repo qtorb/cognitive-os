@@ -277,7 +277,7 @@ class TestOutcomes:
             "status": "completed"
         }
 
-        response = client.post(
+        response = client.patch(
             f"/decisions/{test_decision.id}/outcome",
             json=outcome_data,
             headers=auth_header
@@ -468,7 +468,7 @@ class TestIntegration:
             "learnings": ["Marketing was weak", "Product UX needs work"],
             "status": "completed"
         }
-        response = client.post(f"/decisions/{decision_id}/outcome", json=outcome_data, headers=auth_header)
+        response = client.patch(f"/decisions/{decision_id}/outcome", json=outcome_data, headers=auth_header)
         assert response.status_code == 200
 
         # 5. Check patterns
@@ -516,7 +516,7 @@ def test_create_reminder(client, test_user, auth_header):
         "decision_type": "operational"
     }
     response = client.post("/decisions", json=decision_data, headers=auth_header)
-    decision_id = response.json()["id"]
+    decision_id = response.json()["decision_id"]
 
     # Create reminder
     reminder_data = {
@@ -546,7 +546,7 @@ def test_list_reminders(client, test_user, auth_header):
         "decision_type": "operational"
     }
     response = client.post("/decisions", json=decision_data, headers=auth_header)
-    decision_id = response.json()["id"]
+    decision_id = response.json()["decision_id"]
 
     reminder_data = {"reminder_type": "3months"}
     client.post(f"/decisions/{decision_id}/reminder", json=reminder_data, headers=auth_header)
@@ -569,7 +569,7 @@ def test_complete_reminder(client, test_user, auth_header):
         "decision_type": "operational"
     }
     response = client.post("/decisions", json=decision_data, headers=auth_header)
-    decision_id = response.json()["id"]
+    decision_id = response.json()["decision_id"]
 
     reminder_data = {"reminder_type": "6months"}
     response = client.post(f"/decisions/{decision_id}/reminder", json=reminder_data, headers=auth_header)
@@ -607,7 +607,7 @@ def test_get_metrics_with_decisions(client, test_user, auth_header):
             "decision_type": "operational"
         }
         response = client.post("/decisions", json=decision_data, headers=auth_header)
-        decision_id = response.json()["id"]
+        decision_id = response.json()["decision_id"]
 
         # Set one as completed with outcome
         if i == 0:
@@ -643,7 +643,7 @@ def test_get_metrics_conviction_accuracy(client, test_user, auth_header):
         "conviction": 8
     }
     response = client.post("/decisions", json=decision_data, headers=auth_header)
-    decision_id = response.json()["id"]
+    decision_id = response.json()["decision_id"]
 
     # Mark as completed with positive outcome
     outcome_data = {
@@ -678,7 +678,7 @@ def test_create_public_link(client, test_user, auth_header):
         "decision_type": "operational"
     }
     response = client.post("/decisions", json=decision_data, headers=auth_header)
-    decision_id = response.json()["id"]
+    decision_id = response.json()["decision_id"]
 
     # Create public link
     response = client.post(f"/decisions/{decision_id}/share", headers=auth_header)
@@ -699,7 +699,7 @@ def test_get_share_links(client, test_user, auth_header):
         "decision_type": "operational"
     }
     response = client.post("/decisions", json=decision_data, headers=auth_header)
-    decision_id = response.json()["id"]
+    decision_id = response.json()["decision_id"]
 
     response = client.post(f"/decisions/{decision_id}/share", headers=auth_header)
     token = response.json()["token"]
@@ -722,7 +722,7 @@ def test_view_public_decision(client, test_user, auth_header):
         "decision_type": "operational"
     }
     response = client.post("/decisions", json=decision_data, headers=auth_header)
-    decision_id = response.json()["id"]
+    decision_id = response.json()["decision_id"]
 
     response = client.post(f"/decisions/{decision_id}/share", headers=auth_header)
     token = response.json()["token"]
@@ -745,7 +745,7 @@ def test_delete_share_link(client, test_user, auth_header):
         "decision_type": "operational"
     }
     response = client.post("/decisions", json=decision_data, headers=auth_header)
-    decision_id = response.json()["id"]
+    decision_id = response.json()["decision_id"]
 
     response = client.post(f"/decisions/{decision_id}/share", headers=auth_header)
     token = response.json()["token"]

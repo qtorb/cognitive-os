@@ -134,11 +134,25 @@ class PublicLink(Base):
 
 # Database setup
 DATABASE_URL = "sqlite:///./cognitive_os.db"
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Create tables
-Base.metadata.create_all(bind=engine)
+try:
+    engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    # Try to create tables - if database is corrupted, use in-memory fallback
+    try:
+        Base.metadata.create_all(bind=engine)
+    except Exception as db_error:
+        print(f"⚠️  Warning: Could not create tables in main database: {db_error}")
+        print("   Falling back to in-memory database for this session")
+        engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
+        SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+        Base.metadata.create_all(bind=engine)
+except Exception as e:
+    print(f"⚠️  Warning: Database error: {e}")
+    print("   Using in-memory database for this session")
+    engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    Base.metadata.create_all(bind=engine)
 
 
 def get_db():

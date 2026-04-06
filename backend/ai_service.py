@@ -222,7 +222,7 @@ Sé específico. Usa números si es posible."""
 
     def detect_patterns(self, decisions: list, user_context: str) -> str:
         decisions_text = "\n".join([
-            f"- {d['title']} ({d['area']}, {d['decision_type']}): {d.get('status', 'sin resultado')}"
+            f"- {d['title']} ({d['area']}, {d.get('type', d.get('decision_type', 'unknown'))}): {d.get('status', 'sin resultado')}"
             for d in decisions[:10]
         ])
 
