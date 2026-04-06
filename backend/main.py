@@ -1,12 +1,20 @@
 from fastapi import FastAPI, Depends, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 from datetime import datetime
 import uuid
 import json
 import os
+import logging
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 from models import User, Decision, Analysis, Thought, Connection, Reminder, PublicLink, get_db
 from ai_service import get_analyzer
@@ -89,14 +97,21 @@ class UserProfile(BaseModel):
 
 
 class DecisionCreate(BaseModel):
-    title: str
-    context: str
-    area: str
-    decision_type: str
+    title: str = Field(..., min_length=1, max_length=500)
+    context: str = Field(..., min_length=1, max_length=5000)
+    area: str = Field(..., min_length=1, max_length=100)
+    decision_type: str = Field(..., min_length=1, max_length=50)
     options: list[str] = []
     hypotheses: list[str] = []
     signals: list[str] = []
-    conviction: int | None = None
+    conviction: int | None = Field(None, ge=1, le=10)  # 1-10 scale
+
+    @field_validator('conviction')
+    @classmethod
+    def validate_conviction(cls, v):
+        if v is not None and (v < 1 or v > 10):
+            raise ValueError('Conviction must be between 1 and 10')
+        return v
 
 
 class DecisionUpdate(BaseModel):
@@ -214,6 +229,31 @@ Sesgo reconocido: {bias}
 En análisis y contraargumentación, personaliza según este contexto. Ayuda al usuario a pensar mejor dentro de sus áreas específicas de decisión."""
 
     return prompt
+
+
+def save_analysis(
+    db: Session,
+    decision_id: int | None,
+    user_id: str,
+    analysis_type: str,
+    content: str,
+    analysis_data: dict | None = None
+) -> Analysis:
+    """
+    Helper function to save analysis to database.
+    Eliminates 7x code duplication across endpoints.
+    """
+    analysis = Analysis(
+        decision_id=decision_id,
+        user_id=user_id,
+        analysis_type=analysis_type,
+        content=content,
+        analysis_data=analysis_data
+    )
+    db.add(analysis)
+    db.commit()
+    db.refresh(analysis)
+    return analysis
 
 
 # ============================================================================
@@ -463,7 +503,7 @@ def list_decisions(user: User = Depends(get_token_user), db: Session = Depends(g
     """
     List all decisions for the authenticated user.
     """
-    decisions = db.query(Decision).filter(Decision.user_id == user.user_id).order_by(Decision.created_at.desc()).all()
+    decisions = db.query(Decision).filter(Decision.user_id == user.user_id).order_by(Decision.created_at.desc()).limit(100).all()
 
     return {
         "user_id": user.user_id,
@@ -630,7 +670,7 @@ def detect_patterns(user: User = Depends(get_token_user), db: Session = Depends(
     Uses AI to synthesize insights from all user decisions with outcomes.
     """
     # Get all user decisions
-    decisions = db.query(Decision).filter(Decision.user_id == user.user_id).all()
+    decisions = db.query(Decision).filter(Decision.user_id == user.user_id).limit(1000).all()
 
     # Filter to only completed decisions with outcomes
     completed = [d for d in decisions if d.outcome_real and d.status in ["completed", "reviewing"]]
@@ -675,7 +715,8 @@ def detect_patterns(user: User = Depends(get_token_user), db: Session = Depends(
     patterns_analysis = analyzer.detect_patterns(decisions_summary, user.context_prompt)
 
     # Save analysis to database
-    saved_analysis = Analysis(
+    saved_analysis = save_analysis(
+        db=db,
         decision_id=None,  # Patterns are across all decisions
         user_id=user.user_id,
         analysis_type="patterns",
@@ -686,8 +727,6 @@ def detect_patterns(user: User = Depends(get_token_user), db: Session = Depends(
             "accuracy_rate": accuracy_rate
         }
     )
-    db.add(saved_analysis)
-    db.commit()
 
     # Parse patterns from analysis (basic extraction)
     analysis_lower = patterns_analysis.lower()
@@ -754,15 +793,13 @@ def analyze_decision(decision_id: int, user: User = Depends(get_token_user), db:
     )
 
     # Save analysis to database
-    saved_analysis = Analysis(
+    saved_analysis = save_analysis(
+        db=db,
         decision_id=decision_id,
         user_id=user.user_id,
         analysis_type="analyze",
         content=analysis
     )
-    db.add(saved_analysis)
-    db.commit()
-    db.refresh(saved_analysis)
 
     return {
         "decision_id": decision_id,
@@ -791,15 +828,13 @@ def counterargument_decision(decision_id: int, user: User = Depends(get_token_us
     )
 
     # Save analysis to database
-    saved_analysis = Analysis(
+    saved_analysis = save_analysis(
+        db=db,
         decision_id=decision_id,
         user_id=user.user_id,
         analysis_type="counterargument",
         content=counterargument
     )
-    db.add(saved_analysis)
-    db.commit()
-    db.refresh(saved_analysis)
 
     return {
         "decision_id": decision_id,
@@ -833,15 +868,13 @@ def synthesize_decision(
     )
 
     # Save analysis to database
-    saved_analysis = Analysis(
+    saved_analysis = save_analysis(
+        db=db,
         decision_id=decision_id,
         user_id=user.user_id,
         analysis_type="synthesize",
         content=synthesis
     )
-    db.add(saved_analysis)
-    db.commit()
-    db.refresh(saved_analysis)
 
     return {
         "decision_id": decision_id,
@@ -870,15 +903,13 @@ def premortem_decision(decision_id: int, user: User = Depends(get_token_user), d
     )
 
     # Save analysis to database
-    saved_analysis = Analysis(
+    saved_analysis = save_analysis(
+        db=db,
         decision_id=decision_id,
         user_id=user.user_id,
         analysis_type="premortem",
         content=premortem
     )
-    db.add(saved_analysis)
-    db.commit()
-    db.refresh(saved_analysis)
 
     return {
         "decision_id": decision_id,
@@ -914,15 +945,13 @@ def synthesize_full_decision(decision_id: int, user: User = Depends(get_token_us
     synthesis = analyzer.synthesize_decision(analysis, counterargument, premortem)
 
     # Save analysis to database
-    saved_analysis = Analysis(
+    saved_analysis = save_analysis(
+        db=db,
         decision_id=decision_id,
         user_id=user.user_id,
         analysis_type="synthesize-full",
         content=synthesis
     )
-    db.add(saved_analysis)
-    db.commit()
-    db.refresh(saved_analysis)
 
     return {
         "decision_id": decision_id,
@@ -950,15 +979,13 @@ def review_decision(decision_id: int, outcome_real: str, user: User = Depends(ge
     )
 
     # Save analysis to database
-    saved_analysis = Analysis(
+    saved_analysis = save_analysis(
+        db=db,
         decision_id=decision_id,
         user_id=user.user_id,
         analysis_type="review",
         content=review
     )
-    db.add(saved_analysis)
-    db.commit()
-    db.refresh(saved_analysis)
 
     return {
         "decision_id": decision_id,
@@ -1361,7 +1388,7 @@ def get_metrics(user: User = Depends(get_token_user), db: Session = Depends(get_
     Get decision metrics and patterns for analytics.
     Returns: decision counts by area/type, completion rate, conviction accuracy.
     """
-    decisions = db.query(Decision).filter(Decision.user_id == user.user_id).all()
+    decisions = db.query(Decision).filter(Decision.user_id == user.user_id).limit(1000).all()
 
     if not decisions:
         return {

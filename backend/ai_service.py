@@ -30,7 +30,7 @@ class AnthropicProvider(BaseProvider):
             self.model = os.getenv('AI_MODEL', 'claude-sonnet-4-20250514')
         except ImportError:
             self.client = None
-            print("⚠️  anthropic not installed. pip install anthropic")
+            logging.info("⚠️  anthropic not installed. pip install anthropic")
 
     def complete(self, prompt: str, max_tokens: int = 1024) -> str:
         if not self.client:
@@ -122,7 +122,7 @@ class AnalysisEngine:
             if result:
                 return result
         except Exception as e:
-            print(f"AI provider error: {e}")
+            logging.info(r"AI provider error: {e}")
         return None
 
     def analyze_decision(self, decision: dict, user_context: str) -> str:

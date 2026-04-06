@@ -1,3 +1,4 @@
+import logging
 from sqlalchemy import Column, Integer, String, DateTime, JSON, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -142,14 +143,14 @@ try:
     try:
         Base.metadata.create_all(bind=engine)
     except Exception as db_error:
-        print(f"⚠️  Warning: Could not create tables in main database: {db_error}")
-        print("   Falling back to in-memory database for this session")
+        logging.warning(r"Could not create tables in main database: {db_error}")
+        logging.info("   Falling back to in-memory database for this session")
         engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
         SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
         Base.metadata.create_all(bind=engine)
 except Exception as e:
-    print(f"⚠️  Warning: Database error: {e}")
-    print("   Using in-memory database for this session")
+    logging.warning(r"Database error: {e}")
+    logging.info("   Using in-memory database for this session")
     engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     Base.metadata.create_all(bind=engine)
