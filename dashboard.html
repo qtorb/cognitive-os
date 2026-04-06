@@ -651,6 +651,11 @@
     <div class="modal-content"><button class="modal-close" onclick="closeDetail()">&times;</button><div id="detailContent"></div></div>
   </div>
 
+  <!-- Modal: Advisor -->
+  <div class="modal" id="advisorModal">
+    <div class="modal-content"><button class="modal-close" onclick="closeAdvisor()">&times;</button><div id="advisorContent"></div></div>
+  </div>
+
   <!-- Modal: Reminder -->
   <div id="reminderModal" class="modal">
     <div class="modal-content" style="max-width: 400px;">
@@ -1348,10 +1353,57 @@
                 ${data.learnings.map(l => `<div class="learning-item">• ${l}</div>`).join('')}
               </div>
             ` : ''}
+            <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid #edf2f7; display: flex; gap: 8px;">
+              <button class="btn btn-primary" onclick="openAdvisorModal(${decisionId}, '${data.title.replace(/'/g, "\\'")}')" style="flex: 1;">💡 Consejo de IA</button>
+            </div>
           </div>
         `;
         modal.classList.add('active');
       } catch (e) { alert('Error: ' + e.message); }
+    }
+
+    // ===== ADVISOR FUNCTIONS =====
+    async function openAdvisorModal(decisionId, title) {
+      try {
+        const resp = await authenticatedFetch(`${API_URL}/decisions/${decisionId}/advisor`, {
+          method: 'POST'
+        });
+        const advisor = await resp.json();
+
+        const modal = document.getElementById('advisorModal');
+        const content = document.getElementById('advisorContent');
+
+        content.innerHTML = `
+          <button class="modal-close" onclick="closeAdvisor()">&times;</button>
+          <div class="analysis-header">
+            <h2>💡 Consejo de IA</h2>
+            <p class="analysis-subtitle">"${title}"</p>
+          </div>
+          <div style="margin-top: 20px;">
+            <div style="padding: 12px; background: #f0f4ff; border-radius: 8px; border-left: 4px solid #667eea; margin-bottom: 16px;">
+              <div style="font-size: 12px; color: #667eea; font-weight: 600; margin-bottom: 8px;">Análisis basado en decisiones similares (${advisor.similar_decisions_analyzed})</div>
+              ${advisor.advisor_notes.map(note => `
+                <div style="color: #2d3748; font-size: 13px; margin: 6px 0; line-height: 1.5;">
+                  ${note.startsWith('- ') ? `<strong>${note}</strong>` : (note.startsWith('Basado') ? `<strong>${note}</strong>` : note)}
+                </div>
+              `).join('')}
+            </div>
+            <div style="padding: 16px; background: #fff8f0; border-radius: 8px; border-left: 4px solid #ed8936;">
+              <h4 style="font-size: 13px; font-weight: 600; color: #c05621; margin-bottom: 10px;">❓ Preguntas a considerar</h4>
+              ${advisor.questions_to_consider.map(q => `
+                <div style="color: #7c2d12; font-size: 13px; margin: 6px 0; line-height: 1.5;">
+                  • ${q}
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+        modal.classList.add('active');
+      } catch (e) { alert('Error al cargar consejo: ' + e.message); }
+    }
+
+    function closeAdvisor() {
+      document.getElementById('advisorModal').classList.remove('active');
     }
 
     // ===== REMINDER FUNCTIONS =====

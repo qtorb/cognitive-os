@@ -6,6 +6,7 @@ Supported providers: anthropic, openai, ollama (add more easily).
 """
 
 import os
+import logging
 
 
 # ============================================================================
@@ -442,6 +443,98 @@ Sé específico. Usa números si es posible."""
             )
 
         return recommendations
+
+    def advise_decision(self, decision: dict, similar_decisions: list) -> dict:
+        """
+        Generate personalized decision advice based on similar past decisions.
+        Analyzes patterns from similar decisions to provide actionable insights.
+        """
+        decision_id = decision.get('id')
+        title = decision.get('title', 'tu decisión')
+        decision_area = decision.get('area', '')
+        decision_type = decision.get('decision_type', '')
+        conviction = decision.get('conviction', 5)
+
+        advisor_notes = []
+        questions_to_consider = []
+
+        if not similar_decisions:
+            advisor_notes = [
+                f"No hay suficientes decisiones similares completadas en el área de '{decision_area}' para generar un análisis comparativo.",
+                "Completa más decisiones para que el sistema pueda aprender de patrones similares.",
+            ]
+            questions_to_consider = [
+                "¿Qué supuestos clave estoy haciendo en esta decisión?",
+                "¿Cuáles son los riesgos que podría estar subestimando?",
+                "¿Qué evidencia contradice mi punto de vista actual?"
+            ]
+            return {
+                "decision_id": decision_id,
+                "title": title,
+                "advisor_notes": advisor_notes,
+                "questions_to_consider": questions_to_consider
+            }
+
+        # Analyze similar decisions
+        advisor_notes.append(f"Basado en tu historial de {len(similar_decisions)} decisiones similares en {decision_area}:")
+
+        # Check for timing delays
+        delayed_count = sum(1 for d in similar_decisions if d.get('outcome_real') and
+                           any(kw in d.get('outcome_real', '').lower() for kw in ["retraso", "delay", "tardó", "tarde"]))
+        if delayed_count > 0:
+            advisor_notes.append(
+                f"- Tendencia a subestimar timeline: {delayed_count}/{len(similar_decisions)} decisiones fueron retrasadas"
+            )
+            questions_to_consider.append(
+                "¿Cómo puedo añadir un buffer de tiempo del 30-50% a mi estimación actual?"
+            )
+
+        # Check conviction vs accuracy for similar decisions
+        conviction_matches = [d for d in similar_decisions if d.get('conviction') and d.get('outcome_real')]
+        if conviction_matches:
+            avg_conviction = sum(d.get('conviction', 5) for d in conviction_matches) / len(conviction_matches)
+            success_count = sum(1 for d in conviction_matches if any(
+                kw in d.get('outcome_real', '').lower() for kw in ["acertado", "logrado", "éxito", "achieved", "bien"]
+            ))
+            accuracy_pct = (success_count / len(conviction_matches)) * 100 if conviction_matches else 0
+
+            advisor_notes.append(
+                f"- Tu conviction promedio en decisiones similares es {avg_conviction:.1f}/10 pero tu accuracy es {accuracy_pct:.0f}%"
+            )
+
+            if conviction > avg_conviction + 2 and accuracy_pct < 60:
+                advisor_notes.append(
+                    f"- ⚠️ Recomendación: Tu conviction actual ({conviction}/10) es más alta que el promedio. Considera ser más conservador."
+                )
+                questions_to_consider.append(
+                    "¿Qué información nueva tengo que no había en decisiones anteriores similares?"
+                )
+
+        # Check for risk-related issues
+        risk_issues = sum(1 for d in similar_decisions if d.get('outcome_real') and
+                         any(kw in d.get('outcome_real', '').lower() for kw in ["riesgo", "problema", "issue", "complicación"]))
+        if risk_issues > len(similar_decisions) * 0.4:
+            advisor_notes.append(
+                f"- Patrón detectado: Enfrentas complicaciones/riesgos inesperados en {risk_issues}/{len(similar_decisions)} casos"
+            )
+            questions_to_consider.append(
+                "¿Qué riesgos he identificado? ¿Cuál es mi plan si cada uno ocurre?"
+            )
+
+        # Generic questions based on decision area
+        if not questions_to_consider:
+            questions_to_consider = [
+                f"¿Cuáles son los supuestos clave en esta decisión de {decision_area}?",
+                "¿Qué señales me indicarían que necesito cambiar de dirección?",
+                "¿Cómo afectaría esta decisión a mis otras prioridades?"
+            ]
+
+        return {
+            "decision_id": decision_id,
+            "title": title,
+            "advisor_notes": advisor_notes,
+            "questions_to_consider": questions_to_consider
+        }
 
     def detect_patterns(self, decisions: list, user_context: str) -> str:
         decisions_text = "\n".join([

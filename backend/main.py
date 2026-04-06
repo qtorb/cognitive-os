@@ -1021,6 +1021,71 @@ def get_decision_analyses(decision_id: int, user: User = Depends(get_token_user)
     }
 
 
+@app.post("/decisions/{decision_id}/advisor")
+def get_decision_advisor(decision_id: int, user: User = Depends(get_token_user), db: Session = Depends(get_db)):
+    """
+    Get personalized advisor recommendations based on similar past decisions.
+    Analyzes patterns from similar decisions in the same area to provide actionable insights.
+    """
+    decision = get_user_decision(decision_id, user, db)
+
+    # Get all user decisions to find similar ones
+    all_decisions = db.query(Decision).filter(Decision.user_id == user.user_id).all()
+
+    # Find similar decisions: same area, with outcomes
+    similar_decisions = [
+        d for d in all_decisions
+        if d.area == decision.area and d.outcome_real and d.status in ["completed", "reviewing"]
+    ]
+
+    # Build decision context for advisor
+    decision_data = {
+        "id": decision.id,
+        "title": decision.title,
+        "area": decision.area,
+        "decision_type": decision.decision_type,
+        "conviction": decision.conviction,
+        "context": decision.context
+    }
+
+    # Build similar decisions data
+    similar_data = [
+        {
+            "title": d.title,
+            "area": d.area,
+            "decision_type": d.decision_type,
+            "conviction": d.conviction,
+            "expected": d.expected_outcome,
+            "outcome_real": d.outcome_real,
+            "learnings": d.learnings or []
+        }
+        for d in similar_decisions
+    ]
+
+    # Get AI advisor
+    analyzer = get_analyzer()
+    advisor_response = analyzer.advise_decision(decision_data, similar_data)
+
+    # Save advisor analysis to database
+    saved_analysis = save_analysis(
+        db=db,
+        decision_id=decision_id,
+        user_id=user.user_id,
+        analysis_type="advisor",
+        content=json.dumps(advisor_response, ensure_ascii=False, indent=2),
+        analysis_data=advisor_response
+    )
+
+    return {
+        "decision_id": decision.id,
+        "analysis_id": saved_analysis.id,
+        "title": advisor_response["title"],
+        "advisor_notes": advisor_response["advisor_notes"],
+        "questions_to_consider": advisor_response["questions_to_consider"],
+        "similar_decisions_analyzed": len(similar_decisions)
+    }
+
+
 # ============================================================================
 # ENDPOINTS: THOUGHTS (Ideas, observations, reflections)
 # ============================================================================

@@ -932,6 +932,86 @@ def test_conviction_accuracy_calculation(client, test_user, auth_header):
     assert data["conviction_accuracy"] == expected_accuracy
 
 
+def test_advisor_endpoint(client, auth_header):
+    """Test Decision Advisor endpoint"""
+    # Create a decision
+    decision_data = {
+        "title": "Expand Product Line",
+        "context": "Considering adding new features",
+        "area": "Product Strategy",
+        "decision_type": "strategic",
+        "conviction": 7
+    }
+    response = client.post("/decisions", json=decision_data, headers=auth_header)
+    assert response.status_code == 200
+    decision_id = response.json()["decision_id"]
+
+    # Get advisor (should work even without similar decisions)
+    response = client.post(f"/decisions/{decision_id}/advisor", headers=auth_header)
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data["decision_id"] == decision_id
+    assert data["title"] == "Expand Product Line"
+    assert "advisor_notes" in data
+    assert "questions_to_consider" in data
+    assert isinstance(data["advisor_notes"], list)
+    assert isinstance(data["questions_to_consider"], list)
+
+
+def test_advisor_with_similar_decisions(client, auth_header):
+    """Test Advisor with similar past decisions"""
+    area = "Product Strategy"
+
+    # Create 2 similar decisions with outcomes
+    for i in range(2):
+        decision_data = {
+            "title": f"Expansion Decision {i}",
+            "context": "Market expansion",
+            "area": area,
+            "decision_type": "strategic",
+            "conviction": 8,
+            "expected_outcome": "20% growth"
+        }
+        response = client.post("/decisions", json=decision_data, headers=auth_header)
+        decision_id = response.json()["decision_id"]
+
+        # Register outcomes
+        if i == 0:
+            # First one was delayed
+            outcome = {"outcome_real": "retraso - alcanzó 15% después de 6 meses", "status": "completed"}
+        else:
+            # Second one had complications
+            outcome = {"outcome_real": "complicación - encontramos problemas no esperados pero logramos 18%", "status": "completed"}
+
+        client.patch(f"/decisions/{decision_id}/outcome", json=outcome, headers=auth_header)
+
+    # Create new decision in same area
+    new_decision = {
+        "title": "New Market Expansion",
+        "context": "Entering new geographic market",
+        "area": area,
+        "decision_type": "strategic",
+        "conviction": 8,
+        "expected_outcome": "30% growth"
+    }
+    response = client.post("/decisions", json=new_decision, headers=auth_header)
+    new_decision_id = response.json()["decision_id"]
+
+    # Get advisor recommendations
+    response = client.post(f"/decisions/{new_decision_id}/advisor", headers=auth_header)
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data["decision_id"] == new_decision_id
+    assert data["similar_decisions_analyzed"] == 2
+    assert len(data["advisor_notes"]) > 0
+
+    # Should mention timeline delays
+    advisor_text = " ".join(data["advisor_notes"]).lower()
+    assert "retraso" in advisor_text or "timeline" in advisor_text or "tendencia" in advisor_text
+
+
 # ============================================================================
 # RUN TESTS
 # ============================================================================
