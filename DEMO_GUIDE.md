@@ -215,21 +215,135 @@ PersonalPattern table:
 
 ---
 
-## 🚀 Próximas fases (futuro):
+## 🎯 SPRINT 3: Nuevas capacidades (YA IMPLEMENTADAS)
 
-- [ ] Exportar patrones como PDF
-- [ ] Comparar patrones vs tiempo (gráficos)
-- [ ] Recomendaciones por área basadas en patrones
-- [ ] Integración con calendar (recordar revisar patrones)
-- [ ] Compartir learnings (públicamente, sin datos sensibles)
+### 1. **Bias Detection System**
+```
+Detecta automáticamente sesgos recurrentes en TUS decisiones:
+- Optimismo temporal (crees que saldrá bien)
+- Infraestimación de riesgo
+- Sobrecómodo con certeza
+- Atribución externa
+- Sesgo de confirmación
+```
+
+### 2. **Conviction Accuracy Dashboard**
+```
+Te muestra con qué precisión decides según confidence level:
+- Cuando confías 9-10/10: aciertas en 60%
+- Cuando confías 5-7/10: aciertas en 75%
+- Cuando confías 1-4/10: aciertas en 85%
+→ AH: confío MENOS cuando debería confiar MÁS
+```
+
+### 3. **Decision Advisor**
+```
+Cuando vas a tomar una decisión similar a una pasada:
+"Hace 3 meses tomaste decisión similar (3D Launch)
+  Conviction: 7/10
+  Real outcome: 2/10
+  Pattern detected: Sobrecómodo con tu certeza
+→ ADVERTENCIA: Este patrón te ha costado antes"
+```
+
+### 4. **Edit & Refine**
+```
+- Editar decisiones: cambiar conviction, status, outcome
+- Editar patrones: ajustar descripción, fuerza actual
+- Cambios reflejan inmediatamente en insights
+```
 
 ---
 
-**El experimento fue exitoso:**
-- ✅ Valor inmediato (día 1)
-- ✅ Evolución (mes 1-3)
-- ✅ Diferenciación vs LLM genérico
-- ✅ Auto-conocimiento acumulado
+## 🎬 DEMO PASO A PASO (Para amigos críticos)
 
-**Cognitive OS ya no es "ChatGPT + interfaz"**
-**Es una herramienta de aprendizaje personal observable**
+### Setup (1 min):
+```bash
+# Terminal 1: Backend
+cd backend
+python main.py
+
+# Terminal 2: Navega a
+open onboarding.html
+```
+
+### Sección 1: El Wow Moment (2 min)
+```
+1. Demo user ya existe (email: demo@cognitive-os.local)
+2. O completa onboarding nuevo (2 decisiones reales)
+3. Sistema analiza con IA
+4. Ve TUS patrones personales (específicos, no genéricos)
+5. Comenta: "Eso es exactamente así"
+```
+
+### Sección 2: Dashboard - Patrones (1 min)
+```
+Ve a: Dashboard → Insights → "Tus patrones personales"
+Muestra:
+- 3 patrones detectados
+- Fuerza actual de cada uno (5/10, 6/10, etc)
+- Descripción ESPECÍFICA a TI
+```
+
+### Sección 3: Conviction Accuracy (1 min)
+```
+Ve a: Dashboard → Insights → "Conviction Accuracy"
+Muestra:
+- Gráfico: Confidence vs Accuracy
+- Tu distribución: "Cuando confías mucho, fallas más"
+- Insight: "Necesitas calibrar hacia arriba en confidence baja"
+```
+
+### Sección 4: Decision Advisor (1 min)
+```
+Ve a: Dashboard → Insights → "Decision Advisor"
+Si tienes decisión reciente SIN outcome:
+- Sistema sugiere: "Decisión similar hace 3 meses"
+- Muestra: Conviction, outcome real, patrones aplicables
+- ACCIÓN: "Cuidado con este patrón"
+```
+
+### Sección 5: Edit in action (1 min)
+```
+En Dashboard → última decisión
+Click ✏️ (edit button)
+- Cambiar conviction: 8/10 → 6/10
+- Cambiar outcome: "Failed" → "Partial success"
+- Click save
+- Patrones se ACTUALIZAN EN TIEMPO REAL
+- Conviction accuracy se recalcula
+```
+
+---
+
+## 🚀 Próximas fases (futuro):
+
+- [ ] Exportar patrones como PDF
+- [ ] Gráficos de evolución de patrones vs tiempo
+- [ ] Recomendaciones por área basadas en patrones
+- [ ] Integración con calendar (recordar revisar patrones)
+- [ ] Compartir learnings (públicamente, sin datos sensibles)
+- [ ] Dark mode persistence
+
+---
+
+## ✅ Estado: LISTO PARA DEMO
+
+**Implementado en Sprint 3:**
+- ✅ Bias Detection System (automático)
+- ✅ Conviction Accuracy (con gráfico)
+- ✅ Decision Advisor (sugerencias personalizadas)
+- ✅ Edit functionality (decisiones y patrones)
+- ✅ Improved Onboarding (conversacional, "wow" inmediato)
+- ✅ Testing completo (24/24 tests ✅)
+- ✅ Código en GitHub actualizado
+
+**Valor único:**
+- ✅ NO es ChatGPT genérico
+- ✅ Aprende de TUS decisiones específicas
+- ✅ Patrones evolucionan con cada decisión
+- ✅ Insights accionables personalizados
+- ✅ Diferencia entre lo que crees y lo que pasa
+- ✅ Mejora contigo en el tiempo
+
+**Cognitive OS: De "idea storage" a "learning system observable"**
