@@ -1965,6 +1965,7 @@ def get_user_patterns(
     return {
         "patterns": [
             {
+                "id": p.id,
                 "icon": p.icon,
                 "title": p.title,
                 "description": p.description,
