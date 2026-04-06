@@ -3,1601 +3,514 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cognitive OS - Dashboard</title>
+  <title>Cognitive OS</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
       background: linear-gradient(135deg, #f5f3ff 0%, #faf8ff 50%, #fff8f3 100%);
       min-height: 100vh;
-      padding: 24px 20px;
       color: #2d3748;
       transition: background-color 0.3s ease, color 0.3s ease;
     }
 
+    /* ===== DARK MODE ===== */
     body.dark-mode {
       background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
       color: #e0e0e0;
     }
-
-    body.dark-mode .card {
-      background: #1f2937;
-      border-color: #374151;
-    }
-
-    body.dark-mode .modal-content {
-      background: #1f2937;
-    }
-
-    body.dark-mode .tab, body.dark-mode .tab.active {
-      color: #9ca3af;
-    }
-
-    body.dark-mode .tab.active {
-      color: #a78bfa;
-      border-bottom-color: #a78bfa;
-    }
-
-    .container {
-      max-width: 1100px;
-      margin: 0 auto;
+    body.dark-mode .card { background: #1f2937; border-color: #374151; }
+    body.dark-mode .modal-content { background: #1f2937; }
+    body.dark-mode .main-nav { background: #1f2937; border-color: #374151; }
+    body.dark-mode .nav-btn { color: #9ca3af; }
+    body.dark-mode .nav-btn.active { color: #a78bfa; border-bottom-color: #a78bfa; }
+    body.dark-mode .nav-btn:hover { color: #c4b5fd; }
+    body.dark-mode .decision-card { background: #1f2937; border-color: #374151; }
+    body.dark-mode .review-card { background: #1f2937; border-color: #374151; }
+    body.dark-mode .idea-card { background: #1f2937; border-color: #374151; }
+    body.dark-mode .metric-card { background: #1e293b; border-color: #334155; }
+    body.dark-mode .reminder-card { background: #2d2a1e; border-color: #4a4530; }
+    body.dark-mode input, body.dark-mode textarea, body.dark-mode select {
+      background: #374151; color: #e0e0e0; border-color: #4b5563;
     }
 
     /* ===== HEADER ===== */
     .header {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
-      padding: 48px 40px;
-      border-radius: 20px;
-      margin-bottom: 48px;
+      padding: 32px 40px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: 0 20px 50px rgba(102, 126, 234, 0.2);
-      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 20px rgba(102, 126, 234, 0.2);
     }
+    .header h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+    .header p { opacity: 0.9; font-size: 13px; margin-top: 4px; }
+    .user-info { text-align: right; font-size: 13px; opacity: 0.95; }
+    .user-info strong { display: block; margin-bottom: 2px; }
 
-    .header h1 {
-      font-size: 36px;
-      margin-bottom: 8px;
-      font-weight: 700;
-      letter-spacing: -0.8px;
-    }
-
-    .header p {
-      opacity: 0.95;
-      font-size: 14px;
-      font-weight: 400;
-      letter-spacing: 0.3px;
-    }
-
-    .user-info {
-      text-align: right;
-      font-size: 13px;
-      opacity: 0.95;
-    }
-
-    .user-info strong {
-      display: block;
-      opacity: 1;
-      margin-bottom: 4px;
-      font-weight: 600;
-    }
-
-    /* ===== DARK MODE TOGGLE ===== */
     .dark-mode-toggle {
-      background: rgba(255, 255, 255, 0.2);
-      border: none;
-      border-radius: 10px;
-      padding: 8px 12px;
-      cursor: pointer;
-      font-size: 18px;
-      transition: all 0.3s ease;
+      background: rgba(255,255,255,0.2); border: none; border-radius: 8px;
+      padding: 6px 10px; cursor: pointer; font-size: 16px; transition: 0.3s;
+    }
+    .dark-mode-toggle:hover { background: rgba(255,255,255,0.3); }
+
+    /* ===== MAIN NAVIGATION ===== */
+    .main-nav {
+      background: white;
+      border-bottom: 1px solid #e2e8f0;
       display: flex;
-      align-items: center;
       justify-content: center;
+      gap: 0;
+      padding: 0 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     }
 
-    .dark-mode-toggle:hover {
-      background: rgba(255, 255, 255, 0.3);
-      transform: scale(1.05);
+    .nav-btn {
+      background: none; border: none; border-bottom: 3px solid transparent;
+      padding: 14px 24px; cursor: pointer; font-size: 14px; font-weight: 600;
+      color: #718096; transition: all 0.2s ease; white-space: nowrap;
+    }
+    .nav-btn:hover { color: #667eea; }
+    .nav-btn.active { color: #667eea; border-bottom-color: #667eea; }
+    .nav-btn .nav-badge {
+      background: #fed7d7; color: #c53030; font-size: 11px; font-weight: 700;
+      padding: 1px 6px; border-radius: 10px; margin-left: 6px;
     }
 
-    /* ===== ADVANCED ANIMATIONS ===== */
+    @media (max-width: 700px) {
+      .nav-btn { padding: 12px 14px; font-size: 12px; }
+      .nav-btn span.nav-label { display: none; }
+    }
+
+    /* ===== CONTAINER ===== */
+    .container { max-width: 1100px; margin: 0 auto; padding: 32px 20px; }
+
+    /* ===== VIEWS ===== */
+    .view { display: none; }
+    .view.active { display: block; animation: fadeIn 0.3s ease; }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     @keyframes slideInUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    @keyframes slideInLeft {
-      from {
-        opacity: 0;
-        transform: translateX(-20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateX(0);
-      }
-    }
-
-    .card {
-      animation: slideInUp 0.4s ease-out;
-    }
-
-    .modal.active .modal-content {
-      animation: slideInUp 0.3s ease-out;
-    }
-
-    /* ===== GRID LAYOUT ===== */
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr 2fr;
-      gap: 32px;
-      margin-bottom: 32px;
-    }
-
-    @media (max-width: 900px) {
-      .grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    /* ===== MAIN LAYOUT IMPROVEMENTS ===== */
-    .main-card[data-mobile-tab="ideas"],
-    .main-card[data-mobile-tab="connections"] {
-      max-width: 100%;
-    }
-
-    /* En desktop, las secciones de input/structure son más compactas */
-    @media (min-width: 901px) {
-      .main-card[data-mobile-tab="ideas"],
-      .main-card[data-mobile-tab="connections"] {
-        opacity: 0.85;
-        transition: all 0.4s ease;
-      }
-
-      .main-card[data-mobile-tab="ideas"]:hover,
-      .main-card[data-mobile-tab="connections"]:hover {
-        opacity: 1;
-      }
-    }
-
-    /* ===== COLLAPSIBLE SECTIONS ===== */
-    .section-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      width: 100%;
-      margin-bottom: 24px;
-    }
-
-    .collapse-btn {
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 8px;
-      transition: all 0.3s ease;
-      color: #a0aec0;
-      font-size: 18px;
-    }
-
-    .collapse-btn:hover {
-      background: #f7fafc;
-      color: #667eea;
-    }
-
-    .main-card.collapsed {
-      max-height: 80px;
-      overflow: hidden;
-    }
-
-    .main-card.collapsed .collapse-btn {
-      transform: rotate(-90deg);
-    }
-
-    .main-card.collapsed .card {
-      padding: 16px 32px;
-    }
-
-    .main-card.collapsed .ideas-list,
-    .main-card.collapsed .connections-list,
-    .main-card.collapsed .idea-filter-btn {
-      display: none;
-    }
-
-    .main-card.collapsed h2 {
-      margin-bottom: 0;
-    }
-
-    /* Hide collapser on mobile */
-    @media (max-width: 900px) {
-      .collapse-btn {
-        display: none;
-      }
-
-      .main-card.collapsed {
-        max-height: none;
-      }
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     /* ===== CARDS ===== */
     .card {
-      background: white;
-      border-radius: 20px;
-      padding: 32px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-      border: 1px solid rgba(0, 0, 0, 0.03);
-      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      background: white; border-radius: 16px; padding: 28px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.03);
+      animation: slideInUp 0.3s ease;
     }
 
-    .card:hover {
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
-      border-color: rgba(102, 126, 234, 0.15);
-    }
-
-    .card h2 {
-      font-size: 20px;
-      margin-bottom: 24px;
-      color: #2d3748;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: 600;
-      letter-spacing: -0.3px;
-    }
-
-    /* ===== AREAS ===== */
-    .areas {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 18px;
-    }
-
-    .area-item {
-      padding: 24px;
-      background: white;
-      border: 2px solid #e2e8f0;
-      border-radius: 16px;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .area-item::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-      transform: translateX(-100%);
-      transition: transform 0.3s ease;
-    }
-
-    .area-item:hover {
-      transform: translateY(-4px);
-      border-color: #cbd5e0;
-      box-shadow: 0 12px 24px rgba(102, 126, 234, 0.15);
-    }
-
-    .area-item:hover::before {
-      transform: translateX(0);
-    }
-
-    .area-label {
-      font-size: 11px;
-      color: #a0aec0;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-      font-weight: 600;
-      margin-bottom: 8px;
-    }
-
-    .area-name {
-      font-size: 16px;
-      color: #2d3748;
-      font-weight: 700;
-      margin-bottom: 12px;
-    }
-
-    .area-count {
-      font-size: 13px;
-      color: #667eea;
-      font-weight: 600;
-      display: inline-block;
-      background: #ebf8ff;
-      padding: 6px 12px;
-      border-radius: 8px;
-    }
-
-    /* ===== IDEAS ===== */
-    .ideas-list {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .idea-card {
-      padding: 18px 20px;
-      background: white;
-      border: 1px solid #e2e8f0;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .idea-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.1);
-      border-color: #cbd5e0;
-    }
-
-    .idea-title {
-      font-size: 15px;
-      font-weight: 600;
-      color: #2d3748;
-      margin-bottom: 8px;
-    }
-
-    .idea-type {
-      display: inline-block;
-      font-size: 11px;
-      padding: 4px 8px;
-      border-radius: 4px;
-      margin-right: 8px;
-      font-weight: 600;
-    }
-
-    .idea-type.idea {
-      background: #fef3c7;
-      color: #92400e;
-    }
-
-    .idea-type.observation {
-      background: #dbeafe;
-      color: #0c4a6e;
-    }
-
-    .idea-type.question {
-      background: #d1fae5;
-      color: #065f46;
-    }
-
-    .idea-type.reflection {
-      background: #f3e8ff;
-      color: #6b21a8;
-    }
-
-    .idea-type.hypothesis {
-      background: #fee2e2;
-      color: #7f1d1d;
-    }
-
-    .idea-content {
-      font-size: 13px;
-      color: #718096;
-      margin-top: 10px;
-      line-height: 1.5;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
-    .idea-date {
-      font-size: 11px;
-      color: #a0aec0;
-      margin-top: 10px;
-    }
-
-    .idea-filter-btn {
-      padding: 8px 14px;
-      background: #f7fafc;
-      border: 1px solid #cbd5e0;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 600;
-      color: #718096;
-      transition: all 0.2s;
-    }
-
-    .idea-filter-btn:hover {
-      border-color: #667eea;
-      color: #667eea;
-    }
-
-    .idea-filter-btn.active {
-      background: #667eea;
-      color: white;
-      border-color: #667eea;
-    }
-
-    /* ===== CONNECTIONS ===== */
-    .connections-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .connection-item {
-      padding: 16px;
-      background: linear-gradient(135deg, #f8f7ff 0%, #faf8ff 100%);
-      border: 1px solid #e2e8f0;
-      border-left: 4px solid #667eea;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .connection-item:hover {
-      transform: translateX(4px);
-      box-shadow: 0 6px 16px rgba(102, 126, 234, 0.12);
-      border-color: #cbd5e0;
-    }
-
-    .connection-source, .connection-target {
-      display: inline-block;
-      padding: 4px 10px;
-      background: #ebf8ff;
-      border-radius: 4px;
-      font-size: 12px;
-      font-weight: 600;
-      color: #2c5aa0;
-    }
-
-    .connection-arrow {
-      display: inline-block;
-      margin: 0 8px;
-      color: #667eea;
-      font-weight: 700;
-    }
-
-    .connection-type {
-      display: inline-block;
-      margin-left: 8px;
-      padding: 2px 8px;
-      background: #667eea;
-      color: white;
-      border-radius: 3px;
-      font-size: 10px;
-      font-weight: 700;
-    }
-
-    /* ===== REMINDERS ===== */
-    .reminders-list {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .reminder-card {
-      padding: 18px 20px;
-      background: linear-gradient(135deg, #fef8e7 0%, #fff9e6 100%);
-      border: 1px solid #f6e3a3;
-      border-left: 4px solid #f6ad55;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .reminder-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(246, 173, 85, 0.2);
-    }
-
-    .reminder-date {
-      font-size: 12px;
-      color: #7c6c4e;
-      font-weight: 600;
-      margin-bottom: 6px;
-    }
-
-    .reminder-message {
-      font-size: 14px;
-      color: #2d3748;
-      font-weight: 500;
-    }
-
-    .reminder-status {
-      display: inline-block;
-      margin-top: 8px;
-      padding: 4px 10px;
-      background: #fed7d7;
-      border-radius: 4px;
-      font-size: 11px;
-      font-weight: 600;
-      color: #c53030;
-      text-transform: uppercase;
-    }
-
-    /* ===== METRICS ===== */
-    .metrics-display {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 20px;
-    }
-
-    .metric-card {
-      padding: 24px;
-      background: linear-gradient(135deg, #f0f4ff 0%, #f8f7ff 100%);
-      border: 1px solid #e6e9f5;
-      border-radius: 14px;
-      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.08);
-    }
-
-    .metric-label {
-      font-size: 12px;
-      color: #667eea;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 8px;
-    }
-
-    .metric-value {
-      font-size: 32px;
-      color: #2d3748;
-      font-weight: 700;
-      margin-bottom: 6px;
-    }
-
-    .metric-unit {
-      font-size: 14px;
-      color: #718096;
-      font-weight: 500;
-    }
-
-    .metric-subtext {
-      font-size: 12px;
-      color: #a0aec0;
-      margin-top: 8px;
-    }
-
-    .connection-reason {
-      font-size: 13px;
-      color: #718096;
-      margin-top: 8px;
-      padding-top: 8px;
-      border-top: 1px solid #e2e8f0;
-    }
-
-    /* ===== FORM ===== */
-    .form-section {
-      margin-bottom: 32px;
-    }
-
-    .form-group {
-      margin-bottom: 22px;
-    }
-
-    .form-group label {
-      display: block;
-      font-size: 13px;
-      color: #4a5568;
-      font-weight: 600;
-      margin-bottom: 10px;
-      letter-spacing: 0.3px;
-    }
-
-    input[type="text"],
-    textarea,
-    select {
-      width: 100%;
-      padding: 12px 14px;
-      border: 1.5px solid #e2e8f0;
-      border-radius: 10px;
-      font-size: 14px;
-      font-family: inherit;
-      transition: all 0.3s ease;
-      background: #fafbfc;
-    }
-
-    input[type="text"]:focus,
-    textarea:focus,
-    select:focus {
-      outline: none;
-      border-color: #667eea;
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.08);
-      background: white;
-    }
-
-    textarea {
-      resize: vertical;
-      min-height: 110px;
-      font-family: inherit;
-    }
-
-    input[type="range"] {
-      width: 100%;
-      cursor: pointer;
-      height: 6px;
-      border-radius: 3px;
-      background: #e2e8f0;
-      outline: none;
-      -webkit-appearance: none;
-    }
-
-    input[type="range"]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      cursor: pointer;
-      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-    }
-
-    input[type="range"]::-moz-range-thumb {
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      cursor: pointer;
-      border: none;
-      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-    }
-
-    .conviction-display {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 10px;
-    }
-
-    .conviction-value {
-      font-size: 16px;
-      font-weight: 700;
-      color: #667eea;
-      background: linear-gradient(135deg, #f8f7ff 0%, #faf8ff 100%);
-      padding: 4px 12px;
-      border-radius: 8px;
-    }
+    .card h2 { font-size: 18px; font-weight: 700; margin-bottom: 16px; color: #2d3748; }
 
     /* ===== BUTTONS ===== */
     .btn {
-      padding: 12px 24px;
-      border: none;
-      border-radius: 10px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-      letter-spacing: 0.3px;
+      padding: 10px 18px; border: none; border-radius: 10px; cursor: pointer;
+      font-size: 13px; font-weight: 600; transition: all 0.2s ease;
     }
-
     .btn-primary {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
-      width: 100%;
-      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
     }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(102,126,234,0.3); }
+    .btn-secondary { background: #f7fafc; color: #4a5568; border: 1px solid #e2e8f0; }
+    .btn-secondary:hover { background: #edf2f7; }
+    .btn-success { background: #48bb78; color: white; }
 
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+    /* ===== FORMS ===== */
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; color: #4a5568; margin-bottom: 6px; }
+    .form-group input, .form-group textarea, .form-group select {
+      width: 100%; padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 10px;
+      font-size: 14px; transition: border-color 0.2s;
     }
-
-    .btn-primary:active {
-      transform: translateY(0);
+    .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+      border-color: #667eea; outline: none; box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
     }
+    .form-group textarea { resize: vertical; min-height: 80px; }
 
-    .btn-primary:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    .btn-secondary {
-      background: #f7fafc;
-      color: #2d3748;
-      padding: 10px 14px;
-      font-size: 13px;
-      border: 1px solid #e2e8f0;
-      flex: 1;
-    }
-
-    .btn-secondary:hover {
-      background: #edf2f7;
-      border-color: #cbd5e0;
-    }
-
-    /* ===== FLOW INDICATOR ===== */
-    .flow-indicator {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin: 48px 0 32px 0;
-      opacity: 0.8;
-      font-size: 13px;
-      color: #718096;
-      font-weight: 700;
-      letter-spacing: 0.4px;
-      padding: 16px 0;
-    }
-
-    @media (max-width: 768px) {
-      .flow-indicator {
-        display: none;
-      }
-    }
-
-    .flow-step {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .flow-arrow {
-      font-size: 18px;
-      color: #cbd5e0;
-      margin: 0 -4px;
-    }
-
-    .flow-step.active {
-      opacity: 1;
-      color: #667eea;
-    }
-
-    /* ===== DECISIONS SECTION ===== */
-    .decisions-section {
-      grid-column: 1 / -1;
-      background: linear-gradient(135deg, rgba(102, 126, 234, 0.03) 0%, rgba(118, 75, 162, 0.02) 100%);
-      border: 2px solid rgba(102, 126, 234, 0.1);
-      padding: 40px;
-      border-radius: 24px;
-    }
-
-    .decisions-section .card {
-      background: white;
-    }
-
-    .decisions-section h2 {
-      font-size: 24px;
-      font-weight: 700;
-      color: #667eea;
-      letter-spacing: -0.5px;
-    }
-
-    .tabs {
-      display: flex;
-      gap: 0;
-      border-bottom: 2px solid #e2e8f0;
-      margin-bottom: 24px;
-    }
-
-    .tab {
-      padding: 14px 20px;
-      border: none;
-      background: none;
-      cursor: pointer;
-      font-weight: 600;
-      color: #a0aec0;
-      border-bottom: 2px solid transparent;
-      margin-bottom: -2px;
-      transition: all 0.3s ease;
-      font-size: 13px;
-      letter-spacing: 0.3px;
-    }
-
-    .tab.active {
-      color: #667eea;
-      border-bottom-color: #667eea;
-    }
-
-    .tab-count {
-      display: inline-block;
-      margin-left: 6px;
-      background: #edf2f7;
-      color: #4a5568;
-      padding: 2px 8px;
-      border-radius: 12px;
-      font-size: 11px;
-      font-weight: 700;
-      min-width: 20px;
-      text-align: center;
-    }
-
-    .tab.active .tab-count {
-      background: #667eea;
-      color: white;
-    }
-
-    .decisions-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-      gap: 24px;
-    }
-
-    .decision-card {
-      background: white;
-      border-radius: 18px;
-      padding: 28px;
-      box-shadow: 0 4px 20px rgba(102, 126, 234, 0.08);
-      border: 1.5px solid #e2e8f0;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .decision-card::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      width: 4px;
-      transition: all 0.3s ease;
-    }
-
-    .decision-card:hover {
-      transform: translateY(-12px);
-      box-shadow: 0 24px 60px rgba(102, 126, 234, 0.25);
-      border-color: rgba(102, 126, 234, 0.4);
-      background: linear-gradient(135deg, #fafbff 0%, #f5f8ff 100%);
-    }
-
-    .decision-card.draft::before {
-      background: linear-gradient(180deg, #cbd5e0 0%, #a0aec0 100%);
-    }
-
-    .decision-card.analyzing::before {
-      background: linear-gradient(180deg, #f6ad55 0%, #ed8936 100%);
-      animation: pulse 2s ease-in-out infinite;
-    }
-
-    .decision-card.decided::before {
-      background: linear-gradient(180deg, #667eea 0%, #5a67d8 100%);
-    }
-
-    .decision-card.completed::before {
-      background: linear-gradient(180deg, #48bb78 0%, #38a169 100%);
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.7; }
-    }
-
-    .decision-title {
-      font-size: 18px;
-      font-weight: 700;
-      color: #1a202c;
-      margin-bottom: 14px;
-      letter-spacing: -0.3px;
-    }
-
-    .decision-area {
-      display: inline-block;
-      font-size: 10px;
-      color: white;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      padding: 6px 12px;
-      border-radius: 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.7px;
-      margin-bottom: 14px;
-      font-weight: 700;
-      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
-    }
-
-    .decision-status {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 12px;
-      border-radius: 8px;
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
-    }
-
-    .decision-status::before {
-      content: '';
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-    }
-
-    .decision-status.draft {
-      background: #edf2f7;
-      color: #4a5568;
-    }
-
-    .decision-status.draft::before {
-      background: #a0aec0;
-    }
-
-    .decision-status.analyzing {
-      background: #fffbf0;
-      color: #c05621;
-    }
-
-    .decision-status.analyzing::before {
-      background: #f6ad55;
-      animation: pulse-dot 2s ease-in-out infinite;
-    }
-
-    .decision-status.decided {
-      background: #ebf8ff;
-      color: #2c5aa0;
-    }
-
-    .decision-status.decided::before {
-      background: #667eea;
-    }
-
-    .decision-status.completed {
-      background: #f0fff4;
-      color: #22543d;
-    }
-
-    .decision-status.completed::before {
-      background: #48bb78;
-    }
-
-    @keyframes pulse-dot {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.6; transform: scale(1.3); }
-    }
-
-    .decision-date {
-      font-size: 12px;
-      color: #718096;
-      margin-top: 16px;
-      padding-top: 14px;
-      border-top: 1px solid #edf2f7;
-      font-weight: 500;
-    }
-
-    .decision-buttons {
-      display: flex;
-      gap: 8px;
-      margin-top: 18px;
-      flex-wrap: wrap;
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 60px 20px;
-      color: #a0aec0;
-    }
-
-    /* ===== MOBILE TABS ===== */
-    .mobile-tabs {
-      display: none;
-      flex-direction: row;
-      gap: 0;
-      border-bottom: 2px solid #e2e8f0;
-      margin-bottom: 24px;
-      position: sticky;
-      top: 0;
-      background: white;
-      z-index: 100;
-      padding: 0;
-    }
-
-    .mobile-tab-button {
-      flex: 1;
-      padding: 14px 12px;
-      border: none;
-      background: none;
-      cursor: pointer;
-      font-weight: 600;
-      color: #a0aec0;
-      border-bottom: 2px solid transparent;
-      margin-bottom: -2px;
-      transition: all 0.3s ease;
-      font-size: 13px;
-      letter-spacing: 0.3px;
-      text-align: center;
-    }
-
-    .mobile-tab-button.active {
-      color: #667eea;
-      border-bottom-color: #667eea;
-    }
-
-    .mobile-section {
-      display: none;
-    }
-
-    .mobile-section.active {
-      display: block;
-    }
-
-    @media (max-width: 900px) {
-      .mobile-tabs {
-        display: flex;
-      }
-
-      /* Ocultar todas las tarjetas por defecto en móvil */
-      .main-card {
-        display: none;
-      }
-
-      /* Mostrar solo la tarjeta activa */
-      .main-card[data-mobile-tab="register"] {
-        display: block;
-      }
-
-      .main-card[data-mobile-tab="register"].hidden {
-        display: none;
-      }
-
-      .main-card[data-mobile-tab="decisions"].active {
-        display: block;
-      }
-
-      .main-card[data-mobile-tab="areas"].active {
-        display: block;
-      }
-    }
-
-    .empty-state-emoji {
-      font-size: 48px;
-      margin-bottom: 16px;
-    }
-
-    /* ===== MODAL ===== */
+    /* ===== MODALS ===== */
     .modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(45, 55, 72, 0.6);
-      z-index: 1000;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
+      display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;
       backdrop-filter: blur(4px);
     }
-
-    .modal.active {
-      display: flex;
-      animation: fadeIn 0.3s ease;
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-      }
-      to {
-        opacity: 1;
-      }
-    }
-
+    .modal.active { display: flex; }
     .modal-content {
-      background: white;
-      border-radius: 20px;
-      padding: 40px;
-      max-width: 700px;
-      width: 100%;
-      max-height: 85vh;
-      overflow-y: auto;
-      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.2);
-      animation: slideUp 0.3s ease;
+      background: white; border-radius: 20px; padding: 32px; max-width: 600px;
+      width: 90%; max-height: 85vh; overflow-y: auto; position: relative;
+      animation: slideInUp 0.3s ease;
     }
-
-    @keyframes slideUp {
-      from {
-        transform: translateY(20px);
-        opacity: 0;
-      }
-      to {
-        transform: translateY(0);
-        opacity: 1;
-      }
-    }
-
     .modal-close {
-      float: right;
-      font-size: 28px;
-      color: #cbd5e0;
-      cursor: pointer;
-      border: none;
-      background: none;
-      width: 32px;
-      height: 32px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 8px;
-      transition: all 0.2s ease;
+      position: absolute; top: 16px; right: 20px; background: none; border: none;
+      font-size: 24px; cursor: pointer; color: #a0aec0;
     }
 
-    .modal-close:hover {
-      background: #f7fafc;
-      color: #2d3748;
+    /* ===== HOME VIEW ===== */
+    .summary-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px; margin-bottom: 28px;
+    }
+    .summary-card {
+      padding: 20px; background: white; border-radius: 14px;
+      border: 1px solid #e6e9f5; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .summary-card .label { font-size: 12px; color: #667eea; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+    .summary-card .value { font-size: 28px; font-weight: 700; color: #2d3748; margin: 6px 0 4px; }
+    .summary-card .sub { font-size: 12px; color: #a0aec0; }
+
+    .action-list { display: flex; flex-direction: column; gap: 12px; }
+    .action-item {
+      padding: 16px 20px; background: white; border: 1px solid #e2e8f0;
+      border-left: 4px solid #f6ad55; border-radius: 10px; cursor: pointer;
+      transition: all 0.2s; display: flex; justify-content: space-between; align-items: center;
+    }
+    .action-item:hover { transform: translateX(4px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    .action-item .action-label { font-size: 14px; font-weight: 500; color: #2d3748; }
+    .action-item .action-meta { font-size: 12px; color: #a0aec0; }
+
+    /* ===== DECISION CARDS ===== */
+    .decisions-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+    }
+    .decision-card {
+      padding: 20px; background: white; border: 1px solid #e2e8f0; border-radius: 14px;
+      transition: all 0.3s ease; cursor: pointer;
+    }
+    .decision-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
+    .decision-area {
+      display: inline-block; padding: 3px 10px; background: #ebf8ff; border-radius: 4px;
+      font-size: 11px; font-weight: 600; color: #2c5aa0; text-transform: uppercase;
+    }
+    .decision-status {
+      font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 4px; text-transform: uppercase;
+    }
+    .decision-status.draft { background: #fefcbf; color: #975a16; }
+    .decision-status.analyzing { background: #bee3f8; color: #2b6cb0; }
+    .decision-status.decided { background: #c6f6d5; color: #276749; }
+    .decision-status.completed { background: #e9d8fd; color: #553c9a; }
+    .decision-title { font-size: 16px; font-weight: 600; color: #2d3748; margin: 10px 0 8px; }
+    .decision-date { font-size: 12px; color: #a0aec0; }
+
+    .decision-actions {
+      margin-top: 14px; display: grid; grid-template-columns: 2fr 1fr; gap: 6px;
+    }
+    .decision-actions .btn { font-size: 12px; padding: 8px 10px; }
+
+    /* ===== DECISION TABS ===== */
+    .tabs { display: flex; gap: 4px; margin-bottom: 20px; flex-wrap: wrap; }
+    .tab {
+      padding: 8px 16px; border: none; background: none; cursor: pointer;
+      font-size: 13px; font-weight: 500; color: #718096; border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+    .tab.active { color: #667eea; border-bottom-color: #667eea; }
+    .tab-count { font-size: 11px; color: #a0aec0; margin-left: 4px; }
+
+    /* ===== REVIEW VIEW ===== */
+    .review-section { margin-bottom: 32px; }
+    .review-section h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; color: #2d3748; }
+
+    .review-card {
+      padding: 20px; background: white; border: 1px solid #e2e8f0;
+      border-left: 4px solid #667eea; border-radius: 12px;
+      margin-bottom: 12px; transition: all 0.2s;
+    }
+    .review-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    .review-card.needs-outcome { border-left-color: #f6ad55; }
+    .review-card.has-outcome { border-left-color: #48bb78; }
+
+    .comparison-box {
+      padding: 14px; border-radius: 8px; margin: 8px 0;
+    }
+    .comparison-expected { background: #ebf8ff; border-left: 3px solid #667eea; }
+    .comparison-real { background: #f0fff4; border-left: 3px solid #48bb78; }
+
+    .accuracy-badge {
+      display: inline-block; padding: 4px 12px; border-radius: 6px;
+      font-size: 12px; font-weight: 600;
+    }
+    .accuracy-badge.accurate { background: #f0fff4; color: #22543d; }
+    .accuracy-badge.partial { background: #fffbf0; color: #c05621; }
+    .accuracy-badge.inaccurate { background: #fff5f5; color: #742a2a; }
+
+    .learning-item {
+      padding: 8px 0; border-bottom: 1px solid #edf2f7; font-size: 14px; color: #4a5568;
     }
 
-    /* ===== ANALYSIS OUTPUT ===== */
-    .analysis-header {
-      margin-bottom: 28px;
-      padding-bottom: 20px;
-      border-bottom: 2px solid #e2e8f0;
+    /* ===== INSIGHTS VIEW ===== */
+    .metrics-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px; margin-bottom: 28px;
+    }
+    .metric-card {
+      padding: 22px; background: linear-gradient(135deg, #f0f4ff 0%, #f8f7ff 100%);
+      border: 1px solid #e6e9f5; border-radius: 14px;
+    }
+    .metric-label { font-size: 12px; color: #667eea; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+    .metric-value { font-size: 28px; color: #2d3748; font-weight: 700; margin: 6px 0; }
+    .metric-sub { font-size: 12px; color: #a0aec0; }
+
+    .area-breakdown {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px;
+    }
+    .area-chip {
+      padding: 14px; background: white; border: 1px solid #e2e8f0; border-radius: 10px;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .area-chip:hover { border-color: #667eea; transform: translateY(-2px); }
+    .area-chip .area-name { font-size: 14px; font-weight: 600; color: #2d3748; }
+    .area-chip .area-count { font-size: 12px; color: #667eea; font-weight: 600; margin-top: 4px; }
+
+    /* ===== IDEAS VIEW ===== */
+    .ideas-list { display: flex; flex-direction: column; gap: 12px; }
+    .idea-card {
+      padding: 16px 18px; background: white; border: 1px solid #e2e8f0;
+      border-radius: 10px; transition: all 0.2s;
+    }
+    .idea-card:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+    .idea-type {
+      display: inline-block; padding: 2px 8px; background: #667eea; color: white;
+      border-radius: 3px; font-size: 10px; font-weight: 700; text-transform: uppercase;
+    }
+    .idea-tags { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
+    .idea-tag {
+      padding: 2px 8px; background: #f7fafc; border: 1px solid #e2e8f0;
+      border-radius: 4px; font-size: 11px; color: #718096;
     }
 
-    .analysis-header h2 {
-      font-size: 24px;
-      font-weight: 700;
-      color: #2d3748;
-      margin-bottom: 6px;
+    .idea-filter-btn {
+      padding: 6px 14px; border: 1px solid #e2e8f0; border-radius: 8px;
+      background: white; cursor: pointer; font-size: 12px; font-weight: 500;
+      color: #718096; transition: all 0.2s;
+    }
+    .idea-filter-btn.active { background: #667eea; color: white; border-color: #667eea; }
+
+    .connections-list { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+    .connection-item {
+      padding: 14px; background: linear-gradient(135deg, #f8f7ff 0%, #faf8ff 100%);
+      border: 1px solid #e2e8f0; border-left: 3px solid #667eea; border-radius: 8px;
+    }
+    .connection-source, .connection-target {
+      display: inline-block; padding: 3px 8px; background: #ebf8ff;
+      border-radius: 4px; font-size: 12px; font-weight: 600; color: #2c5aa0;
+    }
+    .connection-arrow { margin: 0 8px; color: #667eea; font-weight: 700; }
+    .connection-type {
+      margin-left: 8px; padding: 2px 6px; background: #667eea; color: white;
+      border-radius: 3px; font-size: 10px; font-weight: 700;
     }
 
-    .analysis-subtitle {
-      font-size: 13px;
-      color: #a0aec0;
-      margin-bottom: 16px;
+    /* ===== REMINDER CARDS ===== */
+    .reminder-card {
+      padding: 16px; background: #fef8e7; border: 1px solid #f6e3a3;
+      border-left: 4px solid #f6ad55; border-radius: 10px; margin-bottom: 10px;
     }
+    .reminder-date { font-size: 12px; color: #7c6c4e; font-weight: 600; }
+    .reminder-message { font-size: 14px; color: #2d3748; margin-top: 4px; }
 
-    .analysis-box {
-      background: white;
-      border-radius: 0;
-      padding: 0;
-      border: none;
-    }
+    /* ===== ANALYSIS ===== */
+    .analysis-header h2 { font-size: 20px; margin-bottom: 6px; }
+    .analysis-subtitle { color: #718096; font-size: 14px; }
+    .analysis-box { margin-top: 20px; }
+    .analysis-content { line-height: 1.7; color: #4a5568; font-size: 14px; }
+    .analysis-section { margin-bottom: 16px; }
+    .analysis-section-title { font-weight: 700; color: #2d3748; margin-bottom: 8px; font-size: 15px; }
+    .analysis-section-content { color: #4a5568; }
+    .analysis-list { list-style: none; padding: 0; }
+    .analysis-list li { padding: 6px 0; border-bottom: 1px solid #f0f0f0; }
+    .analysis-loading { text-align: center; padding: 40px; }
 
-    .analysis-content {
-      color: #4a5568;
-      line-height: 1.8;
-      font-size: 15px;
-    }
-
-    .analysis-content p {
-      margin-bottom: 16px;
-      line-height: 1.8;
-    }
-
-    .analysis-content p:last-child {
-      margin-bottom: 0;
-    }
-
-    .analysis-content strong {
-      color: #2d3748;
-      font-weight: 600;
-    }
-
-    .analysis-section {
-      margin-bottom: 28px;
-      padding: 0;
-      background: none;
-      border-radius: 0;
-      border: none;
-      border-bottom: 1px solid #e2e8f0;
-      padding-bottom: 28px;
-    }
-
-    .analysis-section:last-child {
-      border-bottom: none;
-      margin-bottom: 0;
-      padding-bottom: 0;
-    }
-
-    .analysis-section-title {
-      font-size: 15px;
-      font-weight: 700;
-      color: #2d3748;
-      text-transform: none;
-      letter-spacing: 0;
-      margin-bottom: 14px;
-    }
-
-    .analysis-section-content {
-      color: #4a5568;
-      font-size: 15px;
-      line-height: 1.8;
-    }
-
-    .analysis-list {
-      margin: 16px 0;
-      padding-left: 0;
-      list-style: none;
-    }
-
-    .analysis-list li {
-      margin-bottom: 14px;
-      color: #4a5568;
-      font-size: 15px;
-      padding-left: 20px;
-      position: relative;
-      line-height: 1.6;
-    }
-
-    .analysis-list li:last-child {
-      margin-bottom: 0;
-    }
-
-    .analysis-list li:before {
-      content: "•";
-      color: #cbd5e0;
-      font-weight: 700;
-      position: absolute;
-      left: 0;
-    }
-
-    .analysis-list li strong {
-      color: #2d3748;
-      font-weight: 600;
-    }
-
-    .highlight-box {
-      background: #fafbfc;
-      border: 1px solid #e2e8f0;
-      border-left: 3px solid #667eea;
-      padding: 16px;
-      margin: 18px 0;
-      border-radius: 8px;
-      font-size: 14px;
-      color: #4a5568;
-    }
-
-    .highlight-box.warning {
-      background: linear-gradient(135deg, #fef3c7 0%, #fffaf0 100%);
-      border-left-color: #f6ad55;
-    }
-
-    .highlight-box.success {
-      background: linear-gradient(135deg, #dcfce7 0%, #f0fdf4 100%);
-      border-left-color: #48bb78;
-    }
-
-    .highlight-box.error {
-      background: linear-gradient(135deg, #fee2e2 0%, #fef2f2 100%);
-      border-left-color: #f56565;
-    }
-
-    /* ===== LOADING STATE ===== */
-    .loading {
-      text-align: center;
-      padding: 50px 20px;
-      color: #a0aec0;
-    }
-
+    /* ===== SPINNER ===== */
     .spinner {
-      border: 3px solid #e2e8f0;
-      border-top: 3px solid #667eea;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      animation: spin 1s linear infinite;
-      margin: 0 auto 20px;
+      width: 32px; height: 32px; border: 3px solid #e2e8f0; border-top-color: #667eea;
+      border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px;
     }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
+    /* ===== EMPTY STATE ===== */
+    .empty-state { text-align: center; padding: 40px 20px; }
+    .empty-state-emoji { font-size: 40px; margin-bottom: 12px; }
+    .empty-state p { color: #a0aec0; }
 
-    .analysis-loading {
-      text-align: center;
-      padding: 50px 20px;
-    }
-
-    .analysis-loading .spinner {
-      margin-bottom: 16px;
-    }
-
-    .analysis-loading p {
-      color: #667eea;
-      font-weight: 600;
-    }
-
-    /* ===== SCROLLBAR ===== */
-    .modal-content::-webkit-scrollbar {
-      width: 8px;
-    }
-
-    .modal-content::-webkit-scrollbar-track {
-      background: #f7fafc;
-      border-radius: 4px;
-    }
-
-    .modal-content::-webkit-scrollbar-thumb {
-      background: #cbd5e0;
-      border-radius: 4px;
-    }
-
-    .modal-content::-webkit-scrollbar-thumb:hover {
-      background: #a0aec0;
-    }
-
-    /* ===== MESSAGES ===== */
-    .error {
-      background: linear-gradient(135deg, #fee2e2 0%, #fef2f2 100%);
-      border: 1px solid #feb2b2;
-      color: #c53030;
-      padding: 14px 16px;
-      border-radius: 10px;
-      font-size: 13px;
-      margin-bottom: 20px;
-    }
-
-    .success {
-      background: linear-gradient(135deg, #dcfce7 0%, #f0fdf4 100%);
-      border: 1px solid #a7f3d0;
-      color: #22543d;
-      padding: 14px 16px;
-      border-radius: 10px;
-      font-size: 13px;
-      margin-bottom: 20px;
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 700px) {
+      .header { padding: 20px; flex-direction: column; gap: 12px; text-align: center; }
+      .header h1 { font-size: 22px; }
+      .user-info { text-align: center; }
+      .container { padding: 20px 12px; }
+      .summary-grid { grid-template-columns: repeat(2, 1fr); }
+      .decisions-grid { grid-template-columns: 1fr; }
+      .metrics-grid { grid-template-columns: repeat(2, 1fr); }
     }
   </style>
 </head>
 <body>
+
+  <!-- HEADER -->
+  <div class="header">
+    <div>
+      <h1>Cognitive OS</h1>
+      <p>Tu infraestructura personal de criterio</p>
+    </div>
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <div class="user-info">
+        <strong id="userName">...</strong>
+        <span id="userHorizon">...</span>
+      </div>
+      <button class="dark-mode-toggle" onclick="toggleDarkMode()"><span id="darkModeIcon">🌙</span></button>
+    </div>
+  </div>
+
+  <!-- MAIN NAVIGATION -->
+  <nav class="main-nav">
+    <button class="nav-btn active" data-view="home">🏠 <span class="nav-label">Inicio</span></button>
+    <button class="nav-btn" data-view="decisions">📊 <span class="nav-label">Decisiones</span></button>
+    <button class="nav-btn" data-view="review">🔄 <span class="nav-label">Review</span><span class="nav-badge" id="reviewBadge" style="display:none;">0</span></button>
+    <button class="nav-btn" data-view="insights">🧠 <span class="nav-label">Insights</span></button>
+    <button class="nav-btn" data-view="ideas">💡 <span class="nav-label">Ideas</span></button>
+  </nav>
+
   <div class="container">
-    <!-- Header -->
-    <div class="header">
-      <div>
-        <h1>🧠 Cognitive OS</h1>
-        <p>Tu sistema cognitivo personal</p>
+
+    <!-- ================================================================ -->
+    <!-- VIEW: HOME (Summary + actionable items) -->
+    <!-- ================================================================ -->
+    <div class="view active" id="view-home">
+      <div class="summary-grid" id="homeSummary">
+        <div class="summary-card"><div class="label">Total decisiones</div><div class="value" id="homeTotal">-</div><div class="sub">Documentadas</div></div>
+        <div class="summary-card"><div class="label">Pendientes de review</div><div class="value" id="homePending">-</div><div class="sub">Necesitan outcome</div></div>
+        <div class="summary-card"><div class="label">Completadas</div><div class="value" id="homeCompleted">-</div><div class="sub">Con resultado registrado</div></div>
+        <div class="summary-card"><div class="label">Recordatorios</div><div class="value" id="homeReminders">-</div><div class="sub">Pendientes hoy</div></div>
       </div>
-      <div class="user-info" style="display: flex; align-items: center; gap: 16px;">
-        <button onclick="toggleDarkMode()" class="dark-mode-toggle" title="Cambiar tema">
-          <span id="darkModeIcon">🌙</span>
-        </button>
-        <div style="text-align: right;">
-          <strong id="userName">Cargando...</strong>
-          <span id="userHorizon"></span>
+
+      <div class="card" style="margin-bottom: 20px;">
+        <h2>⚡ Requiere tu atención</h2>
+        <div id="homeActions" class="action-list">
+          <div class="spinner"></div>
         </div>
       </div>
-    </div>
 
-    <!-- MOBILE TABS (solo en móvil) -->
-    <div class="mobile-tabs" id="mobileTabs">
-      <button class="mobile-tab-button active" data-tab="ideas">💡 Ideas</button>
-      <button class="mobile-tab-button" data-tab="connections">🔗 Conexiones</button>
-      <button class="mobile-tab-button" data-tab="decisions">📊 Decisiones</button>
-      <button class="mobile-tab-button" data-tab="areas">📋 Áreas</button>
-      <button class="mobile-tab-button" data-tab="reminders">⏰ Recordatorios</button>
-      <button class="mobile-tab-button" data-tab="metrics">📈 Métricas</button>
-    </div>
-
-    <!-- MODAL: Register Decision -->
-    <div id="registerModal" class="modal">
-      <div class="modal-content" style="max-width: 500px;">
-        <button class="modal-close" onclick="document.getElementById('registerModal').classList.remove('active')">&times;</button>
-        <div class="analysis-header">
-          <h2>➕ Nueva decisión</h2>
-          <p class="analysis-subtitle">Describe la decisión que enfrentas</p>
+      <div class="card">
+        <h2>📊 Decisiones recientes</h2>
+        <div id="homeRecent" class="decisions-grid" style="margin-top: 16px;">
+          <div class="spinner"></div>
         </div>
-        <form id="decisionForm">
-        <div class="form-group">
-          <label>Título de la decisión</label>
-          <input type="text" id="decisionTitle" placeholder="Ej: Decidir sobre nueva feature..." required>
-        </div>
-
-        <div class="form-group">
-          <label>Contexto</label>
-          <textarea id="decisionContext" placeholder="¿Cuál es el contexto? ¿Por qué es importante?" required></textarea>
-        </div>
-
-        <div class="form-group">
-          <label>Área</label>
-          <select id="decisionArea" required>
-            <option value="">Selecciona un área...</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label>Tipo de decisión</label>
-          <select id="decisionType" required>
-            <option value="">Selecciona un tipo...</option>
-            <option value="Operativa">Operativa (diaria/semanal)</option>
-            <option value="Estratégica">Estratégica (3-12 meses)</option>
-            <option value="Vital">Vital (1+ años)</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label>Convicción (1-10)</label>
-          <input type="range" id="decisionConviction" min="1" max="10" value="5">
-          <div class="conviction-display">
-            <span class="conviction-value" id="convictionValue">5</span>
-          </div>
-        </div>
-
-        <button type="submit" class="btn btn-primary" style="width: 100%;">Registrar decisión</button>
-      </form>
       </div>
     </div>
 
-    <!-- MODAL: Register Idea -->
-    <div id="ideaModal" class="modal">
-      <div class="modal-content" style="max-width: 500px;">
-        <button class="modal-close" onclick="document.getElementById('ideaModal').classList.remove('active')">&times;</button>
-        <div class="analysis-header">
-          <h2>💡 Nueva idea</h2>
-          <p class="analysis-subtitle">Captura tu pensamiento. Las conexiones vienen después.</p>
-        </div>
-        <form id="ideaForm" onsubmit="handleSubmitIdea(event)">
-        <div class="form-group">
-          <label>Título</label>
-          <input type="text" id="ideaTitle" placeholder="Ej: Enfoque diferente para..." required>
-        </div>
+    <!-- ================================================================ -->
+    <!-- VIEW: DECISIONS (CRUD + areas) -->
+    <!-- ================================================================ -->
+    <div class="view" id="view-decisions">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="font-size: 22px; font-weight: 700;">Tus decisiones</h2>
+        <button class="btn btn-primary" onclick="openRegisterModal()">+ Nueva decisión</button>
+      </div>
 
-        <div class="form-group">
-          <label>Tipo</label>
-          <select id="ideaType" required>
-            <option value="idea">💡 Idea</option>
-            <option value="observation">👁️ Observación</option>
-            <option value="question">❓ Pregunta</option>
-            <option value="reflection">🔍 Reflexión</option>
-            <option value="hypothesis">📊 Hipótesis</option>
-          </select>
-        </div>
+      <div class="tabs" id="decisionTabs">
+        <button class="tab active" data-tab="all">Todas <span class="tab-count">0</span></button>
+        <button class="tab" data-tab="draft">Borrador <span class="tab-count">0</span></button>
+        <button class="tab" data-tab="analyzing">Analizando <span class="tab-count">0</span></button>
+        <button class="tab" data-tab="decided">Decididas <span class="tab-count">0</span></button>
+        <button class="tab" data-tab="completed">Completadas <span class="tab-count">0</span></button>
+      </div>
 
-        <div class="form-group">
-          <label>Contenido</label>
-          <textarea id="ideaContent" placeholder="Desarrolla tu idea sin limitaciones..." required style="min-height: 120px;"></textarea>
-        </div>
+      <div id="decisionsContainer" class="decisions-grid">
+        <div class="spinner"></div>
+      </div>
 
-        <div class="form-group">
-          <label>Tags (opcional)</label>
-          <input type="text" id="ideaTags" placeholder="Ej: importante, urgente, potencial... (separados por comas)">
-        </div>
-
-        <button type="submit" class="btn btn-primary" style="width: 100%;">Guardar idea</button>
-      </form>
+      <div class="card" style="margin-top: 28px;">
+        <h2>📋 Áreas de decisión</h2>
+        <p style="color: #718096; font-size: 13px; margin-bottom: 16px;">Click en un área para filtrar</p>
+        <div id="areasContainer" class="area-breakdown"></div>
       </div>
     </div>
 
-    <!-- MODAL: Create Connection -->
-    <div id="connectionModal" class="modal">
-      <div class="modal-content" style="max-width: 550px;">
-        <button class="modal-close" onclick="document.getElementById('connectionModal').classList.remove('active')">&times;</button>
-        <div class="analysis-header">
-          <h2>🔗 Nueva conexión</h2>
-          <p class="analysis-subtitle">Une ideas y decisiones para construir memoria</p>
-        </div>
-        <form id="connectionForm" onsubmit="handleSubmitConnection(event)">
-        <div class="form-group">
-          <label>Origen (¿Qué?)</label>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px;">
-            <select id="sourceType" onchange="loadSourceItems()">
-              <option value="idea">Ideas</option>
-              <option value="decision">Decisiones</option>
-            </select>
-            <select id="sourceId" required>
-              <option value="">Selecciona...</option>
-            </select>
-          </div>
-        </div>
+    <!-- ================================================================ -->
+    <!-- VIEW: REVIEW (THE CORE - outcomes, comparison, learnings) -->
+    <!-- ================================================================ -->
+    <div class="view" id="view-review">
+      <h2 style="font-size: 22px; font-weight: 700; margin-bottom: 8px;">🔄 Review: Expectativa vs Realidad</h2>
+      <p style="color: #718096; margin-bottom: 24px;">Aquí es donde se construye el criterio. Compara lo que esperabas con lo que pasó.</p>
 
-        <div class="form-group">
-          <label>Relación (¿Cómo se conectan?)</label>
-          <select id="relationshipType" required>
-            <option value="relates_to">Se relaciona con</option>
-            <option value="evolves_from">Evoluciona de</option>
-            <option value="supports">Apoya</option>
-            <option value="contradicts">Contradice</option>
-            <option value="questions">Cuestiona</option>
-          </select>
+      <!-- Pending outcomes -->
+      <div class="review-section">
+        <h3>🎯 Decisiones pendientes de resultado</h3>
+        <p style="color: #a0aec0; font-size: 13px; margin-bottom: 14px;">Decisiones que ya tomaste pero aún no registraste qué pasó</p>
+        <div id="reviewPending" class="action-list">
+          <div class="spinner"></div>
         </div>
-
-        <div class="form-group">
-          <label>Destino (¿Qué?)</label>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px;">
-            <select id="targetType" onchange="loadTargetItems()">
-              <option value="idea">Ideas</option>
-              <option value="decision">Decisiones</option>
-            </select>
-            <select id="targetId" required>
-              <option value="">Selecciona...</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label>¿Por qué? (opcional)</label>
-          <textarea id="connectionReason" placeholder="Explica brevemente por qué están conectadas..." style="min-height: 80px;"></textarea>
-        </div>
-
-        <button type="submit" class="btn btn-primary" style="width: 100%;">Crear conexión</button>
-      </form>
       </div>
-    </div>
 
-    <!-- MODAL: Register Decision Outcome -->
-    <div id="outcomeModal" class="modal">
-      <div class="modal-content" style="max-width: 600px;">
-        <button class="modal-close" onclick="document.getElementById('outcomeModal').classList.remove('active')">&times;</button>
-        <div class="analysis-header">
-          <h2>🎯 Registrar Resultado</h2>
-          <p class="analysis-subtitle" id="outcomeSubtitle">¿Qué pasó realmente?</p>
+      <!-- Completed reviews -->
+      <div class="review-section">
+        <h3>📋 Decisiones revisadas</h3>
+        <p style="color: #a0aec0; font-size: 13px; margin-bottom: 14px;">Comparación expectativa vs realidad + aprendizajes</p>
+        <div id="reviewCompleted">
+          <div class="spinner"></div>
         </div>
-        <form id="outcomeForm">
-          <div class="form-group">
-            <label>Lo que esperabas</label>
-            <div id="expectedOutcomeDisplay" style="padding: 12px; background: #f7fafc; border-radius: 8px; border-left: 4px solid #667eea; color: #4a5568; font-size: 14px; margin-bottom: 16px; line-height: 1.6;"></div>
-          </div>
-
-          <div class="form-group">
-            <label>Lo que realmente pasó</label>
-            <textarea id="outcomeReal" placeholder="Describe detalladamente qué sucedió..." style="min-height: 100px;" required></textarea>
-          </div>
-
-          <div class="form-group">
-            <label>Lo que aprendiste (opcional)</label>
-            <textarea id="learningsInput" placeholder="Reflexiones, lecciones, cambios para el futuro..." style="min-height: 80px;"></textarea>
-            <small style="color: #a0aec0; margin-top: 6px; display: block;">Puedes agregar múltiples aprendizajes separados por líneas</small>
-          </div>
-
-          <div class="form-group">
-            <label>Status</label>
-            <select id="outcomeStatus">
-              <option value="completed">Completada ✓</option>
-              <option value="reviewing">En revisión 🔍</option>
-            </select>
-          </div>
-
-          <button type="submit" class="btn btn-primary" style="width: 100%;">💾 Guardar Resultado</button>
-        </form>
       </div>
-    </div>
 
-    <!-- MODAL: Patterns Analysis -->
-    <div id="patternsModal" class="modal">
-      <div class="modal-content" style="max-width: 700px;">
-        <button class="modal-close" onclick="document.getElementById('patternsModal').classList.remove('active')">&times;</button>
-        <div class="analysis-header">
-          <h2>📈 Tus Patrones de Decisión</h2>
-          <p class="analysis-subtitle">Análisis de sesgos, fortalezas y patrones recurrentes</p>
-        </div>
-        <div class="analysis-box">
-          <div class="analysis-content" id="patternsContent">
-            <div class="loading">
-              <div class="spinner"></div>
-              <p>Analizando tus decisiones...</p>
-            </div>
+      <!-- Learnings summary -->
+      <div class="review-section">
+        <div class="card" style="background: linear-gradient(135deg, #f0fff4 0%, #f0f9ff 100%); border: 1px solid #c6f6d5;">
+          <h3 style="color: #276749;">🎓 Tus aprendizajes acumulados</h3>
+          <div id="reviewLearnings" style="margin-top: 12px;">
+            <p style="color: #a0aec0; font-size: 13px;">Los aprendizajes aparecerán aquí cuando registres outcomes.</p>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- MAIN SECTIONS (flujo: Ideas → Conexiones → Decisiones → Áreas) -->
-    <div class="main-sections active" id="mainSections">
+    <!-- ================================================================ -->
+    <!-- VIEW: INSIGHTS (Patterns + Metrics) -->
+    <!-- ================================================================ -->
+    <div class="view" id="view-insights">
+      <h2 style="font-size: 22px; font-weight: 700; margin-bottom: 8px;">🧠 Insights: Aprende de tus patrones</h2>
+      <p style="color: #718096; margin-bottom: 24px;">Métricas y patrones detectados en tu historial de decisiones.</p>
 
-    <!-- 1. Ideas - INPUT (material bruto) -->
-    <div class="main-card" data-mobile-tab="ideas" data-section="ideas">
-    <div class="card">
-      <div class="section-header">
-        <h2 style="margin: 0;">💡 Tus ideas</h2>
-        <div style="display: flex; gap: 12px; align-items: center;">
-          <button onclick="openIdeaModal()" class="btn btn-primary">+ Nueva idea</button>
-          <button class="collapse-btn" onclick="toggleSectionCollapse('ideas')" title="Contraer/Expandir">⌄</button>
+      <div class="metrics-grid" id="metricsContainer">
+        <div class="spinner"></div>
+      </div>
+
+      <div style="display: flex; gap: 16px; margin-bottom: 24px;">
+        <button class="btn btn-primary" onclick="openPatterns()">🔍 Detectar patrones con IA</button>
+      </div>
+
+      <div class="card" style="margin-bottom: 20px;">
+        <h2>📊 Decisiones por área</h2>
+        <div id="insightsAreas" class="area-breakdown" style="margin-top: 12px;"></div>
+      </div>
+
+      <div class="card">
+        <h2>⏰ Recordatorios pendientes</h2>
+        <div id="insightsReminders" style="margin-top: 12px;">
+          <div class="spinner"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================================================================ -->
+    <!-- VIEW: IDEAS (Ideas + Connections) -->
+    <!-- ================================================================ -->
+    <div class="view" id="view-ideas">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="font-size: 22px; font-weight: 700;">Ideas y conexiones</h2>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-primary" onclick="openIdeaModal()">+ Nueva idea</button>
+          <button class="btn btn-secondary" onclick="openConnectionModal()">🔗 Conectar</button>
         </div>
       </div>
 
-      <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
+      <div style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
         <button class="idea-filter-btn active" data-type="all">Todas</button>
         <button class="idea-filter-btn" data-type="idea">Ideas</button>
         <button class="idea-filter-btn" data-type="observation">Observaciones</button>
@@ -1606,277 +519,836 @@
       </div>
 
       <div id="ideasContainer" class="ideas-list">
-        <div class="loading">
+        <div class="spinner"></div>
+      </div>
+
+      <div class="card" style="margin-top: 24px;">
+        <h2>🔗 Conexiones</h2>
+        <p style="color: #a0aec0; font-size: 13px; margin-bottom: 12px;">Cómo se relacionan tus ideas y decisiones</p>
+        <div id="connectionsContainer" class="connections-list">
           <div class="spinner"></div>
-          Cargando ideas...
-        </div>
-      </div>
-    </div>
-    </div><!-- end ideas main-card -->
-
-    <!-- 2. Connections - ESTRUCTURA (vincula pensamiento) -->
-    <div class="main-card" data-mobile-tab="connections" data-section="connections">
-    <div class="card">
-      <div class="section-header">
-        <h2 style="margin: 0;">🔗 La red de pensamiento</h2>
-        <div style="display: flex; gap: 12px; align-items: center;">
-          <button onclick="openConnectionModal()" class="btn btn-primary">+ Nueva conexión</button>
-          <button class="collapse-btn" onclick="toggleSectionCollapse('connections')" title="Contraer/Expandir">⌄</button>
-        </div>
-      </div>
-
-      <p style="color: #718096; margin-bottom: 24px; font-size: 14px;">Conecta ideas y decisiones para construir tu memoria estructurada</p>
-
-      <div id="connectionsContainer" class="connections-list">
-        <div class="loading">
-          <div class="spinner"></div>
-          Cargando conexiones...
-        </div>
-      </div>
-    </div>
-    </div><!-- end connections main-card -->
-
-    <!-- FLOW INDICATOR -->
-    <div class="flow-indicator">
-      <div class="flow-step">💡 Ideas</div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-step">🔗 Conexiones</div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-step active">📊 Decisiones</div>
-    </div>
-
-    <!-- 3. Decisions section - OUTPUT (el resultado) -->
-    <div class="main-card" data-mobile-tab="decisions">
-    <div class="card decisions-section">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-        <h2 style="margin: 0;">📊 Tus decisiones</h2>
-        <div style="display: flex; gap: 12px; align-items: center;">
-          <button onclick="loadAndShowPatterns()" class="btn btn-secondary" style="margin-bottom: 0;">📈 Ver patrones</button>
-          <button onclick="document.getElementById('registerModal').classList.add('active')" class="btn btn-primary">+ Nueva decisión</button>
-        </div>
-      </div>
-
-      <div class="tabs">
-        <button class="tab active" data-tab="all">Todas <span class="tab-count">0</span></button>
-        <button class="tab" data-tab="draft">Borradores <span class="tab-count">0</span></button>
-        <button class="tab" data-tab="analyzing">Analizando <span class="tab-count">0</span></button>
-        <button class="tab" data-tab="decided">Decididas <span class="tab-count">0</span></button>
-      </div>
-
-      <div id="decisionsContainer" class="decisions-list">
-        <div class="loading">
-          <div class="spinner"></div>
-          Cargando decisiones...
         </div>
       </div>
     </div>
 
-    </div><!-- end decisions main-card -->
+  </div><!-- end container -->
 
-    <!-- 4. Areas - FOURTH (full width) -->
-    <div class="main-card" data-mobile-tab="areas">
-    <div class="card">
-      <h2>📋 Tus áreas de decisión</h2>
-      <p style="color: #718096; margin-bottom: 24px; font-size: 14px;">Haz click en un área para ver todas tus decisiones relacionadas</p>
-      <div class="areas" id="areasContainer">
-        <div class="loading">
-          <div class="spinner"></div>
-          Cargando áreas...
-        </div>
+  <!-- ================================================================ -->
+  <!-- MODALS -->
+  <!-- ================================================================ -->
+
+  <!-- Modal: New Decision -->
+  <div id="registerModal" class="modal">
+    <div class="modal-content" style="max-width: 500px;">
+      <button class="modal-close" onclick="closeModal('registerModal')">&times;</button>
+      <div class="analysis-header">
+        <h2>➕ Nueva decisión</h2>
+        <p class="analysis-subtitle">Describe la decisión que enfrentas</p>
       </div>
+      <form id="decisionForm">
+        <div class="form-group"><label>Título</label><input type="text" id="decisionTitle" placeholder="Ej: Decidir sobre nueva feature..." required></div>
+        <div class="form-group"><label>Contexto</label><textarea id="decisionContext" placeholder="¿Cuál es el contexto? ¿Por qué es importante?" required></textarea></div>
+        <div class="form-group"><label>Área</label><select id="decisionArea" required><option value="">Selecciona un área</option></select></div>
+        <div class="form-group"><label>Tipo</label><select id="decisionType" required><option value="operational">Operacional</option><option value="strategic">Estratégica</option><option value="vital">Vital</option></select></div>
+        <div class="form-group"><label>Convicción (1-10): <strong id="convictionValue">5</strong></label><input type="range" id="decisionConviction" min="1" max="10" value="5" style="width: 100%;"></div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 8px;">Registrar decisión</button>
+      </form>
     </div>
-    </div><!-- end areas main-card -->
-
-    <!-- 5. Reminders - TEMPORAL REVIEW TRIGGERS -->
-    <div class="main-card" data-mobile-tab="reminders">
-    <div class="card">
-      <div class="section-header">
-        <h2 style="margin: 0;">⏰ Recordatorios de revisión</h2>
-        <button class="collapse-btn" onclick="toggleSectionCollapse('reminders')" title="Contraer/Expandir">⌄</button>
-      </div>
-      <p style="color: #718096; margin-bottom: 24px; font-size: 14px;">Recordatorios para revisar outcomes de tus decisiones</p>
-      <div id="remindersContainer" class="reminders-list">
-        <div class="loading">
-          <div class="spinner"></div>
-          Cargando recordatorios...
-        </div>
-      </div>
-    </div>
-    </div><!-- end reminders main-card -->
-
-    <!-- 6. Metrics - DECISION ANALYTICS -->
-    <div class="main-card" data-mobile-tab="metrics">
-    <div class="card">
-      <div class="section-header">
-        <h2 style="margin: 0;">📈 Tus métricas de decisión</h2>
-        <button class="collapse-btn" onclick="toggleSectionCollapse('metrics')" title="Contraer/Expandir">⌄</button>
-      </div>
-      <p style="color: #718096; margin-bottom: 24px; font-size: 14px;">Analiza patrones en tu toma de decisiones</p>
-      <div id="metricsContainer" class="metrics-display">
-        <div class="loading">
-          <div class="spinner"></div>
-          Cargando métricas...
-        </div>
-      </div>
-    </div>
-    </div><!-- end metrics main-card -->
-
-    </div><!-- END main-sections -->
-
   </div>
 
-  <!-- Detail modal -->
+  <!-- Modal: New Idea -->
+  <div id="ideaModal" class="modal">
+    <div class="modal-content" style="max-width: 500px;">
+      <button class="modal-close" onclick="closeModal('ideaModal')">&times;</button>
+      <div class="analysis-header">
+        <h2>💡 Nueva idea</h2>
+        <p class="analysis-subtitle">Captura un pensamiento antes de que se pierda</p>
+      </div>
+      <form id="ideaForm">
+        <div class="form-group"><label>Título</label><input type="text" id="ideaTitle" placeholder="Idea en una frase..." required></div>
+        <div class="form-group"><label>Contenido</label><textarea id="ideaContent" placeholder="Desarrolla tu idea..." required></textarea></div>
+        <div class="form-group"><label>Tipo</label><select id="ideaType"><option value="idea">Idea</option><option value="observation">Observación</option><option value="question">Pregunta</option><option value="reflection">Reflexión</option><option value="hypothesis">Hipótesis</option></select></div>
+        <div class="form-group"><label>Tags (separados por coma)</label><input type="text" id="ideaTags" placeholder="producto, estrategia, ux"></div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 8px;">Guardar idea</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Register Outcome -->
+  <div id="outcomeModal" class="modal">
+    <div class="modal-content" style="max-width: 500px;">
+      <button class="modal-close" onclick="closeModal('outcomeModal')">&times;</button>
+      <div class="analysis-header">
+        <h2>🎯 Registrar resultado</h2>
+        <p class="analysis-subtitle" id="outcomeSubtitle">...</p>
+      </div>
+      <div style="margin: 16px 0; padding: 14px; background: #ebf8ff; border-radius: 8px; border-left: 3px solid #667eea;">
+        <div style="font-size: 12px; color: #667eea; font-weight: 600; margin-bottom: 4px;">Lo que esperabas:</div>
+        <div id="expectedOutcomeDisplay" style="font-size: 14px; color: #2c5aa0;">...</div>
+      </div>
+      <form id="outcomeForm">
+        <div class="form-group"><label>¿Qué pasó realmente?</label><textarea id="outcomeReal" placeholder="Describe el resultado real..." required></textarea></div>
+        <div class="form-group"><label>Aprendizajes (uno por línea)</label><textarea id="learningsInput" placeholder="¿Qué descubriste?&#10;¿Qué harías diferente?"></textarea></div>
+        <div class="form-group"><label>Estado</label><select id="outcomeStatus"><option value="completed">Completada</option><option value="abandoned">Abandonada</option><option value="pivoted">Pivoteada</option></select></div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 8px;">Registrar resultado</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Connection -->
+  <div id="connectionModal" class="modal">
+    <div class="modal-content" style="max-width: 500px;">
+      <button class="modal-close" onclick="closeModal('connectionModal')">&times;</button>
+      <div class="analysis-header">
+        <h2>🔗 Nueva conexión</h2>
+        <p class="analysis-subtitle">Conecta ideas y decisiones entre sí</p>
+      </div>
+      <form id="connectionForm">
+        <div class="form-group"><label>Origen</label><select id="sourceType" onchange="loadSourceItems()"><option value="idea">Idea</option><option value="decision">Decisión</option></select></div>
+        <div class="form-group"><select id="sourceId" required><option value="">Selecciona...</option></select></div>
+        <div class="form-group"><label>Relación</label><select id="connectionRelationship"><option value="relates_to">Se relaciona con</option><option value="evolves_from">Evoluciona de</option><option value="supports">Apoya</option><option value="contradicts">Contradice</option><option value="questions">Cuestiona</option></select></div>
+        <div class="form-group"><label>Destino</label><select id="targetType" onchange="loadTargetItems()"><option value="idea">Idea</option><option value="decision">Decisión</option></select></div>
+        <div class="form-group"><select id="targetId" required><option value="">Selecciona...</option></select></div>
+        <div class="form-group"><label>Razón (opcional)</label><input type="text" id="connectionReason" placeholder="¿Por qué están conectados?"></div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 8px;">Crear conexión</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Detail (Analysis, Patterns, Comparison) -->
   <div class="modal" id="detailModal">
-    <div class="modal-content">
-      <button class="modal-close" onclick="closeDetail()">&times;</button>
-      <div id="detailContent"></div>
+    <div class="modal-content"><button class="modal-close" onclick="closeDetail()">&times;</button><div id="detailContent"></div></div>
+  </div>
+
+  <!-- Modal: Reminder -->
+  <div id="reminderModal" class="modal">
+    <div class="modal-content" style="max-width: 400px;">
+      <button class="modal-close" onclick="closeModal('reminderModal')">&times;</button>
+      <div class="analysis-header">
+        <h2>⏰ Crear recordatorio</h2>
+        <p class="analysis-subtitle" id="reminderSubtitle">...</p>
+      </div>
+      <form id="reminderForm">
+        <div class="form-group"><label>¿Cuándo revisar?</label>
+          <select id="reminderType">
+            <option value="1month">En 1 mes</option>
+            <option value="3months">En 3 meses</option>
+            <option value="6months">En 6 meses</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Nota (opcional)</label><input type="text" id="reminderMessage" placeholder="¿Qué revisar?"></div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 8px;">Crear recordatorio</button>
+      </form>
     </div>
   </div>
 
+
+  <!-- ================================================================ -->
+  <!-- JAVASCRIPT -->
+  <!-- ================================================================ -->
   <script>
-    // Configuration
+    // ===== CONFIG =====
     const API_URL = 'http://127.0.0.1:8000';
     let userId = null;
     let userProfile = null;
     let allDecisions = [];
+    let allIdeas = [];
+    let allConnections = [];
     let currentTab = 'all';
+    let currentView = 'home';
 
-    // Helper function for authenticated API calls
+    // ===== AUTH =====
     async function authenticatedFetch(url, options = {}) {
       const token = localStorage.getItem('token');
-      const headers = {
-        'Content-Type': 'application/json',
-        ...options.headers
-      };
-
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
+      const headers = { 'Content-Type': 'application/json', ...options.headers };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
       return fetch(url, { ...options, headers });
     }
 
-    // Initialize
+    // ===== INIT =====
     document.addEventListener('DOMContentLoaded', () => {
       userId = localStorage.getItem('userId');
       if (!userId) {
-        alert('No hay perfil cargado. Por favor, completa el onboarding primero.');
         window.location.href = 'onboarding.html';
         return;
       }
 
-      const isFirstTime = localStorage.getItem('firstTime') === 'true';
-
-      // Load preferences
       loadDarkModePreference();
-
-      loadUserProfile();
-      loadDecisions();
-      loadIdeas();
-      loadConnections();
+      setupNavigation();
       setupEventListeners();
-      setupMobileTabsListener();
-      loadCollapsedSections();
-
-      if (isFirstTime) {
-        showWelcomeGuide();
-        localStorage.setItem('firstTime', 'false');
-      }
+      loadUserProfile();
+      loadAllData();
     });
 
-    function showWelcomeGuide() {
-      const modal = document.createElement('div');
-      modal.className = 'modal active';
-      modal.id = 'welcomeModal';
-      modal.innerHTML = `
-        <div class="modal-content" style="max-width: 500px;">
-          <button class="modal-close" onclick="document.getElementById('welcomeModal').remove()">&times;</button>
-          <div class="analysis-header">
-            <h2>¡Bienvenido a Cognitive OS!</h2>
-            <p class="analysis-subtitle">Tu sistema cognitivo personal para pensar mejor en el tiempo</p>
-          </div>
-          <div style="padding: 20px 0;">
-            <div style="margin-bottom: 24px;">
-              <h3 style="font-size: 15px; font-weight: 600; color: #2d3748; margin-bottom: 10px;">Cómo funciona:</h3>
-              <ol style="list-style: none; padding: 0; margin: 0;">
-                <li style="margin-bottom: 14px; display: flex; gap: 12px;">
-                  <span style="color: #667eea; font-weight: 700; min-width: 24px;">1</span>
-                  <span style="color: #4a5568; line-height: 1.6;"><strong>Registra una decisión</strong> — contexto, tipo y confianza</span>
-                </li>
-                <li style="margin-bottom: 14px; display: flex; gap: 12px;">
-                  <span style="color: #667eea; font-weight: 700; min-width: 24px;">2</span>
-                  <span style="color: #4a5568; line-height: 1.6;"><strong>Analízala</strong> — Claude identifica lagunas, sesgos y riesgos</span>
-                </li>
-                <li style="display: flex; gap: 12px;">
-                  <span style="color: #667eea; font-weight: 700; min-width: 24px;">3</span>
-                  <span style="color: #4a5568; line-height: 1.6;"><strong>Aprende patrones</strong> — detecta cómo tomas decisiones</span>
-                </li>
-              </ol>
-            </div>
-            <button class="btn btn-primary" onclick="document.getElementById('welcomeModal').remove(); document.getElementById('decisionTitle').focus();" style="width: 100%; margin-top: 20px;">
-              Registra tu primera decisión →
-            </button>
-          </div>
-        </div>
-      `;
-      document.body.appendChild(modal);
-    }
-
-    function setupMobileTabsListener() {
-      document.querySelectorAll('.mobile-tab-button').forEach(button => {
-        button.addEventListener('click', (e) => {
-          const tab = e.target.dataset.tab;
-
-          // Ocultar todas las tarjetas
-          document.querySelectorAll('.main-card').forEach(card => {
-            card.classList.remove('active');
-          });
-
-          // Mostrar la tarjeta seleccionada
-          document.querySelector(`[data-mobile-tab="${tab}"]`).classList.add('active');
-
-          // Actualizar botones activos
-          document.querySelectorAll('.mobile-tab-button').forEach(b => b.classList.remove('active'));
-          e.target.classList.add('active');
+    // ===== NAVIGATION =====
+    function setupNavigation() {
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const view = btn.dataset.view;
+          switchView(view);
         });
       });
     }
 
-    function toggleSectionCollapse(section) {
-      const sectionElement = document.querySelector(`[data-section="${section}"]`);
-      if (!sectionElement) return;
+    function switchView(view) {
+      currentView = view;
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.getElementById(`view-${view}`).classList.add('active');
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.querySelector(`.nav-btn[data-view="${view}"]`).classList.add('active');
 
-      sectionElement.classList.toggle('collapsed');
-
-      // Guardar estado en localStorage
-      const collapsed = sectionElement.classList.contains('collapsed');
-      localStorage.setItem(`section_collapsed_${section}`, collapsed);
+      // Load view-specific data
+      if (view === 'home') loadHomeView();
+      if (view === 'review') loadReviewView();
+      if (view === 'insights') loadInsightsView();
     }
 
-    function loadCollapsedSections() {
-      ['ideas', 'connections'].forEach(section => {
-        const isCollapsed = localStorage.getItem(`section_collapsed_${section}`) === 'true';
-        if (isCollapsed) {
-          const sectionElement = document.querySelector(`[data-section="${section}"]`);
-          if (sectionElement) {
-            sectionElement.classList.add('collapsed');
-          }
-        }
+    // ===== DATA LOADING =====
+    async function loadAllData() {
+      await Promise.all([loadDecisions(), loadIdeas(), loadConnections()]);
+      loadHomeView();
+    }
+
+    async function loadUserProfile() {
+      try {
+        const response = await authenticatedFetch(`${API_URL}/user/${userId}`);
+        if (!response.ok) throw new Error('Error');
+        userProfile = await response.json();
+        document.getElementById('userName').textContent = userProfile.role;
+        document.getElementById('userHorizon').textContent = `Horizonte: ${userProfile.horizon}`;
+
+        const areaSelect = document.getElementById('decisionArea');
+        areaSelect.innerHTML = '<option value="">Selecciona un área</option>';
+        userProfile.decision_areas.forEach(area => {
+          const opt = document.createElement('option');
+          opt.value = area; opt.textContent = area;
+          areaSelect.appendChild(opt);
+        });
+      } catch (e) { console.error('Profile error:', e); }
+    }
+
+    async function loadDecisions() {
+      try {
+        const response = await authenticatedFetch(`${API_URL}/decisions`);
+        if (!response.ok) throw new Error('Error');
+        const result = await response.json();
+        allDecisions = result.decisions || [];
+        updateTabCounts();
+        displayDecisions();
+      } catch (e) { console.error('Decisions error:', e); }
+    }
+
+    async function loadIdeas() {
+      try {
+        const response = await authenticatedFetch(`${API_URL}/thoughts`);
+        if (!response.ok) throw new Error('Error');
+        const result = await response.json();
+        allIdeas = result.thoughts || [];
+        displayIdeas();
+      } catch (e) { console.error('Ideas error:', e); }
+    }
+
+    async function loadConnections() {
+      try {
+        const response = await authenticatedFetch(`${API_URL}/connections`);
+        if (!response.ok) throw new Error('Error');
+        const result = await response.json();
+        allConnections = result.connections || [];
+        displayConnections();
+      } catch (e) { console.error('Connections error:', e); }
+    }
+
+    // ===== HOME VIEW =====
+    async function loadHomeView() {
+      const pending = allDecisions.filter(d => d.status === 'decided' && !d.outcome_real);
+      const completed = allDecisions.filter(d => d.outcome_real);
+      const total = allDecisions.length;
+
+      document.getElementById('homeTotal').textContent = total;
+      document.getElementById('homePending').textContent = pending.length;
+      document.getElementById('homeCompleted').textContent = completed.length;
+
+      // Update review badge
+      const badge = document.getElementById('reviewBadge');
+      if (pending.length > 0) {
+        badge.textContent = pending.length;
+        badge.style.display = 'inline';
+      } else {
+        badge.style.display = 'none';
+      }
+
+      // Load reminders count
+      try {
+        const resp = await authenticatedFetch(`${API_URL}/reminders?status=pending`);
+        const data = await resp.json();
+        document.getElementById('homeReminders').textContent = data.total || 0;
+      } catch (e) { document.getElementById('homeReminders').textContent = '0'; }
+
+      // Actions needing attention
+      const actionsContainer = document.getElementById('homeActions');
+      let actionsHtml = '';
+
+      pending.forEach(d => {
+        actionsHtml += `
+          <div class="action-item" onclick="openOutcomeModal(${d.id}, '${d.title.replace(/'/g, "\\'")}', '${(d.expected_outcome || '').replace(/'/g, "\\'")}')">
+            <div>
+              <div class="action-label">🎯 Registrar resultado: ${d.title}</div>
+              <div class="action-meta">Decidida el ${new Date(d.created_at).toLocaleDateString('es-ES')}</div>
+            </div>
+            <span style="color: #667eea; font-weight: 600;">→</span>
+          </div>
+        `;
+      });
+
+      if (!actionsHtml) {
+        actionsHtml = '<div class="empty-state"><div class="empty-state-emoji">✅</div><p>No hay acciones pendientes. ¡Todo al día!</p></div>';
+      }
+      actionsContainer.innerHTML = actionsHtml;
+
+      // Recent decisions
+      const recent = allDecisions.slice(0, 4);
+      const recentContainer = document.getElementById('homeRecent');
+      if (recent.length === 0) {
+        recentContainer.innerHTML = '<div class="empty-state"><div class="empty-state-emoji">📝</div><p>Aún no hay decisiones.</p></div>';
+      } else {
+        recentContainer.innerHTML = recent.map(d => renderDecisionCard(d)).join('');
+      }
+    }
+
+    // ===== DECISIONS VIEW =====
+    function updateTabCounts() {
+      const counts = {
+        all: allDecisions.length,
+        draft: allDecisions.filter(d => d.status === 'draft').length,
+        analyzing: allDecisions.filter(d => d.status === 'analyzing').length,
+        decided: allDecisions.filter(d => d.status === 'decided').length,
+        completed: allDecisions.filter(d => d.status === 'completed').length
+      };
+      document.querySelectorAll('.tab').forEach(tab => {
+        const count = tab.querySelector('.tab-count');
+        if (count) count.textContent = counts[tab.dataset.tab] || 0;
       });
     }
 
-    // ===== DARK MODE =====
+    function displayDecisions() {
+      const container = document.getElementById('decisionsContainer');
+      let filtered = currentTab === 'all' ? allDecisions : allDecisions.filter(d => d.status === currentTab);
+
+      if (filtered.length === 0) {
+        container.innerHTML = '<div class="empty-state" style="grid-column: 1/-1;"><div class="empty-state-emoji">📝</div><p>No hay decisiones en esta categoría</p></div>';
+        return;
+      }
+      container.innerHTML = filtered.map(d => renderDecisionCard(d)).join('');
+
+      // Update areas
+      if (userProfile && userProfile.decision_areas) {
+        const areasContainer = document.getElementById('areasContainer');
+        areasContainer.innerHTML = userProfile.decision_areas.map(area => {
+          const count = allDecisions.filter(d => d.area === area).length;
+          return `<div class="area-chip" onclick="filterByArea('${area}')"><div class="area-name">${area}</div><div class="area-count">${count} decisión${count !== 1 ? 'es' : ''}</div></div>`;
+        }).join('');
+      }
+    }
+
+    function renderDecisionCard(d) {
+      return `
+        <div class="decision-card">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+            <div class="decision-area">${d.area || ''}</div>
+            <span class="decision-status ${d.status}">${d.status}</span>
+          </div>
+          <h3 class="decision-title">${d.title}</h3>
+          <p style="font-size: 13px; color: #718096; margin: 10px 0; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${d.context || ''}</p>
+          <div class="decision-date">Creada ${new Date(d.created_at).toLocaleDateString('es-ES')}</div>
+          <div class="decision-actions">
+            ${d.status === 'decided' && !d.outcome_real
+              ? `<button onclick="openOutcomeModal(${d.id}, '${d.title.replace(/'/g, "\\'")}', '${(d.expected_outcome || '').replace(/'/g, "\\'")}')" class="btn btn-success">🎯 Registrar resultado</button>`
+              : `<button onclick="analyzeDecision(${d.id}, 'analyze')" class="btn btn-primary">📊 Analizar</button>`
+            }
+            <div style="display: flex; gap: 4px;">
+              ${d.outcome_real
+                ? `<button onclick="viewOutcomeComparison(${d.id})" class="btn btn-secondary" title="Ver resultado">📋</button>`
+                : `<button onclick="analyzeDecision(${d.id}, 'counterargument')" class="btn btn-secondary" title="Contra">⚠️</button>`
+              }
+              <button onclick="analyzeDecision(${d.id}, 'premortem')" class="btn btn-secondary" title="Pre-mortem">💥</button>
+              <button onclick="openReminderModal(${d.id}, '${d.title.replace(/'/g, "\\'")}')" class="btn btn-secondary" title="Recordatorio">⏰</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function filterByArea(area) {
+      currentTab = 'all';
+      const container = document.getElementById('decisionsContainer');
+      const filtered = allDecisions.filter(d => d.area === area);
+      if (filtered.length === 0) {
+        container.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><div class="empty-state-emoji">🔍</div><p>No hay decisiones en esta área</p></div>';
+      } else {
+        container.innerHTML = filtered.map(d => renderDecisionCard(d)).join('');
+      }
+    }
+
+    // ===== REVIEW VIEW (THE CORE) =====
+    async function loadReviewView() {
+      const pending = allDecisions.filter(d => d.status === 'decided' && !d.outcome_real);
+      const withOutcome = allDecisions.filter(d => d.outcome_real);
+
+      // Pending outcomes
+      const pendingContainer = document.getElementById('reviewPending');
+      if (pending.length === 0) {
+        pendingContainer.innerHTML = '<div class="empty-state"><div class="empty-state-emoji">✅</div><p>Todas tus decisiones tienen resultado registrado.</p></div>';
+      } else {
+        pendingContainer.innerHTML = pending.map(d => `
+          <div class="action-item" onclick="openOutcomeModal(${d.id}, '${d.title.replace(/'/g, "\\'")}', '${(d.expected_outcome || '').replace(/'/g, "\\'")}')" style="border-left-color: #f6ad55;">
+            <div>
+              <div class="action-label">${d.title}</div>
+              <div class="action-meta">${d.area} · Decidida el ${new Date(d.created_at).toLocaleDateString('es-ES')}</div>
+              ${d.expected_outcome ? `<div style="font-size: 12px; color: #667eea; margin-top: 4px;">Esperado: ${d.expected_outcome}</div>` : ''}
+            </div>
+            <button class="btn btn-success" style="font-size: 12px;">🎯 Registrar</button>
+          </div>
+        `).join('');
+      }
+
+      // Completed reviews
+      const completedContainer = document.getElementById('reviewCompleted');
+      if (withOutcome.length === 0) {
+        completedContainer.innerHTML = '<div class="empty-state"><div class="empty-state-emoji">📋</div><p>Registra outcomes para ver comparaciones aquí.</p></div>';
+      } else {
+        let html = '';
+        for (const d of withOutcome) {
+          try {
+            const resp = await authenticatedFetch(`${API_URL}/decisions/${d.id}/outcome`);
+            const data = await resp.json();
+
+            let accuracyClass = data.accuracy === 'accurate' ? 'accurate' : data.accuracy === 'partial' ? 'partial' : 'inaccurate';
+            let accuracyLabel = data.accuracy === 'accurate' ? '✓ Acertado' : data.accuracy === 'partial' ? '⚡ Parcial' : '✗ No acertado';
+
+            html += `
+              <div class="review-card has-outcome" style="cursor: pointer;" onclick="viewOutcomeComparison(${d.id})">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                  <div>
+                    <h4 style="font-size: 15px; font-weight: 600; color: #2d3748; margin-bottom: 6px;">${d.title}</h4>
+                    <div style="font-size: 12px; color: #a0aec0;">${d.area} · ${new Date(d.created_at).toLocaleDateString('es-ES')}</div>
+                  </div>
+                  <span class="accuracy-badge ${accuracyClass}">${accuracyLabel}</span>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px;">
+                  <div class="comparison-box comparison-expected">
+                    <div style="font-size: 11px; color: #667eea; font-weight: 600;">Esperado</div>
+                    <div style="font-size: 13px; color: #2c5aa0; margin-top: 4px;">${data.expected_outcome || '(No especificado)'}</div>
+                  </div>
+                  <div class="comparison-box comparison-real">
+                    <div style="font-size: 11px; color: #276749; font-weight: 600;">Real</div>
+                    <div style="font-size: 13px; color: #22543d; margin-top: 4px;">${data.outcome_real || ''}</div>
+                  </div>
+                </div>
+                ${data.learnings && data.learnings.length > 0 ? `
+                  <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #edf2f7;">
+                    <div style="font-size: 11px; color: #667eea; font-weight: 600;">Aprendizajes:</div>
+                    ${data.learnings.map(l => `<div style="font-size: 13px; color: #4a5568; margin-top: 2px;">• ${l}</div>`).join('')}
+                  </div>
+                ` : ''}
+              </div>
+            `;
+          } catch (e) { /* skip */ }
+        }
+        completedContainer.innerHTML = html || '<p style="color: #a0aec0;">Error al cargar comparaciones.</p>';
+      }
+
+      // Learnings summary
+      const learningsContainer = document.getElementById('reviewLearnings');
+      const allLearnings = withOutcome.filter(d => d.learnings && d.learnings.length > 0);
+      if (allLearnings.length > 0) {
+        let learningsHtml = '';
+        allLearnings.forEach(d => {
+          d.learnings.forEach(l => {
+            learningsHtml += `<div class="learning-item">• ${l} <span style="font-size: 11px; color: #a0aec0;">(${d.title})</span></div>`;
+          });
+        });
+        learningsContainer.innerHTML = learningsHtml;
+      }
+    }
+
+    // ===== INSIGHTS VIEW =====
+    async function loadInsightsView() {
+      // Metrics
+      try {
+        const resp = await authenticatedFetch(`${API_URL}/metrics`);
+        const m = await resp.json();
+
+        document.getElementById('metricsContainer').innerHTML = `
+          <div class="metric-card"><div class="metric-label">Total decisiones</div><div class="metric-value">${m.total_decisions}</div><div class="metric-sub">Documentadas</div></div>
+          <div class="metric-card"><div class="metric-label">Completadas</div><div class="metric-value">${m.completed}</div><div class="metric-sub">${m.completion_rate}% del total</div></div>
+          <div class="metric-card"><div class="metric-label">Con resultados</div><div class="metric-value">${m.with_outcomes}</div><div class="metric-sub">Feedback loop cerrado</div></div>
+          ${m.conviction_accuracy !== null ? `<div class="metric-card"><div class="metric-label">Precisión convicción</div><div class="metric-value">${m.conviction_accuracy}%</div><div class="metric-sub">Accuracy alta convicción</div></div>` : ''}
+          <div class="metric-card"><div class="metric-label">Recordatorios</div><div class="metric-value">${m.pending_reminders}</div><div class="metric-sub">Pendientes</div></div>
+        `;
+
+        // Areas breakdown
+        const areasContainer = document.getElementById('insightsAreas');
+        if (m.decisions_by_area && Object.keys(m.decisions_by_area).length > 0) {
+          areasContainer.innerHTML = Object.entries(m.decisions_by_area).map(([area, count]) =>
+            `<div class="area-chip"><div class="area-name">${area}</div><div class="area-count">${count} decisión${count !== 1 ? 'es' : ''}</div></div>`
+          ).join('');
+        } else {
+          areasContainer.innerHTML = '<p style="color: #a0aec0;">No hay datos de áreas aún.</p>';
+        }
+      } catch (e) {
+        document.getElementById('metricsContainer').innerHTML = '<p style="color: #c53030;">Error al cargar métricas.</p>';
+      }
+
+      // Reminders
+      try {
+        const resp = await authenticatedFetch(`${API_URL}/reminders?status=pending`);
+        const data = await resp.json();
+        const reminders = data.reminders || [];
+        const container = document.getElementById('insightsReminders');
+
+        if (reminders.length === 0) {
+          container.innerHTML = '<div class="empty-state"><div class="empty-state-emoji">⏰</div><p>No hay recordatorios pendientes.</p></div>';
+        } else {
+          container.innerHTML = reminders.map(r => `
+            <div class="reminder-card">
+              <div class="reminder-date">📅 ${new Date(r.reminder_date).toLocaleDateString('es-ES', {year:'numeric',month:'long',day:'numeric'})}</div>
+              <div class="reminder-message">${r.message}</div>
+              <button onclick="completeReminder(${r.id})" class="btn btn-success" style="margin-top: 8px; font-size: 12px;">✓ Completada</button>
+            </div>
+          `).join('');
+        }
+      } catch (e) {
+        document.getElementById('insightsReminders').innerHTML = '<p style="color: #c53030;">Error al cargar recordatorios.</p>';
+      }
+    }
+
+    async function completeReminder(id) {
+      try {
+        await authenticatedFetch(`${API_URL}/reminders/${id}/complete`, { method: 'PATCH' });
+        loadInsightsView();
+        loadHomeView();
+      } catch (e) { alert('Error: ' + e.message); }
+    }
+
+    // ===== IDEAS VIEW =====
+    function displayIdeas(filterType = 'all') {
+      const container = document.getElementById('ideasContainer');
+      let filtered = filterType === 'all' ? allIdeas : allIdeas.filter(i => i.thought_type === filterType);
+
+      if (filtered.length === 0) {
+        container.innerHTML = '<div class="empty-state"><div class="empty-state-emoji">💡</div><p>No hay ideas. ¡Captura una!</p></div>';
+        return;
+      }
+
+      container.innerHTML = filtered.map(idea => `
+        <div class="idea-card">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <span class="idea-type">${idea.thought_type}</span>
+            <span style="font-size: 11px; color: #a0aec0;">${new Date(idea.created_at).toLocaleDateString('es-ES')}</span>
+          </div>
+          <h4 style="font-size: 15px; font-weight: 600; color: #2d3748; margin: 8px 0 4px;">${idea.title}</h4>
+          <p style="font-size: 13px; color: #718096; line-height: 1.5;">${idea.content}</p>
+          ${idea.tags && idea.tags.length > 0 ? `<div class="idea-tags">${idea.tags.map(t => `<span class="idea-tag">${t}</span>`).join('')}</div>` : ''}
+        </div>
+      `).join('');
+    }
+
+    function displayConnections() {
+      const container = document.getElementById('connectionsContainer');
+      if (allConnections.length === 0) {
+        container.innerHTML = '<div class="empty-state"><div class="empty-state-emoji">🔗</div><p>No hay conexiones aún.</p></div>';
+        return;
+      }
+
+      const labels = { relates_to: 'Se relaciona con', evolves_from: 'Evoluciona de', supports: 'Apoya', contradicts: 'Contradice', questions: 'Cuestiona' };
+
+      container.innerHTML = allConnections.map(c => `
+        <div class="connection-item">
+          <span class="connection-source">${c.source.type === 'idea' ? '💡' : '📊'} ${getItemTitle(c.source.type, c.source.id)}</span>
+          <span class="connection-arrow">→</span>
+          <span class="connection-type">${labels[c.relationship] || c.relationship}</span>
+          <br>
+          <span class="connection-target">${c.target.type === 'idea' ? '💡' : '📊'} ${getItemTitle(c.target.type, c.target.id)}</span>
+          ${c.reason ? `<div style="font-size: 12px; color: #718096; margin-top: 6px;">💬 ${c.reason}</div>` : ''}
+        </div>
+      `).join('');
+    }
+
+    function getItemTitle(type, id) {
+      if (type === 'idea') {
+        const idea = allIdeas.find(i => i.id === id);
+        return idea ? idea.title : `Idea #${id}`;
+      }
+      const dec = allDecisions.find(d => d.id === id);
+      return dec ? dec.title : `Decisión #${id}`;
+    }
+
+    // ===== AI ANALYSIS =====
+    async function analyzeDecision(decisionId, analysisType) {
+      const modal = document.getElementById('detailModal');
+      const content = document.getElementById('detailContent');
+      const titles = {
+        analyze: '📊 Análisis Profundo', counterargument: '⚠️ ¿Qué podría salir mal?',
+        premortem: '💥 Escenarios de fracaso', 'synthesize-full': '✨ Síntesis',
+        review: '🔍 Revisión', patterns: '📈 Patrones'
+      };
+
+      content.innerHTML = `<div class="analysis-header"><h2>${titles[analysisType]}</h2><p class="analysis-subtitle">Analizando...</p></div><div class="analysis-loading"><div class="spinner"></div><p>Procesando con IA...</p></div>`;
+      modal.classList.add('active');
+
+      try {
+        const resp = await authenticatedFetch(`${API_URL}/decisions/${decisionId}/${analysisType}`, { method: 'POST' });
+        if (!resp.ok) throw new Error('Error');
+        const result = await resp.json();
+
+        content.innerHTML = `
+          <button class="modal-close" onclick="closeDetail()">&times;</button>
+          <div class="analysis-header"><h2>${titles[analysisType]}</h2><p class="analysis-subtitle">Basado en tu contexto personal</p></div>
+          <div class="analysis-box"><div class="analysis-content">${formatAnalysis(result.analysis)}</div></div>
+        `;
+      } catch (e) {
+        content.innerHTML = `<button class="modal-close" onclick="closeDetail()">&times;</button><div style="color: #c53030; padding: 20px;">Error: ${e.message}</div>`;
+      }
+    }
+
+    async function openPatterns() {
+      const modal = document.getElementById('detailModal');
+      const content = document.getElementById('detailContent');
+
+      content.innerHTML = `<div class="analysis-header"><h2>📈 Patrones de decisión</h2><p class="analysis-subtitle">Analizando...</p></div><div class="analysis-loading"><div class="spinner"></div></div>`;
+      modal.classList.add('active');
+
+      try {
+        const resp = await authenticatedFetch(`${API_URL}/patterns`);
+        if (!resp.ok) throw new Error('Error');
+        const result = await resp.json();
+
+        content.innerHTML = `
+          <button class="modal-close" onclick="closeDetail()">&times;</button>
+          <div class="analysis-header"><h2>📈 Patrones detectados</h2><p class="analysis-subtitle">${result.decision_count} decisiones analizadas</p></div>
+          <div class="analysis-box"><div class="analysis-content">${formatAnalysis(result.analysis)}</div></div>
+        `;
+      } catch (e) {
+        content.innerHTML = `<button class="modal-close" onclick="closeDetail()">&times;</button><div style="color: #c53030; padding: 20px;">Error: ${e.message}</div>`;
+      }
+    }
+
+    function formatAnalysis(text) {
+      let html = text || '';
+      html = html.replace(/^### (.+)$/gm, '<div class="analysis-section"><div class="analysis-section-title">$1</div>');
+      html = html.replace(/^## (.+)$/gm, '<div class="analysis-section"><div class="analysis-section-title">$1</div>');
+      html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      html = html.replace(/\n\n/g, '</p><p>');
+      html = html.replace(/\n/g, '<br>');
+
+      const keywords = ['sesgo', 'riesgo', 'fortaleza', 'oportunidad', 'falla', 'crítico', 'importante', 'clave', 'problema', 'recomendación'];
+      keywords.forEach(k => { html = html.replace(new RegExp(`\\b(${k})\\b`, 'gi'), '<strong style="color:#667eea;">$1</strong>'); });
+
+      return `<p>${html}</p>`;
+    }
+
+    // ===== OUTCOME FUNCTIONS =====
+    function openOutcomeModal(decisionId, title, expectedOutcome) {
+      document.getElementById('outcomeForm').dataset.decisionId = decisionId;
+      document.getElementById('outcomeSubtitle').textContent = `"${title}"`;
+      document.getElementById('expectedOutcomeDisplay').textContent = expectedOutcome || '(No especificado)';
+      document.getElementById('outcomeReal').value = '';
+      document.getElementById('learningsInput').value = '';
+      document.getElementById('outcomeStatus').value = 'completed';
+      document.getElementById('outcomeModal').classList.add('active');
+    }
+
+    async function handleSubmitOutcome(e) {
+      e.preventDefault();
+      const decisionId = parseInt(document.getElementById('outcomeForm').dataset.decisionId);
+      const learnings = document.getElementById('learningsInput').value.split('\n').map(l => l.trim()).filter(l => l);
+
+      try {
+        const resp = await authenticatedFetch(`${API_URL}/decisions/${decisionId}/outcome`, {
+          method: 'POST',
+          body: JSON.stringify({
+            outcome_real: document.getElementById('outcomeReal').value,
+            learnings: learnings,
+            status: document.getElementById('outcomeStatus').value
+          })
+        });
+        if (!resp.ok) throw new Error('Error');
+
+        closeModal('outcomeModal');
+        await loadDecisions();
+        loadHomeView();
+        if (currentView === 'review') loadReviewView();
+      } catch (e) { alert('Error: ' + e.message); }
+    }
+
+    async function viewOutcomeComparison(decisionId) {
+      try {
+        const resp = await authenticatedFetch(`${API_URL}/decisions/${decisionId}/outcome`);
+        const data = await resp.json();
+
+        const modal = document.getElementById('detailModal');
+        const content = document.getElementById('detailContent');
+
+        let accuracyBadge = '';
+        if (data.accuracy === 'accurate') accuracyBadge = '<span class="accuracy-badge accurate">✓ Acertado</span>';
+        else if (data.accuracy === 'partial') accuracyBadge = '<span class="accuracy-badge partial">⚡ Parcial</span>';
+        else if (data.accuracy === 'inaccurate') accuracyBadge = '<span class="accuracy-badge inaccurate">✗ No acertado</span>';
+
+        content.innerHTML = `
+          <button class="modal-close" onclick="closeDetail()">&times;</button>
+          <div class="analysis-header"><h2>${data.title}</h2><p class="analysis-subtitle">Comparación: Esperado vs Real</p></div>
+          <div style="margin-top: 20px;">
+            <div class="comparison-box comparison-expected" style="margin-bottom: 10px;">
+              <div style="font-size: 12px; color: #667eea; font-weight: 600;">💭 Lo que esperabas</div>
+              <div style="font-size: 14px; color: #2c5aa0; margin-top: 6px;">${data.expected_outcome || '(No especificado)'}</div>
+            </div>
+            <div class="comparison-box comparison-real" style="margin-bottom: 16px;">
+              <div style="font-size: 12px; color: #276749; font-weight: 600;">🎯 Lo que pasó</div>
+              <div style="font-size: 14px; color: #22543d; margin-top: 6px;">${data.outcome_real || ''}</div>
+            </div>
+            <div style="margin-bottom: 16px;">${accuracyBadge}</div>
+            ${data.learnings && data.learnings.length > 0 ? `
+              <div style="padding-top: 16px; border-top: 1px solid #edf2f7;">
+                <h4 style="font-size: 14px; font-weight: 600; color: #2d3748; margin-bottom: 8px;">🎓 Aprendizajes</h4>
+                ${data.learnings.map(l => `<div class="learning-item">• ${l}</div>`).join('')}
+              </div>
+            ` : ''}
+          </div>
+        `;
+        modal.classList.add('active');
+      } catch (e) { alert('Error: ' + e.message); }
+    }
+
+    // ===== REMINDER FUNCTIONS =====
+    function openReminderModal(decisionId, title) {
+      document.getElementById('reminderForm').dataset.decisionId = decisionId;
+      document.getElementById('reminderSubtitle').textContent = `"${title}"`;
+      document.getElementById('reminderMessage').value = '';
+      document.getElementById('reminderModal').classList.add('active');
+    }
+
+    // ===== FORM HANDLERS =====
+    async function handleSubmitDecision(e) {
+      e.preventDefault();
+      try {
+        const resp = await authenticatedFetch(`${API_URL}/decisions`, {
+          method: 'POST',
+          body: JSON.stringify({
+            title: document.getElementById('decisionTitle').value,
+            context: document.getElementById('decisionContext').value,
+            area: document.getElementById('decisionArea').value,
+            decision_type: document.getElementById('decisionType').value,
+            conviction: parseInt(document.getElementById('decisionConviction').value)
+          })
+        });
+        if (!resp.ok) throw new Error('Error');
+        closeModal('registerModal');
+        document.getElementById('decisionForm').reset();
+        document.getElementById('convictionValue').textContent = '5';
+        await loadDecisions();
+        loadHomeView();
+      } catch (e) { alert('Error: ' + e.message); }
+    }
+
+    async function handleSubmitIdea(e) {
+      e.preventDefault();
+      const tags = document.getElementById('ideaTags').value.split(',').map(t => t.trim()).filter(t => t);
+      try {
+        const resp = await authenticatedFetch(`${API_URL}/thoughts`, {
+          method: 'POST',
+          body: JSON.stringify({
+            title: document.getElementById('ideaTitle').value,
+            content: document.getElementById('ideaContent').value,
+            thought_type: document.getElementById('ideaType').value,
+            area: null,
+            tags: tags
+          })
+        });
+        if (!resp.ok) throw new Error('Error');
+        closeModal('ideaModal');
+        document.getElementById('ideaForm').reset();
+        await loadIdeas();
+      } catch (e) { alert('Error: ' + e.message); }
+    }
+
+    async function handleSubmitConnection(e) {
+      e.preventDefault();
+      try {
+        const resp = await authenticatedFetch(`${API_URL}/connections`, {
+          method: 'POST',
+          body: JSON.stringify({
+            source_type: document.getElementById('sourceType').value === 'idea' ? 'thought' : 'decision',
+            source_id: parseInt(document.getElementById('sourceId').value),
+            target_type: document.getElementById('targetType').value === 'idea' ? 'thought' : 'decision',
+            target_id: parseInt(document.getElementById('targetId').value),
+            relationship: document.getElementById('connectionRelationship').value,
+            reason: document.getElementById('connectionReason').value || null
+          })
+        });
+        if (!resp.ok) throw new Error('Error');
+        closeModal('connectionModal');
+        document.getElementById('connectionForm').reset();
+        await loadConnections();
+      } catch (e) { alert('Error: ' + e.message); }
+    }
+
+    async function handleSubmitReminder(e) {
+      e.preventDefault();
+      const decisionId = parseInt(document.getElementById('reminderForm').dataset.decisionId);
+      try {
+        const resp = await authenticatedFetch(`${API_URL}/decisions/${decisionId}/reminder`, {
+          method: 'POST',
+          body: JSON.stringify({
+            reminder_type: document.getElementById('reminderType').value,
+            message: document.getElementById('reminderMessage').value || null
+          })
+        });
+        if (!resp.ok) throw new Error('Error');
+        closeModal('reminderModal');
+        alert('✓ Recordatorio creado');
+      } catch (e) { alert('Error: ' + e.message); }
+    }
+
+    // ===== CONNECTION HELPERS =====
+    async function loadSourceItems() {
+      const type = document.getElementById('sourceType').value;
+      const select = document.getElementById('sourceId');
+      select.innerHTML = '<option value="">Selecciona...</option>';
+      const items = type === 'idea' ? allIdeas : allDecisions;
+      items.forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item.id; opt.textContent = item.title;
+        select.appendChild(opt);
+      });
+    }
+
+    async function loadTargetItems() {
+      const type = document.getElementById('targetType').value;
+      const select = document.getElementById('targetId');
+      select.innerHTML = '<option value="">Selecciona...</option>';
+      const items = type === 'idea' ? allIdeas : allDecisions;
+      items.forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item.id; opt.textContent = item.title;
+        select.appendChild(opt);
+      });
+    }
+
+    // ===== UI HELPERS =====
+    function openRegisterModal() { document.getElementById('registerModal').classList.add('active'); }
+    function openIdeaModal() { document.getElementById('ideaModal').classList.add('active'); }
+    function openConnectionModal() { loadSourceItems(); loadTargetItems(); document.getElementById('connectionModal').classList.add('active'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+    function closeDetail() { document.getElementById('detailModal').classList.remove('active'); }
+
     function toggleDarkMode() {
       const isDark = document.body.classList.toggle('dark-mode');
       localStorage.setItem('darkMode', isDark);
-
-      const icon = document.getElementById('darkModeIcon');
-      icon.textContent = isDark ? '☀️' : '🌙';
+      document.getElementById('darkModeIcon').textContent = isDark ? '☀️' : '🌙';
     }
 
     function loadDarkModePreference() {
-      const savedDarkMode = localStorage.getItem('darkMode') === 'true';
-      if (savedDarkMode) {
+      if (localStorage.getItem('darkMode') === 'true') {
         document.body.classList.add('dark-mode');
         document.getElementById('darkModeIcon').textContent = '☀️';
       }
@@ -1884,1055 +1356,34 @@
 
     function setupEventListeners() {
       document.getElementById('decisionForm').addEventListener('submit', handleSubmitDecision);
+      document.getElementById('ideaForm').addEventListener('submit', handleSubmitIdea);
+      document.getElementById('outcomeForm').addEventListener('submit', handleSubmitOutcome);
+      document.getElementById('connectionForm').addEventListener('submit', handleSubmitConnection);
+      document.getElementById('reminderForm').addEventListener('submit', handleSubmitReminder);
+
       document.getElementById('decisionConviction').addEventListener('input', (e) => {
         document.getElementById('convictionValue').textContent = e.target.value;
       });
 
-      document.getElementById('outcomeForm').addEventListener('submit', handleSubmitOutcome);
-
+      // Decision tabs
       document.querySelectorAll('.tab').forEach(tab => {
-        tab.addEventListener('click', (e) => {
+        tab.addEventListener('click', () => {
           document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-          e.target.classList.add('active');
-          currentTab = e.target.dataset.tab;
+          tab.classList.add('active');
+          currentTab = tab.dataset.tab;
           displayDecisions();
         });
       });
-    }
 
-    async function loadUserProfile() {
-      try {
-        const response = await authenticatedFetch(`${API_URL}/user/${userId}`);
-        if (!response.ok) throw new Error('No se pudo cargar el perfil');
-
-        userProfile = await response.json();
-
-        // Update header
-        document.getElementById('userName').textContent = userProfile.role;
-        document.getElementById('userHorizon').textContent = `Horizonte: ${userProfile.horizon}`;
-
-        // Populate areas
-        displayAreas();
-
-        // Populate area select
-        const areaSelect = document.getElementById('decisionArea');
-        userProfile.decision_areas.forEach(area => {
-          const option = document.createElement('option');
-          option.value = area;
-          option.textContent = area;
-          areaSelect.appendChild(option);
-        });
-      } catch (error) {
-        console.error('Error:', error);
-        document.getElementById('areasContainer').innerHTML = `<div class="error">Error al cargar el perfil: ${error.message}</div>`;
-      }
-    }
-
-    function updateTabCounts() {
-      const counts = {
-        all: allDecisions.length,
-        draft: allDecisions.filter(d => d.status === 'draft').length,
-        analyzing: allDecisions.filter(d => d.status === 'analyzing').length,
-        decided: allDecisions.filter(d => d.status === 'decided').length
-      };
-
-      document.querySelectorAll('.tab').forEach(tab => {
-        const tabType = tab.dataset.tab;
-        const countElement = tab.querySelector('.tab-count');
-        if (countElement) {
-          countElement.textContent = counts[tabType] || 0;
-        }
-      });
-    }
-
-    function displayAreas() {
-      const container = document.getElementById('areasContainer');
-      container.innerHTML = '';
-
-      userProfile.decision_areas.forEach(area => {
-        const count = allDecisions.filter(d => d.area === area).length;
-        const item = document.createElement('div');
-        item.className = 'area-item';
-        item.innerHTML = `
-          <div class="area-label">Área</div>
-          <div class="area-name">${area}</div>
-          <div class="area-count">${count} decisión${count !== 1 ? 'es' : ''}</div>
-        `;
-        item.addEventListener('click', () => {
-          currentTab = 'all';
-          filterByArea(area);
-        });
-        container.appendChild(item);
-      });
-    }
-
-    async function loadDecisions() {
-      try {
-        const response = await authenticatedFetch(`${API_URL}/decisions`);
-        if (!response.ok) throw new Error('Error al cargar decisiones');
-
-        const result = await response.json();
-        allDecisions = result.decisions || [];
-        updateTabCounts();
-        displayDecisions();
-        displayAreas();
-      } catch (error) {
-        console.error('Error:', error);
-        document.getElementById('decisionsContainer').innerHTML = `<div class="error">Error al cargar decisiones: ${error.message}</div>`;
-      }
-    }
-
-    function displayDecisions() {
-      const container = document.getElementById('decisionsContainer');
-
-      let filtered = allDecisions;
-      if (currentTab !== 'all') {
-        filtered = allDecisions.filter(d => d.status === currentTab);
-      }
-
-      if (filtered.length === 0) {
-        container.innerHTML = `
-          <div style="grid-column: 1 / -1;">
-            <div class="empty-state">
-              <div class="empty-state-emoji">📝</div>
-              <p>Aún no hay decisiones registradas</p>
-            </div>
-          </div>
-        `;
-        return;
-      }
-
-      container.innerHTML = filtered.map(decision => `
-        <div class="decision-card ${decision.status}">
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
-            <div class="decision-area">${decision.area}</div>
-            <span class="decision-status ${decision.status}">${decision.status}</span>
-          </div>
-
-          <h3 class="decision-title">${decision.title}</h3>
-
-          <p style="font-size: 13px; color: #718096; margin: 14px 0; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-            ${decision.context}
-          </p>
-
-          <div class="decision-date">Creada ${new Date(decision.created_at).toLocaleDateString('es-ES')}</div>
-
-          <div class="decision-buttons" style="margin-top: 16px; display: grid; grid-template-columns: 2fr 1fr; gap: 8px;">
-            ${decision.status === 'decided' && !decision.outcome_real ?
-              `<button onclick="openOutcomeModal(${decision.id}, '${decision.title.replace(/'/g, "\\'")}', '${(decision.expected_outcome || '').replace(/'/g, "\\'")}')" class="btn btn-primary" style="margin-bottom: 0;">🎯 Registrar resultado</button>` :
-              `<button onclick="analyzeDecision(${decision.id}, 'analyze')" class="btn btn-primary" style="margin-bottom: 0;">📊 Analizar</button>`
-            }
-            <div style="display: flex; gap: 4px;">
-              ${decision.outcome_real ?
-                `<button onclick="viewOutcomeComparison(${decision.id})" class="btn btn-secondary" style="flex: 1; font-size: 12px; padding: 10px 8px; margin-bottom: 0;" title="Ver resultado">📋</button>` :
-                `<button onclick="analyzeDecision(${decision.id}, 'counterargument')" class="btn btn-secondary" style="flex: 1; font-size: 12px; padding: 10px 8px; margin-bottom: 0;" title="Contraargumentos">⚠️</button>`
-              }
-              <button onclick="analyzeDecision(${decision.id}, 'premortem')" class="btn btn-secondary" style="flex: 1; font-size: 12px; padding: 10px 8px; margin-bottom: 0;" title="Escenarios de fracaso">💥</button>
-              <button onclick="analyzeDecision(${decision.id}, 'synthesize-full')" class="btn btn-secondary" style="flex: 1; font-size: 12px; padding: 10px 8px; margin-bottom: 0;" title="Síntesis">✨</button>
-            </div>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    async function handleSubmitDecision(e) {
-      e.preventDefault();
-
-      const decision = {
-        title: document.getElementById('decisionTitle').value,
-        context: document.getElementById('decisionContext').value,
-        area: document.getElementById('decisionArea').value,
-        decision_type: document.getElementById('decisionType').value,
-        conviction: parseInt(document.getElementById('decisionConviction').value)
-      };
-
-      try {
-        const response = await authenticatedFetch(`${API_URL}/decisions`, {
-          method: 'POST',
-          body: JSON.stringify(decision)
-        });
-
-        if (!response.ok) throw new Error('Error al registrar decisión');
-
-        // Cerrar modal
-        document.getElementById('registerModal').classList.remove('active');
-
-        // Reset form
-        document.getElementById('decisionForm').reset();
-        document.getElementById('convictionValue').textContent = '5';
-
-        // Reload decisiones
-        loadDecisions();
-
-        // Scroll automático a la sección de decisiones
-        setTimeout(() => {
-          document.querySelector('.decisions-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 300);
-      } catch (error) {
-        alert(`Error: ${error.message}`);
-      }
-    }
-
-    function filterByArea(area) {
-      const filtered = allDecisions.filter(d => d.area === area);
-      const container = document.getElementById('decisionsContainer');
-
-      if (filtered.length === 0) {
-        container.innerHTML = `
-          <div style="grid-column: 1 / -1;">
-            <div class="empty-state">
-              <div class="empty-state-emoji">🔍</div>
-              <p>No hay decisiones en esta área</p>
-            </div>
-          </div>
-        `;
-        return;
-      }
-
-      container.innerHTML = filtered.map(decision => `
-        <div class="decision-card ${decision.status}">
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
-            <div class="decision-area">${decision.area}</div>
-            <span class="decision-status ${decision.status}">${decision.status}</span>
-          </div>
-
-          <h3 class="decision-title">${decision.title}</h3>
-
-          <p style="font-size: 13px; color: #718096; margin: 14px 0; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-            ${decision.context}
-          </p>
-
-          <div class="decision-date">Creada ${new Date(decision.created_at).toLocaleDateString('es-ES')}</div>
-
-          <div class="decision-buttons" style="margin-top: 16px; display: grid; grid-template-columns: 2fr 1fr; gap: 8px;">
-            ${decision.status === 'decided' && !decision.outcome_real ?
-              `<button onclick="openOutcomeModal(${decision.id}, '${decision.title.replace(/'/g, "\\'")}', '${(decision.expected_outcome || '').replace(/'/g, "\\'")}')" class="btn btn-primary" style="margin-bottom: 0;">🎯 Registrar resultado</button>` :
-              `<button onclick="analyzeDecision(${decision.id}, 'analyze')" class="btn btn-primary" style="margin-bottom: 0;">📊 Analizar</button>`
-            }
-            <div style="display: flex; gap: 4px;">
-              ${decision.outcome_real ?
-                `<button onclick="viewOutcomeComparison(${decision.id})" class="btn btn-secondary" style="flex: 1; font-size: 12px; padding: 10px 8px; margin-bottom: 0;" title="Ver resultado">📋</button>` :
-                `<button onclick="analyzeDecision(${decision.id}, 'counterargument')" class="btn btn-secondary" style="flex: 1; font-size: 12px; padding: 10px 8px; margin-bottom: 0;" title="Contraargumentos">⚠️</button>`
-              }
-              <button onclick="analyzeDecision(${decision.id}, 'premortem')" class="btn btn-secondary" style="flex: 1; font-size: 12px; padding: 10px 8px; margin-bottom: 0;" title="Escenarios de fracaso">💥</button>
-              <button onclick="analyzeDecision(${decision.id}, 'synthesize-full')" class="btn btn-secondary" style="flex: 1; font-size: 12px; padding: 10px 8px; margin-bottom: 0;" title="Síntesis">✨</button>
-            </div>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    async function analyzeDecision(decisionId, analysisType) {
-      const modal = document.getElementById('detailModal');
-      const contentDiv = document.getElementById('detailContent');
-
-      const titles = {
-        analyze: '📊 Análisis Profundo',
-        counterargument: '⚠️ ¿Qué podría salir mal?',
-        premortem: '💥 Escenarios de fracaso',
-        'synthesize-full': '✨ Lo más importante',
-        review: '🔍 Revisión de Resultado',
-        patterns: '📈 Patrones Detectados'
-      };
-
-      contentDiv.innerHTML = `
-        <button class="modal-close" onclick="closeDetail()">&times;</button>
-        <div class="analysis-header">
-          <h2>${titles[analysisType]}</h2>
-          <p class="analysis-subtitle">Analizando tu decisión...</p>
-        </div>
-        <div class="analysis-loading">
-          <div class="spinner"></div>
-          <p>Procesando con IA...</p>
-        </div>
-      `;
-      modal.classList.add('active');
-
-      try {
-        let endpoint = `${API_URL}/decisions/${decisionId}/${analysisType}`;
-        const response = await authenticatedFetch(endpoint, { method: 'POST' });
-
-        if (!response.ok) throw new Error('Error en análisis');
-
-        const result = await response.json();
-        const formattedAnalysis = formatAnalysisOutput(result.analysis, analysisType);
-
-        contentDiv.innerHTML = `
-          <button class="modal-close" onclick="closeDetail()">&times;</button>
-          <div class="analysis-header">
-            <h2>${titles[analysisType]}</h2>
-            <p class="analysis-subtitle">Análisis basado en tu contexto personal</p>
-          </div>
-          <div class="analysis-box">
-            <div class="analysis-content">
-              ${formattedAnalysis}
-            </div>
-          </div>
-        `;
-      } catch (error) {
-        contentDiv.innerHTML = `
-          <button class="modal-close" onclick="closeDetail()">&times;</button>
-          <div class="error">Error: ${error.message}</div>
-        `;
-      }
-    }
-
-    function formatAnalysisOutput(text, analysisType) {
-      let html = text;
-
-      // Handle markdown headers (##, ###)
-      html = html.replace(/^### (.+)$/gm, '<div class="analysis-section"><div class="analysis-section-title">$1</div><div class="analysis-section-content">');
-      html = html.replace(/^## (.+)$/gm, '<div class="analysis-section"><div class="analysis-section-title">$1</div><div class="analysis-section-content">');
-
-      // Convert numbered items to sections
-      html = html.replace(/^(\d+\.\s+)(.+?)(?=(?:^\d+\.|$))/gm, (match, num, content) => {
-        const lines = content.split('\n');
-        const title = lines[0].trim().replace(/^[^:]+:\s*/, '');
-        const rest = lines.slice(1).join('\n').trim();
-        return `
-          <div class="analysis-section">
-            <div class="analysis-section-title">${title}</div>
-            <div class="analysis-section-content">${processContent(rest)}</div>
-          </div>
-        `;
-      });
-
-      // Process content and close sections
-      if (!html.includes('analysis-section')) {
-        html = html.split('\n\n').map(paragraph => {
-          if (!paragraph.trim()) return '';
-          return `<p>${processContent(paragraph)}</p>`;
-        }).join('');
-      } else {
-        html = html.replace(/<\/div><\/div>$/gm, '</div></div>');
-      }
-
-      // Highlight key terms
-      const keywords = ['gap', 'sesgo', 'riesgo', 'fortaleza', 'oportunidad', 'amenaza', 'falla', 'éxito', 'fracaso', 'crítico', 'importante', 'clave', 'fundamental', 'problema', 'solución', 'recomendación', 'lagunas', 'sesgos', 'riesgos'];
-      keywords.forEach(keyword => {
-        const regex = new RegExp(`\\b(${keyword})\\b`, 'gi');
-        html = html.replace(regex, '<strong style="color: #667eea; font-weight: 600;">$1</strong>');
-      });
-
-      return html;
-
-      function processContent(text) {
-        let processed = text.replace(/\n/g, '<br>');
-
-        // Bold lines ending with colon
-        processed = processed.replace(/^([^:\n]+):\s*/gm, '<strong>$1:</strong> ');
-
-        // Convert bullet points
-        if (processed.match(/[-•]/)) {
-          const items = processed.split('<br>').filter(l => l.trim());
-          if (items.some(l => l.match(/^[-•]/))) {
-            processed = '<ul class="analysis-list">' + items.map(item => {
-              const cleaned = item.replace(/^[-•]\s*/, '').trim();
-              return cleaned ? `<li>${cleaned}</li>` : '';
-            }).filter(l => l).join('') + '</ul>';
-          }
-        }
-
-        return processed;
-      }
-    }
-
-    function closeDetail() {
-      document.getElementById('detailModal').classList.remove('active');
-    }
-
-    async function openPatterns() {
-      const modal = document.getElementById('detailModal');
-      const contentDiv = document.getElementById('detailContent');
-
-      contentDiv.innerHTML = `
-        <button class="modal-close" onclick="closeDetail()">&times;</button>
-        <div class="analysis-header">
-          <h2>📈 Tus patrones de decisión</h2>
-          <p class="analysis-subtitle">Analizando patrones...</p>
-        </div>
-        <div class="analysis-loading">
-          <div class="spinner"></div>
-          <p>Analizando decisiones...</p>
-        </div>
-      `;
-
-      modal.classList.add('active');
-
-      try {
-        const response = await authenticatedFetch(`${API_URL}/patterns`, { method: 'GET' });
-        if (!response.ok) throw new Error('Error en análisis de patrones');
-
-        const result = await response.json();
-        const formattedAnalysis = formatAnalysisOutput(result.analysis, 'patterns');
-
-        contentDiv.innerHTML = `
-          <button class="modal-close" onclick="closeDetail()">&times;</button>
-          <div class="analysis-header">
-            <h2>📈 Tus patrones de decisión</h2>
-            <p class="analysis-subtitle">Análisis de las últimas ${result.decision_count} decisiones</p>
-          </div>
-
-          <div class="analysis-box">
-            <div class="analysis-content">
-              ${formattedAnalysis}
-            </div>
-          </div>
-
-          <div style="margin-top: 28px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-            <p style="font-size: 13px; color: #a0aec0;">💡 Los patrones se actualizan automáticamente conforme registras decisiones.</p>
-          </div>
-        `;
-      } catch (error) {
-        contentDiv.innerHTML = `
-          <button class="modal-close" onclick="closeDetail()">&times;</button>
-          <div class="error">Error: ${error.message}</div>
-        `;
-      }
-    }
-
-    // ============================================================================
-    // IDEAS FUNCTIONS
-    // ============================================================================
-
-    function openIdeaModal() {
-      document.getElementById('ideaModal').classList.add('active');
-    }
-
-    async function handleSubmitIdea(e) {
-      e.preventDefault();
-
-      const tagsInput = document.getElementById('ideaTags').value;
-      const tags = tagsInput
-        .split(',')
-        .map(tag => tag.trim())
-        .filter(tag => tag.length > 0);
-
-      const idea = {
-        title: document.getElementById('ideaTitle').value,
-        content: document.getElementById('ideaContent').value,
-        thought_type: document.getElementById('ideaType').value,
-        area: null,
-        tags: tags
-      };
-
-      try {
-        const response = await authenticatedFetch(`${API_URL}/thoughts`, {
-          method: 'POST',
-          body: JSON.stringify(idea)
-        });
-
-        if (!response.ok) throw new Error('Error al guardar idea');
-
-        // Close modal
-        document.getElementById('ideaModal').classList.remove('active');
-
-        // Reset form
-        document.getElementById('ideaForm').reset();
-
-        // Reload ideas
-        loadIdeas();
-      } catch (error) {
-        alert(`Error: ${error.message}`);
-      }
-    }
-
-    // ===== OUTCOME FUNCTIONS =====
-    function openOutcomeModal(decisionId, title, expectedOutcome) {
-      const modal = document.getElementById('outcomeModal');
-      const subtitle = document.getElementById('outcomeSubtitle');
-      const expectedDisplay = document.getElementById('expectedOutcomeDisplay');
-
-      // Store decision ID for form submission
-      document.getElementById('outcomeForm').dataset.decisionId = decisionId;
-
-      // Update modal content
-      subtitle.textContent = `"${title}"`;
-      expectedDisplay.textContent = expectedOutcome || '(No se especificó resultado esperado)';
-
-      // Clear form
-      document.getElementById('outcomeReal').value = '';
-      document.getElementById('learningsInput').value = '';
-      document.getElementById('outcomeStatus').value = 'completed';
-
-      modal.classList.add('active');
-    }
-
-    async function handleSubmitOutcome(e) {
-      e.preventDefault();
-
-      const decisionId = parseInt(document.getElementById('outcomeForm').dataset.decisionId);
-      const learningsText = document.getElementById('learningsInput').value;
-      const learnings = learningsText
-        .split('\n')
-        .map(l => l.trim())
-        .filter(l => l.length > 0);
-
-      const outcome = {
-        outcome_real: document.getElementById('outcomeReal').value,
-        learnings: learnings,
-        status: document.getElementById('outcomeStatus').value
-      };
-
-      try {
-        const response = await authenticatedFetch(`${API_URL}/decisions/${decisionId}/outcome`, {
-          method: 'POST',
-          body: JSON.stringify(outcome)
-        });
-
-        if (!response.ok) throw new Error('Error al registrar resultado');
-
-        // Close modal
-        document.getElementById('outcomeModal').classList.remove('active');
-
-        // Reload decisions
-        loadDecisions();
-
-        // Optional: Show confirmation
-        setTimeout(() => {
-          alert('✓ Resultado registrado exitosamente');
-        }, 300);
-      } catch (error) {
-        alert(`Error: ${error.message}`);
-      }
-    }
-
-    async function viewOutcomeComparison(decisionId) {
-      try {
-        const response = await authenticatedFetch(`${API_URL}/decisions/${decisionId}/outcome`);
-        if (!response.ok) throw new Error('Error al cargar comparación');
-
-        const data = await response.json();
-        showOutcomeComparisonModal(data);
-      } catch (error) {
-        alert(`Error: ${error.message}`);
-      }
-    }
-
-    function showOutcomeComparisonModal(data) {
-      const modal = document.getElementById('detailModal');
-      const contentDiv = document.getElementById('detailContent');
-
-      let accuracyIndicator = '';
-      if (data.accuracy === 'accurate') {
-        accuracyIndicator = '<span style="color: #22543d; background: #f0fff4; padding: 6px 12px; border-radius: 6px; display: inline-block; font-weight: 600;">✓ Acertado</span>';
-      } else if (data.accuracy === 'partial') {
-        accuracyIndicator = '<span style="color: #c05621; background: #fffbf0; padding: 6px 12px; border-radius: 6px; display: inline-block; font-weight: 600;">⚡ Parcial</span>';
-      } else if (data.accuracy === 'inaccurate') {
-        accuracyIndicator = '<span style="color: #742a2a; background: #fff5f5; padding: 6px 12px; border-radius: 6px; display: inline-block; font-weight: 600;">✗ No acertado</span>';
-      }
-
-      let learningsHtml = '';
-      if (data.learnings && data.learnings.length > 0) {
-        learningsHtml = `
-          <div class="analysis-section">
-            <div class="analysis-section-title">🎓 Aprendizajes</div>
-            <div class="analysis-section-content">
-              <ul style="list-style: none; padding: 0; margin: 0;">
-                ${data.learnings.map(l => `<li style="padding: 8px 0; border-bottom: 1px solid #edf2f7; color: #4a5568;">• ${l}</li>`).join('')}
-              </ul>
-            </div>
-          </div>
-        `;
-      }
-
-      contentDiv.innerHTML = `
-        <button class="modal-close" onclick="closeDetail()">&times;</button>
-        <div class="analysis-header">
-          <h2>${data.title}</h2>
-          <p class="analysis-subtitle">Comparación: Esperado vs Real</p>
-        </div>
-        <div class="analysis-box">
-          <div class="analysis-content">
-            <div class="analysis-section">
-              <div class="analysis-section-title">💭 Lo que esperabas</div>
-              <div class="analysis-section-content" style="background: #ebf8ff; padding: 14px; border-radius: 8px; border-left: 4px solid #667eea; color: #2c5aa0;">
-                ${data.expected_outcome || '(No especificado)'}
-              </div>
-            </div>
-
-            <div class="analysis-section">
-              <div class="analysis-section-title">🎯 Lo que pasó realmente</div>
-              <div class="analysis-section-content" style="background: #f7fafc; padding: 14px; border-radius: 8px; border-left: 4px solid #a0aec0; color: #4a5568;">
-                ${data.outcome_real || '(No registrado)'}
-              </div>
-            </div>
-
-            <div class="analysis-section">
-              <div class="analysis-section-title">Precisión de predicción</div>
-              <div class="analysis-section-content">
-                ${accuracyIndicator}
-              </div>
-            </div>
-
-            ${learningsHtml}
-          </div>
-        </div>
-      `;
-
-      modal.classList.add('active');
-    }
-
-    // ===== PATTERNS FUNCTIONS =====
-    async function loadAndShowPatterns() {
-      const modal = document.getElementById('patternsModal');
-      const contentDiv = document.getElementById('patternsContent');
-
-      modal.classList.add('active');
-
-      try {
-        const response = await authenticatedFetch(`${API_URL}/patterns`);
-        if (!response.ok) throw new Error('Error al cargar patrones');
-
-        const data = await response.json();
-        displayPatterns(data);
-      } catch (error) {
-        contentDiv.innerHTML = `<div class="error">Error al analizar patrones: ${error.message}</div>`;
-      }
-    }
-
-    function displayPatterns(data) {
-      const contentDiv = document.getElementById('patternsContent');
-
-      // Build recommendations HTML
-      let recommendationsHtml = '';
-      if (data.recommendations && data.recommendations.length > 0) {
-        recommendationsHtml = `
-          <div class="analysis-section">
-            <div class="analysis-section-title">💡 Recomendaciones</div>
-            <div class="analysis-section-content">
-              <ul style="list-style: none; padding: 0; margin: 0;">
-                ${data.recommendations.map(r => `<li style="padding: 10px 0; border-bottom: 1px solid #edf2f7; color: #4a5568;">→ ${r}</li>`).join('')}
-              </ul>
-            </div>
-          </div>
-        `;
-      }
-
-      // Build biases HTML
-      let biasesHtml = '';
-      if (data.biases_detected && data.biases_detected.length > 0) {
-        biasesHtml = `
-          <div class="analysis-section">
-            <div class="analysis-section-title">⚠️ Sesgos Detectados</div>
-            <div class="analysis-section-content">
-              <ul style="list-style: none; padding: 0; margin: 0;">
-                ${data.biases_detected.map(b => `<li style="padding: 10px 0; border-bottom: 1px solid #fef2f2; color: #742a2a;">✗ ${b}</li>`).join('')}
-              </ul>
-            </div>
-          </div>
-        `;
-      }
-
-      // Build strengths HTML
-      let strengthsHtml = '';
-      if (data.strengths && data.strengths.length > 0) {
-        strengthsHtml = `
-          <div class="analysis-section">
-            <div class="analysis-section-title">💪 Fortalezas</div>
-            <div class="analysis-section-content">
-              <ul style="list-style: none; padding: 0; margin: 0;">
-                ${data.strengths.map(s => `<li style="padding: 10px 0; border-bottom: 1px solid #f0fff4; color: #22543d;">✓ ${s}</li>`).join('')}
-              </ul>
-            </div>
-          </div>
-        `;
-      }
-
-      // Build summary stats
-      const accuracyPercent = (data.accuracy_rate * 100).toFixed(0);
-      const statsHtml = `
-        <div class="analysis-section">
-          <div class="analysis-section-title">📊 Estadísticas</div>
-          <div class="analysis-section-content">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-              <div style="padding: 16px; background: #ebf8ff; border-radius: 8px; text-align: center;">
-                <div style="font-size: 28px; font-weight: 700; color: #2c5aa0;">${data.total_decisions}</div>
-                <div style="font-size: 12px; color: #4a5568; margin-top: 4px;">Decisiones totales</div>
-              </div>
-              <div style="padding: 16px; background: #f0fff4; border-radius: 8px; text-align: center;">
-                <div style="font-size: 28px; font-weight: 700; color: #22543d;">${accuracyPercent}%</div>
-                <div style="font-size: 12px; color: #4a5568; margin-top: 4px;">Tasa de acierto</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
-
-      contentDiv.innerHTML = `
-        ${statsHtml}
-        ${strengthsHtml}
-        ${biasesHtml}
-        <div class="analysis-section">
-          <div class="analysis-section-title">🔍 Análisis Completo</div>
-          <div class="analysis-section-content" style="background: #f7fafc; padding: 16px; border-radius: 8px; white-space: pre-wrap; font-size: 13px; line-height: 1.6; color: #4a5568;">
-${data.analysis_text}
-          </div>
-        </div>
-        ${recommendationsHtml}
-      `;
-    }
-
-    async function loadIdeas() {
-      try {
-        const response = await authenticatedFetch(`${API_URL}/thoughts`);
-        if (!response.ok) throw new Error('Error al cargar ideas');
-
-        const result = await response.json();
-        allIdeas = result.thoughts || [];
-        displayIdeas('all');
-      } catch (error) {
-        console.error('Error:', error);
-        document.getElementById('ideasContainer').innerHTML = `<div class="error">Error al cargar ideas: ${error.message}</div>`;
-      }
-    }
-
-    function displayIdeas(typeFilter = 'all') {
-      const container = document.getElementById('ideasContainer');
-
-      let filtered = allIdeas;
-      if (typeFilter !== 'all') {
-        filtered = allIdeas.filter(idea => idea.type === typeFilter);
-      }
-
-      if (filtered.length === 0) {
-        container.innerHTML = `
-          <div style="text-align: center; padding: 40px 20px;">
-            <div style="font-size: 40px; margin-bottom: 12px;">💭</div>
-            <p style="color: #a0aec0; margin: 0;">Aún no hay ideas. ¡Crea una para empezar!</p>
-          </div>
-        `;
-        return;
-      }
-
-      container.innerHTML = filtered.map(idea => `
-        <div class="idea-card">
-          <div style="display: flex; justify-content: space-between; align-items: start;">
-            <div style="flex: 1;">
-              <span class="idea-type ${idea.type}">${idea.type}</span>
-              <h3 class="idea-title">${idea.title}</h3>
-              <p class="idea-content">${idea.content}</p>
-              ${idea.tags && idea.tags.length > 0 ? `
-                <div style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px;">
-                  ${idea.tags.map(tag => `<span style="display: inline-block; padding: 4px 8px; background: #f0f4ff; color: #667eea; border-radius: 4px; font-size: 11px; font-weight: 600;">#${tag}</span>`).join('')}
-                </div>
-              ` : ''}
-              <div class="idea-date">Creada ${new Date(idea.created_at).toLocaleDateString('es-ES')}</div>
-            </div>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    // Setup idea filter buttons
-    function setupIdeaFilters() {
+      // Idea filters
       document.querySelectorAll('.idea-filter-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
+        btn.addEventListener('click', () => {
           document.querySelectorAll('.idea-filter-btn').forEach(b => b.classList.remove('active'));
-          e.target.classList.add('active');
-          const typeFilter = e.target.dataset.type;
-          displayIdeas(typeFilter);
+          btn.classList.add('active');
+          displayIdeas(btn.dataset.type);
         });
       });
     }
-
-    let allIdeas = [];
-
-    // Initialize ideas on DOMContentLoaded
-    document.addEventListener('DOMContentLoaded', () => {
-      // Existing initialization...
-      setupIdeaFilters();
-
-      // Note: idea area select removed - ideas don't need area assignment
-      // Areas are only for decisions
-    });
-
-    // Load ideas when page initializes
-    setTimeout(() => loadIdeas(), 1000);
-
-    // ============================================================================
-    // CONNECTIONS FUNCTIONS
-    // ============================================================================
-
-    let allConnections = [];
-
-    function openConnectionModal() {
-      document.getElementById('connectionModal').classList.add('active');
-      loadSourceItems();
-      loadTargetItems();
-    }
-
-    async function loadSourceItems() {
-      const type = document.getElementById('sourceType').value;
-      const select = document.getElementById('sourceId');
-      select.innerHTML = '<option value="">Selecciona...</option>';
-
-      if (type === 'idea') {
-        allIdeas.forEach(idea => {
-          const option = document.createElement('option');
-          option.value = idea.id;
-          option.textContent = `💡 ${idea.title}`;
-          select.appendChild(option);
-        });
-      } else {
-        allDecisions.forEach(decision => {
-          const option = document.createElement('option');
-          option.value = decision.id;
-          option.textContent = `📊 ${decision.title}`;
-          select.appendChild(option);
-        });
-      }
-    }
-
-    async function loadTargetItems() {
-      const type = document.getElementById('targetType').value;
-      const select = document.getElementById('targetId');
-      select.innerHTML = '<option value="">Selecciona...</option>';
-
-      if (type === 'idea') {
-        allIdeas.forEach(idea => {
-          const option = document.createElement('option');
-          option.value = idea.id;
-          option.textContent = `💡 ${idea.title}`;
-          select.appendChild(option);
-        });
-      } else {
-        allDecisions.forEach(decision => {
-          const option = document.createElement('option');
-          option.value = decision.id;
-          option.textContent = `📊 ${decision.title}`;
-          select.appendChild(option);
-        });
-      }
-    }
-
-    async function handleSubmitConnection(e) {
-      e.preventDefault();
-
-      const connection = {
-        source_type: document.getElementById('sourceType').value,
-        source_id: parseInt(document.getElementById('sourceId').value),
-        target_type: document.getElementById('targetType').value,
-        target_id: parseInt(document.getElementById('targetId').value),
-        relationship: document.getElementById('relationshipType').value,
-        reason: document.getElementById('connectionReason').value || null
-      };
-
-      try {
-        const response = await authenticatedFetch(`${API_URL}/connections`, {
-          method: 'POST',
-          body: JSON.stringify(connection)
-        });
-
-        if (!response.ok) throw new Error('Error al crear conexión');
-
-        // Close modal
-        document.getElementById('connectionModal').classList.remove('active');
-
-        // Reset form
-        document.getElementById('connectionForm').reset();
-
-        // Reload connections
-        loadConnections();
-      } catch (error) {
-        alert(`Error: ${error.message}`);
-      }
-    }
-
-    async function loadConnections() {
-      try {
-        const response = await authenticatedFetch(`${API_URL}/connections`);
-        if (!response.ok) throw new Error('Error al cargar conexiones');
-
-        const result = await response.json();
-        allConnections = result.connections || [];
-        displayConnections();
-      } catch (error) {
-        console.error('Error:', error);
-        document.getElementById('connectionsContainer').innerHTML = `<div class="error">Error al cargar conexiones: ${error.message}</div>`;
-      }
-    }
-
-    function getItemTitle(type, id) {
-      if (type === 'idea') {
-        const idea = allIdeas.find(i => i.id === id);
-        return idea ? idea.title : `Idea #${id}`;
-      } else {
-        const decision = allDecisions.find(d => d.id === id);
-        return decision ? decision.title : `Decisión #${id}`;
-      }
-    }
-
-    function getItemEmoji(type) {
-      return type === 'idea' ? '💡' : '📊';
-    }
-
-    function displayConnections() {
-      const container = document.getElementById('connectionsContainer');
-
-      if (allConnections.length === 0) {
-        container.innerHTML = `
-          <div style="text-align: center; padding: 40px 20px;">
-            <div style="font-size: 40px; margin-bottom: 12px;">🔗</div>
-            <p style="color: #a0aec0; margin: 0;">Aún no hay conexiones. ¡Crea una para empezar a tejer tu red de pensamiento!</p>
-          </div>
-        `;
-        return;
-      }
-
-      const relationshipLabels = {
-        'relates_to': 'Se relaciona con',
-        'evolves_from': 'Evoluciona de',
-        'supports': 'Apoya',
-        'contradicts': 'Contradice',
-        'questions': 'Cuestiona'
-      };
-
-      container.innerHTML = allConnections.map(conn => `
-        <div class="connection-item">
-          <div>
-            <span class="connection-source">${getItemEmoji(conn.source.type)} ${getItemTitle(conn.source.type, conn.source.id)}</span>
-            <span class="connection-arrow">→</span>
-            <span class="connection-type">${relationshipLabels[conn.relationship]}</span>
-            <br>
-            <span class="connection-source">${getItemEmoji(conn.target.type)} ${getItemTitle(conn.target.type, conn.target.id)}</span>
-          </div>
-          ${conn.reason ? `<div class="connection-reason">💬 ${conn.reason}</div>` : ''}
-        </div>
-      `).join('');
-    }
-
-    // Load reminders
-    async function loadReminders() {
-      try {
-        const response = await authenticatedFetch(`${API_URL}/reminders?status=pending`);
-        if (!response.ok) throw new Error('Error al cargar recordatorios');
-
-        const result = await response.json();
-        const reminders = result.reminders || [];
-        displayReminders(reminders);
-      } catch (error) {
-        console.error('Error:', error);
-        document.getElementById('remindersContainer').innerHTML = `<div class="error">Error al cargar recordatorios: ${error.message}</div>`;
-      }
-    }
-
-    function displayReminders(reminders) {
-      const container = document.getElementById('remindersContainer');
-
-      if (reminders.length === 0) {
-        container.innerHTML = `
-          <div style="text-align: center; padding: 40px 20px;">
-            <div style="font-size: 40px; margin-bottom: 12px;">⏰</div>
-            <p style="color: #a0aec0; margin: 0;">No hay recordatorios pendientes. ¡Crea uno para revisar tus decisiones en el futuro!</p>
-          </div>
-        `;
-        return;
-      }
-
-      container.innerHTML = reminders.map(reminder => {
-        const date = new Date(reminder.reminder_date);
-        const dateStr = date.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
-
-        return `
-          <div class="reminder-card">
-            <div class="reminder-date">📅 ${dateStr}</div>
-            <div class="reminder-message">${reminder.message}</div>
-            <span class="reminder-status">${reminder.reminder_type}</span>
-            <button onclick="completeReminder(${reminder.id})" style="margin-top: 10px; padding: 6px 12px; background: #48bb78; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px;">✓ Completada</button>
-          </div>
-        `;
-      }).join('');
-    }
-
-    async function completeReminder(reminderId) {
-      try {
-        const response = await authenticatedFetch(
-          `${API_URL}/reminders/${reminderId}/complete`,
-          { method: 'PATCH' }
-        );
-        if (!response.ok) throw new Error('Error al marcar recordatorio');
-
-        loadReminders();
-      } catch (error) {
-        alert(`Error: ${error.message}`);
-      }
-    }
-
-    // Load metrics
-    async function loadMetrics() {
-      try {
-        const response = await authenticatedFetch(`${API_URL}/metrics`);
-        if (!response.ok) throw new Error('Error al cargar métricas');
-
-        const result = await response.json();
-        displayMetrics(result);
-      } catch (error) {
-        console.error('Error:', error);
-        document.getElementById('metricsContainer').innerHTML = `<div class="error">Error al cargar métricas: ${error.message}</div>`;
-      }
-    }
-
-    function displayMetrics(metrics) {
-      const container = document.getElementById('metricsContainer');
-
-      const metricsHTML = `
-        <div class="metric-card">
-          <div class="metric-label">Total de decisiones</div>
-          <div class="metric-value">${metrics.total_decisions}</div>
-          <div class="metric-subtext">Decisiones documentadas</div>
-        </div>
-
-        <div class="metric-card">
-          <div class="metric-label">Completadas</div>
-          <div class="metric-value">${metrics.completed}</div>
-          <div class="metric-subtext">${metrics.completion_rate}% del total</div>
-        </div>
-
-        <div class="metric-card">
-          <div class="metric-label">Con resultados</div>
-          <div class="metric-value">${metrics.with_outcomes}</div>
-          <div class="metric-subtext">Decisiones revisadas</div>
-        </div>
-
-        ${metrics.conviction_accuracy !== null ? `
-        <div class="metric-card">
-          <div class="metric-label">Precisión de convicción</div>
-          <div class="metric-value">${metrics.conviction_accuracy}%</div>
-          <div class="metric-subtext">Decisiones altas que salieron bien</div>
-        </div>
-        ` : ''}
-
-        <div class="metric-card">
-          <div class="metric-label">Recordatorios pendientes</div>
-          <div class="metric-value">${metrics.pending_reminders}</div>
-          <div class="metric-subtext">Awaiting review</div>
-        </div>
-
-        ${Object.keys(metrics.decisions_by_area).length > 0 ? `
-        <div class="metric-card" style="grid-column: span 2;">
-          <div class="metric-label">Decisiones por área</div>
-          <div style="margin-top: 12px;">
-            ${Object.entries(metrics.decisions_by_area).map(([area, count]) => `
-              <div style="padding: 8px 0; border-bottom: 1px solid rgba(102, 126, 234, 0.1); display: flex; justify-content: space-between;">
-                <span style="color: #2d3748;">${area}</span>
-                <span style="color: #667eea; font-weight: 700;">${count}</span>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-        ` : ''}
-      `;
-
-      container.innerHTML = metricsHTML;
-    }
-
-    // Load connections when page initializes
-    setTimeout(() => {
-      loadConnections();
-      loadReminders();
-      loadMetrics();
-    }, 1500);
   </script>
 </body>
 </html>

@@ -1,303 +1,257 @@
 """
-AI Service for Cognitive OS - Analysis and reasoning
+AI Service for Cognitive OS — Model-agnostic analysis engine.
+
+Provider adapter pattern: swap models without changing business logic.
+Supported providers: anthropic, openai, ollama (add more easily).
 """
 
 import os
-import json
-
-# Try to import Claude SDK
-try:
-    import anthropic
-    CLAUDE_AVAILABLE = True
-except ImportError:
-    CLAUDE_AVAILABLE = False
-    print("⚠️  Claude SDK not installed. Install with: pip install anthropic")
 
 
-class AIAnalyzer:
-    """Handles AI-powered analysis of decisions"""
+# ============================================================================
+# PROVIDER ADAPTERS
+# ============================================================================
+
+class BaseProvider:
+    """Interface for AI providers. Implement this to add a new model."""
+
+    def complete(self, prompt: str, max_tokens: int = 1024) -> str:
+        raise NotImplementedError
+
+
+class AnthropicProvider(BaseProvider):
+    """Claude via Anthropic API."""
 
     def __init__(self):
-        self.api_key = os.getenv('ANTHROPIC_API_KEY')
-        self.model = "claude-opus-4-1"  # Modelo más reciente y estable
-        self.client = anthropic.Anthropic(api_key=self.api_key) if CLAUDE_AVAILABLE and self.api_key else None
+        try:
+            import anthropic
+            api_key = os.getenv('ANTHROPIC_API_KEY')
+            self.client = anthropic.Anthropic(api_key=api_key) if api_key else None
+            self.model = os.getenv('AI_MODEL', 'claude-sonnet-4-20250514')
+        except ImportError:
+            self.client = None
+            print("⚠️  anthropic not installed. pip install anthropic")
+
+    def complete(self, prompt: str, max_tokens: int = 1024) -> str:
+        if not self.client:
+            return None
+        response = self.client.messages.create(
+            model=self.model,
+            max_tokens=max_tokens,
+            messages=[{"role": "user", "content": prompt}]
+        )
+        return response.content[0].text
+
+
+class OpenAIProvider(BaseProvider):
+    """GPT via OpenAI API."""
+
+    def __init__(self):
+        try:
+            import openai
+            api_key = os.getenv('OPENAI_API_KEY')
+            self.client = openai.OpenAI(api_key=api_key) if api_key else None
+            self.model = os.getenv('AI_MODEL', 'gpt-4o')
+        except ImportError:
+            self.client = None
+
+    def complete(self, prompt: str, max_tokens: int = 1024) -> str:
+        if not self.client:
+            return None
+        response = self.client.chat.completions.create(
+            model=self.model,
+            max_tokens=max_tokens,
+            messages=[{"role": "user", "content": prompt}]
+        )
+        return response.choices[0].message.content
+
+
+class OllamaProvider(BaseProvider):
+    """Local models via Ollama."""
+
+    def __init__(self):
+        self.base_url = os.getenv('OLLAMA_URL', 'http://localhost:11434')
+        self.model = os.getenv('AI_MODEL', 'llama3')
+
+    def complete(self, prompt: str, max_tokens: int = 1024) -> str:
+        try:
+            import requests
+            response = requests.post(
+                f"{self.base_url}/api/generate",
+                json={"model": self.model, "prompt": prompt, "stream": False}
+            )
+            return response.json().get("response", None)
+        except Exception:
+            return None
+
+
+def get_provider() -> BaseProvider:
+    """
+    Select AI provider based on AI_PROVIDER env var.
+    Default: anthropic. Options: anthropic, openai, ollama.
+    """
+    provider_name = os.getenv('AI_PROVIDER', 'anthropic').lower()
+
+    providers = {
+        'anthropic': AnthropicProvider,
+        'openai': OpenAIProvider,
+        'ollama': OllamaProvider,
+    }
+
+    provider_class = providers.get(provider_name, AnthropicProvider)
+    return provider_class()
+
+
+# ============================================================================
+# ANALYSIS ENGINE (business logic — provider-agnostic)
+# ============================================================================
+
+class AnalysisEngine:
+    """
+    Core analysis logic for Cognitive OS.
+    Uses any AI provider to analyze decisions.
+    """
+
+    def __init__(self):
+        self.provider = get_provider()
+
+    def _call(self, prompt: str, max_tokens: int = 1024) -> str:
+        """Call the AI provider. Returns demo response if unavailable."""
+        try:
+            result = self.provider.complete(prompt, max_tokens)
+            if result:
+                return result
+        except Exception as e:
+            print(f"AI provider error: {e}")
+        return None
 
     def analyze_decision(self, decision: dict, user_context: str) -> str:
-        """
-        Analyze a decision for gaps, biases, and risks.
-        """
-        if not self.client:
-            return self._demo_response("analyze", decision)
-
-        conviction_level = decision.get('conviction', 5)
-        prompt = f"""
-{user_context}
+        prompt = f"""{user_context}
 
 DECISIÓN A ANALIZAR:
 Título: {decision['title']}
 Contexto: {decision['context']}
-Tipo de decisión: {decision['decision_type']}
+Tipo: {decision['decision_type']}
 Área: {decision['area']}
-Convicción actual: {conviction_level}/10
+Convicción: {decision.get('conviction', 5)}/10
 
-Tu tarea como analista crítico especializado en {decision['area']}:
+Analiza con rigor:
+1. **Lagunas de información**: ¿Qué datos clave faltan?
+2. **Sesgos cognitivos**: ¿Qué sesgos podrían estar presentes?
+3. **Riesgos subestimados**: ¿Qué riesgos se minimizaron?
+4. **Supuestos ocultos**: ¿Qué se asume que podría no ser cierto?
+5. **Preguntas incómodas**: 2-3 preguntas que desafíen la decisión.
 
-**Analiza con rigor:**
-1. **Lagunas de información**: ¿Qué datos clave faltan? ¿Qué te gustaría saber antes de decidir?
-2. **Sesgos cognitivos**: ¿Qué sesgos (confirmation bias, optimismo, anclaje, etc.) podrían estar presentes?
-3. **Riesgos subestimados**: Basándote en la convicción de {conviction_level}/10, ¿qué riesgos se minimizaron?
-4. **Supuestos ocultos**: ¿Qué está asumiendo que podría no ser cierto?
-5. **Preguntas incómodas**: Plantea 2-3 preguntas que desafíen la decisión.
+Sé conciso. Prioriza insights únicos sobre obviedades."""
 
-**Formato:**
-- Sé conciso pero penetrante
-- Prioriza insights únicos sobre obviedades
-- Conecta con el contexto del usuario ({decision['area']})
-"""
-
-        try:
-            response = self.client.messages.create(
-                model=self.model,
-                max_tokens=1024,
-                messages=[{"role": "user", "content": prompt}]
-            )
-            return response.content[0].text
-        except Exception as e:
-            return f"Error en análisis: {str(e)}"
+        result = self._call(prompt)
+        return result or self._demo("analyze", decision)
 
     def counterargument(self, decision: dict, user_context: str) -> str:
-        """
-        Challenge the decision with opposing viewpoints and worst-case scenarios.
-        """
-        if not self.client:
-            return self._demo_response("counterargument", decision)
-
-        prompt = f"""
-{user_context}
+        prompt = f"""{user_context}
 
 DECISIÓN A DESAFIAR:
 Título: {decision['title']}
 Contexto: {decision['context']}
 Tipo: {decision['decision_type']}
 
-Tu tarea como "devil's advocate" inteligente:
+Como devil's advocate:
+1. **Hipótesis opuesta**: Argumento MÁS FUERTE contra esta decisión
+2. **Supuestos frágiles**: ¿Cuál es más probable que falle?
+3. **Escenarios de fracaso**: ¿En qué contextos fallaría?
+4. **Evidencia ignorada**: ¿Qué datos se minimizan?
+5. **Sesgo de confirmación**: ¿Qué buscaría alguien que quiere PROBAR que estás equivocado?
 
-**Cuestiona con especificidad:**
-1. **La hipótesis opuesta**: ¿Cuál sería el argumento MÁS FUERTE contra esta decisión?
-2. **Supuestos frágiles**: ¿En qué supuestos descansa? ¿Cuál es más probable que falle?
-3. **Escenarios de fracaso**: ¿En qué contextos o circunstancias fallaría rotundamente?
-4. **Evidencia que se ignora**: ¿Qué datos o señales se minimizan o descartan?
-5. **Sesgo de confirmación**: ¿Qué información buscaría alguien que quiere PROBAR que estás equivocado?
+Cierra con: ¿Qué cambiaría tu decisión?"""
 
-**Enfoque:**
-- No repitas el argumento original: desafíalo desde nuevos ángulos
-- Sé específico: ejemplos concretos, no generalidades
-- Provoca reflexión, no desánimo
-
-**Cierra con:** ¿Qué cambiaría tu decisión?
-"""
-
-        try:
-            response = self.client.messages.create(
-                model=self.model,
-                max_tokens=1024,
-                messages=[{"role": "user", "content": prompt}]
-            )
-            return response.content[0].text
-        except Exception as e:
-            return f"Error en contraargumento: {str(e)}"
-
-    def synthesize(self, decision: dict, analysis: str, counterargument: str) -> str:
-        """
-        Synthesize analysis and counterargument into clear summary.
-        """
-        if not self.client:
-            return self._demo_response("synthesize", decision)
-
-        prompt = f"""
-DECISIÓN: {decision['title']}
-
-ANÁLISIS:
-{analysis}
-
-CONTRAARGUMENTO:
-{counterargument}
-
-Tu tarea: Sintetiza en 3-4 puntos clave:
-- Problema claro
-- Opciones principales
-- Trade-offs críticos
-- Incertidumbre clave
-
-Sin ruido. Directo al punto.
-"""
-
-        try:
-            response = self.client.messages.create(
-                model=self.model,
-                max_tokens=512,
-                messages=[{"role": "user", "content": prompt}]
-            )
-            return response.content[0].text
-        except Exception as e:
-            return f"Error en síntesis: {str(e)}"
+        result = self._call(prompt)
+        return result or self._demo("counterargument", decision)
 
     def premortem(self, decision: dict, expected_outcome: str) -> str:
-        """
-        Pre-mortem: Imagine the decision fails, what went wrong?
-        """
-        if not self.client:
-            return self._demo_response("premortem", decision)
-
-        prompt = f"""
-DECISIÓN: {decision['title']}
+        prompt = f"""DECISIÓN: {decision['title']}
 RESULTADO ESPERADO: {expected_outcome}
 
-Imagina que en 6 meses esta decisión fracasa completamente.
-
-Describe:
+Imagina que en 6 meses esta decisión fracasa.
 1. Qué salió mal específicamente
-2. Por qué falló (causas raíz)
-3. Qué señales se ignoraron
+2. Causas raíz
+3. Señales que se ignoraron
 4. Cómo reconocerías el fallo temprano
 
-Sé específico. Usa ejemplos concretos.
-"""
+Sé específico con ejemplos concretos."""
 
-        try:
-            response = self.client.messages.create(
-                model=self.model,
-                max_tokens=1024,
-                messages=[{"role": "user", "content": prompt}]
-            )
-            return response.content[0].text
-        except Exception as e:
-            return f"Error en pre-mortem: {str(e)}"
+        result = self._call(prompt)
+        return result or self._demo("premortem", decision)
 
     def synthesize_decision(self, analysis: str, counterargument: str, premortem: str) -> str:
-        """
-        Synthesize all analyses into clear, actionable summary.
-        """
-        if not self.client:
-            return self._demo_response("synthesize", {})
+        prompt = f"""ANÁLISIS COMPLETO:
 
-        prompt = f"""
-ANÁLISIS COMPLETO DE UNA DECISIÓN:
+ANÁLISIS: {analysis}
+CONTRAARGUMENTO: {counterargument}
+PRE-MORTEM: {premortem}
 
-ANÁLISIS:
-{analysis}
+Sintetiza en máximo 5 puntos:
+1. Problema claro
+2. Opciones principales
+3. Trade-offs críticos
+4. Incertidumbre clave
+5. Siguiente paso
 
-CONTRAARGUMENTO:
-{counterargument}
+Sin ruido. Directo. Accionable."""
 
-PRE-MORTEM:
-{premortem}
-
-Tu tarea: Sintetiza en máximo 5 puntos clave:
-1. Problema claro (¿cuál es el verdadero problema?)
-2. Opciones principales (¿qué alternativas reales hay?)
-3. Trade-offs críticos (¿qué pierdo en cada opción?)
-4. Incertidumbre clave (¿qué NO sé?)
-5. Siguiente paso (¿qué hacer ahora?)
-
-Sin ruido. Directo. Accionable.
-"""
-
-        try:
-            response = self.client.messages.create(
-                model=self.model,
-                max_tokens=1024,
-                messages=[{"role": "user", "content": prompt}]
-            )
-            return response.content[0].text
-        except Exception as e:
-            return f"Error en síntesis: {str(e)}"
+        result = self._call(prompt, max_tokens=512)
+        return result or self._demo("synthesize", {})
 
     def review_decision(self, decision: dict, outcome: str, expected: str) -> str:
-        """
-        Review a decision: compare expectation vs reality.
-        """
-        if not self.client:
-            return self._demo_response("review", decision)
-
-        prompt = f"""
-REVISIÓN DE DECISIÓN PASADA
+        prompt = f"""REVISIÓN DE DECISIÓN PASADA
 
 DECISIÓN: {decision['title']}
 CONTEXTO: {decision['context']}
+ESPERADO: {expected}
+REAL: {outcome}
 
-RESULTADO ESPERADO:
-{expected}
-
-RESULTADO REAL:
-{outcome}
-
-Tu tarea:
 1. Compara: ¿Qué funcionó? ¿Qué no?
 2. Detecta: ¿Dónde fallaron los supuestos?
 3. Analiza: ¿Qué señales se ignoraron?
 4. Extrae: ¿Qué aprendiste?
 5. Patrón: ¿Es un sesgo recurrente?
 
-Sé específico. Usa números si es posible.
-"""
+Sé específico. Usa números si es posible."""
 
-        try:
-            response = self.client.messages.create(
-                model=self.model,
-                max_tokens=1024,
-                messages=[{"role": "user", "content": prompt}]
-            )
-            return response.content[0].text
-        except Exception as e:
-            return f"Error en revisión: {str(e)}"
+        result = self._call(prompt)
+        return result or self._demo("review", decision)
 
     def detect_patterns(self, decisions: list, user_context: str) -> str:
-        """
-        Analyze multiple decisions to detect recurring patterns and biases.
-        """
-        if not self.client:
-            return self._demo_response("patterns", {})
-
         decisions_text = "\n".join([
             f"- {d['title']} ({d['area']}, {d['decision_type']}): {d.get('status', 'sin resultado')}"
-            for d in decisions[:10]  # Límitar a últimas 10 decisiones
+            for d in decisions[:10]
         ])
 
-        prompt = f"""
-{user_context}
+        prompt = f"""{user_context}
 
 HISTORIAL DE DECISIONES:
 {decisions_text}
 
-Tu tarea como analista de patrones:
-1. Detecta sesgos recurrentes (¿qué patrones ves?)
-2. Identifica fortalezas (¿dónde aciertas?)
-3. Señala puntos débiles (¿dónde fallas?)
-4. Agrupa por tema (¿hay clusters?)
-5. Sugiere mejora (¿qué cambiar?)
+Analiza patrones:
+1. **Sesgos recurrentes**: ¿Qué patrones negativos se repiten?
+   - Exceso de optimismo, infraestimación de dependencias, errores de timing
+   - Sobreconfianza, contexto insuficiente, ejecución pobre
+2. **Fortalezas**: ¿Dónde acierta consistentemente?
+3. **Puntos débiles**: ¿Dónde falla más?
+4. **Clusters**: ¿Hay agrupaciones por tema?
+5. **Recomendaciones accionables**: ¿Qué cambiar?
 
-Sé constructivo. Baséate en datos (no intuición).
-"""
+Distingue entre patrón detectado e inferencia especulativa.
+Prioriza insights accionables sobre resúmenes narrativos."""
 
-        try:
-            response = self.client.messages.create(
-                model=self.model,
-                max_tokens=1024,
-                messages=[{"role": "user", "content": prompt}]
-            )
-            return response.content[0].text
-        except Exception as e:
-            return f"Error en patrones: {str(e)}"
+        result = self._call(prompt)
+        return result or self._demo("patterns", {})
 
-    def _demo_response(self, analysis_type: str, decision: dict) -> str:
-        """
-        Demo responses when Claude API is not available.
-        """
+    def _demo(self, analysis_type: str, decision: dict) -> str:
+        """Fallback demo responses when no AI provider is available."""
         title = decision.get('title', 'tu decisión') if decision else 'tu decisión'
 
         demos = {
-            "analyze": f"""[MODO DEMO - Claude API no disponible]
+            "analyze": f"""[MODO DEMO — Configura AI_PROVIDER y API key para análisis real]
 
 Análisis de: {title}
 
@@ -309,135 +263,74 @@ Lagunas identificadas:
 Sesgos detectados:
 - Optimismo respecto a timeline
 - Confirmación: buscando datos que apoyan la idea
-- Disponibilidad: casos similares que salieron bien
 
 Preguntas incómodas:
 - ¿Qué pasa si el mercado cambia?
-- ¿Cuánto te afecta si esto falla?
-- ¿Qué estarías ignorando?
-
-Para análisis real, configura ANTHROPIC_API_KEY.""",
+- ¿Cuánto te afecta si esto falla?""",
 
             "counterargument": f"""[MODO DEMO]
 
 Escenarios donde {title} falla:
+1. El timing es incorrecto
+2. No hay suficiente budget
+3. Falta expertise crítica
+4. Alguien ya lo hizo mejor
 
-1. Mercado: El timing es incorrecto
-2. Recursos: No hay suficiente budget
-3. Equipo: Falta expertise crítica
-4. Competencia: Alguien ya lo hizo mejor
-
-Supuestos cuestionables:
-- Asumir que X permanecerá estable
-- Asumir que el equipo puede escalar
-
-Para análisis real, configura ANTHROPIC_API_KEY.""",
-
-            "synthesize": """[MODO DEMO]
-
-Síntesis:
-- Problema: Decisión con fundamento pero riesgos no mitigados
-- Opciones: A) Proceder con ajustes | B) Más análisis | C) Esperar señal
-- Trade-offs: Rapidez vs seguridad
-- Incertidumbre: Comportamiento del mercado
-
-Para análisis real, configura ANTHROPIC_API_KEY.""",
+¿Qué cambiaría tu decisión?""",
 
             "premortem": """[MODO DEMO]
 
 Si esta decisión falla en 6 meses:
-
-Causas raíz:
 1. Estimaciones demasiado optimistas
 2. Cambio en la prioridad del negocio
 3. Falta de adopción de usuarios
 
-Señales tempranas:
+Señales tempranas a vigilar:
 - Engagement bajo en primeros 2 meses
-- Feedback negativo consistente
-- Rotación de equipo clave
-
-Para análisis real, configura ANTHROPIC_API_KEY.""",
+- Feedback negativo consistente""",
 
             "synthesize": """[MODO DEMO]
 
-SÍNTESIS:
-
-1. Problema claro
-   La decisión tiene mérito pero riesgos no mitigados
-
-2. Opciones principales
-   A) Proceder con ajustes | B) Más análisis | C) Esperar señal
-
-3. Trade-offs críticos
-   Rapidez vs Seguridad | Control vs Delegación
-
-4. Incertidumbre clave
-   Comportamiento del mercado
-   Capacidad de equipo
-   Timeline real
-
-5. Siguiente paso
-   Definir 2-3 métricas clave para decidir rápido
-
-Para análisis real, configura ANTHROPIC_API_KEY.""",
+1. Problema: Decisión con fundamento pero riesgos no mitigados
+2. Opciones: A) Proceder con ajustes | B) Más análisis | C) Esperar
+3. Trade-offs: Rapidez vs seguridad
+4. Incertidumbre: Comportamiento del mercado
+5. Siguiente paso: Definir métricas clave""",
 
             "review": """[MODO DEMO]
 
-REVISIÓN:
-
 Comparación: Expectativa vs Realidad
-- Lo que funcionó: Ejecución fue más rápida
-- Lo que no: Adopción fue más lenta
+- Lo que funcionó: Ejecución más rápida
+- Lo que no: Adopción más lenta
 
-Sesgos ignorados:
-- Supusiste que X, pero resultó Y
-- Subvaloraste la curva de aprendizaje
-
-Aprendizajes:
-1. Necesitas más tiempo para validación
-2. El mercado es más conservador
-3. Comunidad es clave, no solo producto
-
-Patrón recurrente:
-Tendencia a ser optimista en timelines
-
-Para análisis real, configura ANTHROPIC_API_KEY.""",
+Patrón recurrente: Optimismo en timelines""",
 
             "patterns": """[MODO DEMO]
 
-PATRONES DETECTADOS:
-
 Sesgos recurrentes:
-- Optimismo en estimaciones (5 de 8 decisiones)
-- Sobreestimar capacidad de equipo
-- Subestimar fricción del mercado
+- Optimismo en estimaciones
+- Sobreestimar capacidad
+- Subestimar fricción de mercado
 
 Fortalezas:
-✓ Análisis de competencia excelente
-✓ Buena adaptabilidad a cambios
-✓ Aprendes rápido de feedback
-
-Puntos débiles:
-✗ Planning financiero muy optimista
-✗ No consultas a otros (sesgo de confirmación)
-✗ Timing y recursos mal estimados
+- Buen análisis de competencia
+- Adaptabilidad a cambios
 
 Mejoras sugeridas:
 1. Multiplica timelines por 1.5x
 2. Busca contraargumentos activamente
-3. Valida supuestos con datos, no intuición
-
-Para análisis real, configura ANTHROPIC_API_KEY."""
+3. Valida supuestos con datos"""
         }
 
-        return demos.get(analysis_type, "Demo response")
+        return demos.get(analysis_type, "[MODO DEMO] Configura AI_PROVIDER para análisis real.")
 
 
-# Initialize analyzer
-analyzer = AIAnalyzer()
+# ============================================================================
+# PUBLIC API
+# ============================================================================
 
+_engine = AnalysisEngine()
 
 def get_analyzer():
-    """Get or create AI analyzer instance"""
-    return analyzer
+    """Get the analysis engine instance."""
+    return _engine

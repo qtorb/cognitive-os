@@ -71,8 +71,9 @@ Cognitive OS/
 │   └── cognitive_os.db      # SQLite database
 ├── dashboard.html           # Complete frontend interface
 ├── onboarding.html          # User onboarding flow
-├── test.html                # Test utilities
-└── [documentation files]    # Setup guides and architecture docs
+├── arrancar.bat             # Windows: start backend server
+├── abrir_frontend.bat       # Windows: open frontend in browser
+└── README.md                # This file (single source of truth)
 ```
 
 ## Quick Start
@@ -88,7 +89,7 @@ Cognitive OS/
 
 **1. Clone and navigate:**
 ```bash
-git clone https://github.com/yourusername/cognitive-os.git
+git clone https://github.com/qtorb/cognitive-os.git
 cd "Cognitive OS/backend"
 ```
 
@@ -122,6 +123,13 @@ The API will be available at `http://localhost:8000`.
 - Open `dashboard.html` in your browser (from the project root directory)
 - First-time users will see the onboarding flow
 - Log in with your Google account
+
+### Windows Quick Start (without terminal)
+
+If you prefer not to use PowerShell:
+1. Double-click `arrancar.bat` to start the backend server
+2. Double-click `abrir_frontend.bat` to open the frontend
+3. Keep the server window open while using the app
 
 ## Usage Workflow
 
@@ -449,9 +457,21 @@ Authorization: Bearer {token}
 - **FastAPI** - Modern async Python web framework
 - **SQLAlchemy** - ORM with SQLite backend
 - **Pydantic V2** - Request/response validation
-- **Claude API** - AI-powered analysis with fallback demo responses
+- **AI Engine** - Model-agnostic analysis (Anthropic, OpenAI, Ollama)
 - **Google OAuth 2.0** - Secure multi-user authentication
 - **JWT** - Stateless token-based authentication
+
+### AI Architecture (Model-Agnostic)
+
+The AI layer uses a provider adapter pattern. Swap models by changing one env var:
+
+```
+AI_PROVIDER=anthropic   # or: openai, ollama
+AI_MODEL=claude-sonnet-4-20250514   # or: gpt-4o, llama3
+```
+
+Providers: Anthropic (Claude), OpenAI (GPT), Ollama (local models).
+Adding a new provider: implement `BaseProvider.complete()` in `ai_service.py`.
 
 ### Database Schema
 
@@ -547,7 +567,7 @@ Authorization: Bearer {token}
 
 ### Fallback Behavior
 
-When Claude API is unavailable, the system returns demo responses demonstrating the expected analysis format. This ensures the product remains functional during development or API issues.
+When no AI provider is available, the system returns demo responses demonstrating the expected analysis format. This ensures the product remains functional during development or when API keys are not configured.
 
 ## Testing
 
